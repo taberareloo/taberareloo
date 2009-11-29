@@ -19,5 +19,6 @@
    "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDwvAzkwD3HgjUFznlTiuN2657GiaWa3nvzuDIoTUR9392Cg/4K0RhSGxPCdziG9zHGeIry5PTGExQJipLNyeqTFpVb7kcITaaNHMM5ZuKXocx0uudA5D1+n5YxeTAoX6JG7bjCyLthxnRfxzXh50JSFkYNdZUpWXoTNVLeDZyIsQIDAQAB",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs" ],
-   "version": "0.0.1"
+   "version": "0.0.1",
+   "update_url": "http://cloud.github.com/downloads/Constellation/taberareloo/taberareloo.crx"
 }
