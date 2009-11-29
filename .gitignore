@@ -1,0 +1,4 @@
+package/
+*.swp
+*.bak
+*.orig

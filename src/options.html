@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script type="text/javascript" src="lib/Base.js"></script>
+<script type="text/javascript" src="lib/DOM.js"></script>
+<script type="text/javascript" src="lib/Async.js"></script>
+<script type="text/javascript" src="lib/Style.js"></script>
+<script type="text/javascript" src="lib/Signal.js"></script>
+<script type="text/javascript" src="lib/proto.js"></script>
+<script type="text/javascript" src="lib/utils.js"></script>
+<script type="text/javascript">
+<!--
+(function(){
+var background = chrome.extension.getBackgroundPage();
+var Config    = background.TBRL.Config;
+
+connect(document, 'onDOMContentLoaded', document, function(){
+
+  // smoothing slide
+  var inner     = $('inner');
+  var slides = ['services', 'post', 'about'];
+  var tabs = $A(document.getElementsByClassName('tab'));
+  var now_active = 0;
+  addElementClass(tabs[now_active], 'active');
+  tabs.forEach(function(li){
+    var p = li.getElementsByTagName('p')[0];
+    var anchor = p.className;
+    connect(li, 'onclick', li, function(ev){
+      removeElementClass(tabs[now_active], 'active');
+      var index = slides.indexOf(anchor);
+      if(~index){
+        now_active = index;
+        addElementClass(tabs[now_active], 'active');
+        inner.style.marginLeft = (-index)*100+'%';
+      }
+    });
+  });
+
+  // services
+  var services = new Services();
+  // tag provider
+  var provider = new Provider();
+  // tag auto complete
+  var tag_check = new TagCheck();
+  connect($('save'), 'onclick', window, function(ev){
+    var s = services.body();
+    var p = provider.body();
+    var t = tag_check.body();
+    background.TBRL.configSet({
+      'services' : s,
+      'post'    : {
+        'tag_provider'     : p,
+        'tag_auto_complete': t
+      }
+    });
+    this.close();
+  });
+});
+
+var Services = function(){
+  var container = $('container');
+  var self = this;
+  this.all = [];
+  var configs = Config['services'] || {};
+
+  background.Models.values.forEach(function(model){
+    if(!model.check) return;
+
+    var row = [model.name];
+    row.icon = model.ICON;
+    var config = configs[model.name] || {};
+    Services.TYPES.forEach(function(type){
+      var postable = (type === 'favorite')? !!model.fovor : model.check({
+        type: type,
+        pageUrl: {
+          match : function(){ return true }
+        }
+      });
+      row.push(config[type] || (postable? 'enabled' : null));
+    });
+    self.all.push(row);
+  });
+
+  var tbody = $('service_body');
+  var df = $DF();
+  this.elements = {};
+
+  this.all.forEach(function(service){
+    var icon = service.icon;
+    service = $A(service);
+    servicename = service[0];
+    self.elements[servicename] = {};
+    service[0] = $N('td', null, [
+      $N('img', {
+        src: icon,
+        class: 'service_icon'
+      }),
+      $N('p', {
+        class: 'service_text'
+      }, service[0]+'')
+    ]);
+    var ELMS = Services.ELMS;
+    for(var i = 1, len = service.length; i < len; ++i)(function(item, index){
+      if(item){
+        var container = ELMS.container.cloneNode(false);
+        var button = ELMS[item].cloneNode(false);
+        container.appendChild(button);
+        service[index] = $N('td', null, [container]);
+        self.elements[servicename][Services.TYPES[index-1]] = button;
+        connect(service[index], 'onclick', service[index], function(ev){
+          if(hasElementClass(button, 'enabled')){
+            removeElementClass(button, 'enabled');
+            addElementClass(button, 'disabled');
+          } else if(hasElementClass(button, 'disabled')){
+            removeElementClass(button, 'disabled');
+            addElementClass(button, 'default');
+          } else {
+            removeElementClass(button, 'default');
+            addElementClass(button, 'enabled');
+          }
+        });
+      } else {
+        self.elements[servicename][Services.TYPES[index-1]] = null;
+        service[index] = $N('td');
+      }
+    })(service[i], i);
+    var tr = $N('tr', {
+      class: 'service',
+      id: servicename
+    }, service);
+    df.appendChild(tr);
+  });
+  tbody.appendChild(df);
+};
+
+Services.TYPES = ['regular', 'photo', 'quote', 'link', 'video', 'conversation', 'favorite'];
+
+Services.ELMS = {
+  'container': $N('div', {
+    class: 'button_container'
+  }),
+  'enabled': $N('div', {
+    class:'button enabled'
+  }),
+  'disabled': $N('div', {
+    class:'button disabled'
+  }),
+  'default': $N('div', {
+    class:'button default'
+  }),
+};
+
+Services.prototype = {
+  body: function(){
+    var result = {};
+    var self = this;
+    Object.keys(self.elements).forEach(function(name){
+      var val = self.elements[name];
+      result[name] = {};
+      Services.TYPES.forEach(function(type){
+        if(val[type]){
+          var button = val[type];
+          if(hasElementClass(button, 'enabled')){
+            result[name][type] = 'enabled';
+          } else if(hasElementClass(button, 'disabled')){
+            result[name][type] = 'disabled';
+          } else {
+            result[name][type] = 'default';
+          }
+        } else {
+          result[name][type] = null;
+        }
+      });
+    });
+    return result;
+  }
+};
+
+var Provider = function(){
+  var self = this
+  this.provider = Config["post"]["tag_provider"];
+  this.radioboxes = [];
+  background.Models.values.forEach(function(model){
+    if(model.getSuggestions){
+      var img = $N('img', {
+        src: model.ICON,
+        class: 'tag_provider_icon'
+      });
+      var label = $N('p', {
+        class: 'tag_provider_text'
+      }, model.name);
+      var radio = $N('input', {
+        type: 'radio',
+        name: 'rag_provider',
+        value: model.name
+      });
+      radio.checked = (self.provider === model.name);
+      self.radioboxes.push(radio);
+      var set = $N('div', {
+        class: 'tag_provider_set'
+      }, [radio, img, label]);
+      $('tag_providers').appendChild(set);
+    }
+  });
+};
+
+Provider.prototype = {
+  body: function(){
+    var result = '';
+    this.radioboxes.some(function(radio){
+      if(radio.checked){
+        result = radio.value;
+        return true;
+      }
+      return false;
+    });
+    return result;
+  }
+};
+
+var TagCheck = function(){
+  this.check = $('tag_auto_complete_checkbox');
+  this.check.checked = !!Config["post"]["tag_auto_complete"];
+};
+
+TagCheck.prototype = {
+  body: function(){
+    return this.check.checked;
+  }
+};
+
+})();
+-->
+</script>
+<style type="text/css">
+<!--
+ul#tabs {
+  display: block;
+  width: 800px;
+  padding: 1px;
+  margin: 0px 0px 10px 0px;
+  background-color: lightgray;
+}
+li.tab {
+  display: inline-block;
+  padding: 7px;
+  margin: 8px;
+  background-color: gray;
+  -webkit-border-radius: 4px;
+  list-style: none inside;
+  cursor: pointer;
+}
+li.tab p {
+  display: inline;
+  color: white;
+  font-size: 90%;
+}
+li.tab:hover {
+  padding: 7px;
+  margin: 8px;
+  background-color: darkgray;
+}
+li.tab:hover:active {
+  background-color: dimgray;
+  padding: 5px;
+  margin: 10px;
+}
+li.tab.active {
+  background-color: silver;
+}
+div#container {
+  overflow: hidden;
+  width: 800px;
+  padding: 0px;
+  margin: 0px;
+  /*-webkit-border-radius: 9px;*/
+  border: 1px solid gray;
+}
+div#inner {
+  width: 500%;
+  heigt: 100%;
+  -webkit-transition: margin-left 0.1s ease-out;
+}
+div.slide {
+  font-size: 80%;
+  float: left;
+  position: relative;
+  display: inline;
+  overflow: auto;
+  width: 20%;
+  height: 500px;
+}
+div.option,
+div.item {
+  padding: 10px;
+  margin: 10px;
+  border: 1px solid silver;
+  -webkit-border-radius: 4px;
+}
+div.option a,
+div.item a{
+  text-decoration: none;
+  color: gray;
+}
+p.service_text {
+  display: inline;
+}
+img.service_icon {
+  display: inline;
+  margin-top: 2px;
+  margin-right: 5px;
+  width: 16px;
+  height: 16px;
+}
+div.button_container {
+  padding: 8px;
+}
+div.button {
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+div.button.empty {
+  background-image: url("skin/empty.png");
+  cursor: auto;
+}
+div.button.enabled {
+  background-image: url("skin/enabled.png");
+}
+div.button.disabled {
+  background-image: url("skin/disabled.png");
+}
+div.button.default {
+  background-image: url("skin/default.png");
+}
+div.tag_provider_set > * {
+  margin: 3px;
+}
+img.tag_provider_icon {
+  display: inline;
+  width: 16px;
+  height: 16px;
+}
+p.tag_provider_text {
+  display: inline;
+}
+input#save {
+  width: 800px;
+  cursor: pointer;
+}
+-->
+</style>
+</head>
+<body>
+<ul id="tabs">
+  <li class="tab"><p class="services">Services</p></li>
+  <li class="tab"><p class="post">Post</p></li>
+  <li class="tab"><p class="about">About</p></li>
+</ul>
+<div id="container">
+  <div id="inner">
+    <div id="services" class="slide">
+      <div class="option">
+        <table>
+        <thead>
+        <tr>
+        <th>Services</th>
+        <th>Text</th>
+        <th>Photo</th>
+        <th>Quote</th>
+        <th>Link</th>
+        <th>Video</th>
+        <th>Chat</th>
+        <th>Reblog</th>
+        </tr>
+        </thead>
+        <tbody id="service_body">
+        </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="post" class="slide">
+      <div class="option">
+        <p>Tag Provider</p>
+        <div id="tag_providers" class="buttongroup"></div>
+      </div>
+      <div class="option">
+        <p>Tag Auto Complete</p><input id="tag_auto_complete_checkbox" type="checkbox" name="tag_auto_complete">
+      </div>
+    </div>
+    <div id="about" class="slide">
+      <div class="item">
+        <h2><a href="http://github.com/Constellation/taberareloo">Taberareloo</a></h2>
+        <p>Yet Another Tombloo on Chromium</p>
+      </div>
+      <div class="item">
+        <h2>Developers &amp; Contributers</h2>
+        <div class="item">
+          <h3>Taberareloo Dev Team</h3>
+          <p class="developer">Constellation</p>
+        </div>
+        <div class="item">
+          <h3>Tombloo Dev Team</h3>
+          <p class="developer">to</p>
+          <p class="developer">ku</p>
+          <p class="developer">mattn</p>
+          <p class="developer">youpy</p>
+          <p class="developer">cxx</p>
+          <p class="developer">Constellation</p>
+          <p class="developer">YungSang</p>
+          <p class="developer">zorio</p>
+          <p class="developer">simonetta</p>
+          <p class="developer">whym</p>
+        </div>
+      </div>
+      <div class="item">
+        <h2>License</h2>
+        <div class="item">
+          <h3>Taberareloo Code</h3>
+          <p>The MIT License</p>
+          <p>Copyright (c) 2009 Constellation &amp; Taberareloo Dev Team</p>
+        </div>
+        <div class="item">
+          <h3>Tombloo Code</h3>
+          <p>Public Domain</p>
+          <p>Copyright (c) 2009 to &amp; Tombloo Dev Team</p>
+        </div>
+        <div class="item">
+          <h3>FAMFAMFAM Icons</h3>
+          <p>Creative Commons Attribution 2.5 License</p>
+          <p>Copyright (c) <a href="http://www.famfamfam.com/">FAMFAMFAM</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="buttons">
+<input type="button" id="save" value="Save">
+</div>
+</body>
+</html>

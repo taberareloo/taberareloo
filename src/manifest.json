@@ -1,0 +1,23 @@
+{
+   "background_page": "background.html",
+   "content_scripts": [ {
+      "js": [ "lib/Base.js", "lib/DOM.js", "lib/Async.js", "lib/proto.js", "lib/utils.js", "lib/repository.js", "lib/content.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_start"
+   } ],
+   "browser_action": {
+     "default_icon" : "skin/link.png",
+     "default_title": "taberareloo",
+     "popup"        : "popup.html"
+   },
+   "options_page": "options.html",
+   "icons": {
+     "48": "skin/taberareloo.png"
+   },
+   "description": "Yet Another Tombloo on Chromium",
+   "id": "df7bd16438644971bbfbfc7d59fb6715",
+   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDwvAzkwD3HgjUFznlTiuN2657GiaWa3nvzuDIoTUR9392Cg/4K0RhSGxPCdziG9zHGeIry5PTGExQJipLNyeqTFpVb7kcITaaNHMM5ZuKXocx0uudA5D1+n5YxeTAoX6JG7bjCyLthxnRfxzXh50JSFkYNdZUpWXoTNVLeDZyIsQIDAQAB",
+   "name": "Taberareloo",
+   "permissions": [ "http://*/*", "https://*/*", "tabs" ],
+   "version": "0.0.1"
+}
