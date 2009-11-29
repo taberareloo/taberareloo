@@ -19,7 +19,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
 
   // smoothing slide
   var inner     = $('inner');
-  var slides = ['services', 'post', 'about'];
+  var slides = ['services', 'post', 'entry', 'about'];
   var tabs = $A(document.getElementsByClassName('tab'));
   var now_active = 0;
   addElementClass(tabs[now_active], 'active');
@@ -43,15 +43,25 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var provider = new Provider();
   // tag auto complete
   var tag_check = new TagCheck();
+  // thumbnail template
+  var thumbnail = new ThumbnailTemplate();
+  // trim reblog info
+  var reblog_check = new TrimReblogCheck();
   connect($('save'), 'onclick', window, function(ev){
-    var s = services.body();
-    var p = provider.body();
-    var t = tag_check.body();
+    var s  = services.body();
+    var p  = provider.body();
+    var t  = tag_check.body();
+    var th = thumbnail.body();
+    var r  = reblog_check.body();
     background.TBRL.configSet({
       'services' : s,
-      'post'    : {
+      'post'     : {
         'tag_provider'     : p,
         'tag_auto_complete': t
+      },
+      'entry'    : {
+        'thumbnail_template' : th,
+        'trim_reblog_info'   : r
       }
     });
     this.close();
@@ -230,6 +240,28 @@ TagCheck.prototype = {
   }
 };
 
+var ThumbnailTemplate = function(){
+  this.input = $('thumbnail_template');
+  this.input.value = Config["entry"]["thumbnail_template"];
+};
+
+ThumbnailTemplate.prototype = {
+  body: function(){
+    return this.input.value;
+  }
+};
+
+var TrimReblogCheck = function(){
+  this.check = $('trim_reblog_info_checkbox');
+  this.check.checked = !!Config["entry"]["trim_reblog_info"];
+};
+
+TrimReblogCheck.prototype = {
+  body: function(){
+    return this.check.checked;
+  }
+};
+
 })();
 -->
 </script>
@@ -346,6 +378,9 @@ img.tag_provider_icon {
 p.tag_provider_text {
   display: inline;
 }
+input.text_input {
+  width : 100%;
+}
 input#save {
   width: 800px;
   cursor: pointer;
@@ -357,6 +392,7 @@ input#save {
 <ul id="tabs">
   <li class="tab"><p class="services">Services</p></li>
   <li class="tab"><p class="post">Post</p></li>
+  <li class="tab"><p class="entry">Entry Contents / etc.</p></li>
   <li class="tab"><p class="about">About</p></li>
 </ul>
 <div id="container">
@@ -388,6 +424,15 @@ input#save {
       </div>
       <div class="option">
         <p>Tag Auto Complete</p><input id="tag_auto_complete_checkbox" type="checkbox" name="tag_auto_complete">
+      </div>
+    </div>
+    <div id="entry" class="slide">
+      <div class="option">
+      <p>Link thumbnail template</p>
+      <input type="text" class="text_input" id="thumbnail_template" placeholder="e.g. <img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; />">
+      </div>
+      <div class="option">
+      <p>Trim reblog info</p><input id="trim_reblog_info_checkbox" type="checkbox" name="trim_reblog_info">
       </div>
     </div>
     <div id="about" class="slide">

@@ -67,11 +67,16 @@ var request = function(url,opt){
 var TBRL = {
   // default config
   Config: {
+    "version" : "0.0.1",
     "services": {
     },
-    "post" : {
+    "post"    : {
       "tag_auto_complete" : true,
       "tag_provider"      : "HatenaBookmark"
+    },
+    "entry"   : {
+      "trim_reblog_info"  : false,
+      "thumbnail_template": ""
     }
   },
   Service: {
@@ -93,3 +98,4 @@ if(window.localStorage.options){
 } else {
   window.localStorage.options = JSON.stringify(TBRL.Config);
 }
+

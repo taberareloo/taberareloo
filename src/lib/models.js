@@ -54,7 +54,7 @@ var Tumblr = {
    * @return {Deferred}
    */
   trimReblogInfo : function(form){
-    if(!getPref('trimReblogInfo'))
+    if(!TBRL.Config['entry']['trim_reblog_info'])
      return;
 
     function trimQuote(entry){
@@ -123,7 +123,7 @@ var Tumblr = {
     var self = this;
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      var form = formContents(doc);
+      var form = formContents($X('id("edit_post")', doc)[0]);
       delete form.preview_post;
       form.redirect_to = Tumblr.TUMBLR_URL+'dashboard';
 
@@ -251,7 +251,7 @@ Tumblr.Video = {
 
 Tumblr.Link = {
   convertToForm : function(ps){
-    var thumb = getPref('thumbnailTemplate').replace(RegExp('{url}', 'g'), ps.pageUrl);
+    var thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
     return {
       'post[type]'  : ps.type,
       'post[one]'   : ps.item,
