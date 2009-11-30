@@ -64,6 +64,7 @@ main.addCallback(function(ps){
     ps.description = desc.body();
     ps.item = title.body();
     ps.tags = tags.body();
+    tags.addNewTags();
     var memo = {};
     items(posters.enables).forEach(function(pair){
       var name = pair[0], poster = pair[1];
@@ -210,6 +211,7 @@ var Tags = function(ps){
   if(Config['post']['tag_auto_complete']){
     if(background.TBRL.Popup.candidates){
       this.candidates = background.TBRL.Popup.candidates;
+      this.provider   = background.TBRL.Popup.provider;
       self.autoComplete = true;
     }
     background.Models[Config['post']['tag_provider']]
@@ -217,12 +219,8 @@ var Tags = function(ps){
     .addCallback(function(res){
       self.arrangeSuggestions(res);
       self.setSuggestions(res);
-      return self.convertToCandidates(res.tags);
-    }).addErrback(function(e){
-      log(e);
-    }).addCallback(function(cands){
-      self.candidates = cands;
-      self.autoComplete = true;
+      self.setTags(res.tags);
+
       var icon = $('loading_icon');
       removeElementClass(icon, 'loading');
       addElementClass(icon, 'loaded');
@@ -233,7 +231,6 @@ var Tags = function(ps){
         } else {
         }
       });
-      background.TBRL.Popup.candidates = cands;
     });
   } else {
     var icon = $('loading_icon');
@@ -315,7 +312,7 @@ Tags.prototype = {
 
   newWords: function(){
     var check = {};
-    this.values.forEach(function(val){
+    this.values().forEach(function(val){
       check[val] = true;
     });
     this.candidates.forEach(function(cand){
@@ -497,6 +494,44 @@ Tags.prototype = {
     res.recommended = recos;
     res.popular = pops;
     res.tags = tags;
+  },
+
+  setTags: function(tags){
+    var candidates = background.TBRL.Popup.candidates;
+    var self = this;
+    if((background.TBRL.Popup.provider && background.TBRL.Popup.provider !== Config['post']['tag_provider']) || (!candidates || !candidates.length)){
+      this.convertToCandidates(tags).addCallback(function(cands){
+        self.candidates = cands;
+        background.TBRL.Popup.candidates = cands;
+        background.TBRL.Popup.provider = Config['post']['tag_provider'];
+        self.autoComplete = true;
+      });
+    } else {
+      this.candidates = candidates;
+      this.provider   = background.TBRL.Popup.provider;
+      this.autoComplete = true;
+      return;
+    }
+  },
+
+  addNewTags: function(){
+    var tags = this.newWords();
+    if(!tags || !tags.length) return;
+
+    this.convertToCandidates(tags).addCallback(function(newCands){
+      var memo = {};
+      var cands = [];
+      if(!background.TBRL.Popup.candidates){
+        background.TBRL.Popup.candidates = [];
+      }
+      background.TBRL.Popup.candidates.concat(newCands).forEach(function(cand){
+        if(memo[cand.value]) return;
+
+        cands.push(cand);
+        memo[cand.value] = true;
+      });
+      background.TBRL.Popup.candidates = cands;
+    });
   },
 
   convertToCandidates: function(tags){
