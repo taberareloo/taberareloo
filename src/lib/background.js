@@ -62,7 +62,7 @@ var request = function(url,opt){
 var TBRL = {
   // default config
   Config: {
-    "version" : "0.0.1",
+    "version" : "0.0.2",
     "services": {
     },
     "post"    : {
