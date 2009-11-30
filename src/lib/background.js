@@ -5,7 +5,6 @@ window.addEventListener('load', function(){
     // connection session
     port.onMessage.addListener(function(item, con){
       var type = item.type;
-      console.log(type);
       if(type === 'request'){
         request_handler(item, con);
       } else if(type === 'post'){
@@ -39,15 +38,11 @@ var request_handler = function(item, con){
 var post_handler = function(item, con){
   var ps = item.ps;
   var id = item.id;
-  console.log(ps);
   win = open(chrome.extension.getURL('quickpostform.html'), '_blank', 'alwaysRaised=yes,toolbar=no,directories=no,status=no,menubar=no,scrollbars=no,location=no,dependent=yes,z-lock=yes');
   win.QuickPostForm = {};
   win.ps = ps;
   win.Models = Models
-}
-chrome.browserAction.onClicked.addListener(function(tab){
-  alert("OK");
-});
+};
 
 var request = function(url,opt){
   opt = update({
@@ -91,7 +86,7 @@ var TBRL = {
     TBRL.Config = config;
     window.localStorage.options = JSON.stringify(config);
   }
-}
+};
 
 if(window.localStorage.options){
   TBRL.Config = JSON.parse(window.localStorage.options);

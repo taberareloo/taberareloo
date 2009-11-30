@@ -41,7 +41,6 @@ connect(window, 'onDOMContentLoaded', window, function(ev){
       chrome.tabs.sendRequest(tab.id, {
         request: 'title'
       }, function(res){
-        log(res);
         var title = res.title;
         main.callback({
           type : 'link',

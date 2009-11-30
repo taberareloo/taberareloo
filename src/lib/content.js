@@ -9,7 +9,7 @@
     target : null,
     init : function(){
       // 確認
-      document.addEventListener('keydown', TBRL.keyhandler, false);
+      //document.addEventListener('keydown', TBRL.keyhandler, false);
       document.addEventListener('mousemove', TBRL.mousehandler, false);
       document.addEventListener('unload', TBRL.unload, false);
       connection.onMessage.addListener(function(item){
@@ -23,7 +23,7 @@
     },
     unload : function(){
       document.removeEventListener('unload', TBRL.unload, false);
-      document.removeEventListener('keydown', TBRL.handler, false);
+      //document.removeEventListener('keydown', TBRL.handler, false);
       document.removeEventListener('mousemove', TBRL.mousehandler, false);
     },
     keyhandler : function(ev){
@@ -36,7 +36,6 @@
         }
         // alt + z
         if(id === "U+005A" && (ev.metaKey || ev.altKey) && !ev.shiftKey && !ev.ctrlKey){
-          console.log('ALT Z');
           var context = update({
             document :document,
             window : window,
