@@ -525,29 +525,33 @@ Tags.prototype = {
     }, {});
     var sg = $('suggestions');
     var df = $DF();
+    var suggestions = {};
     ['recommended', 'popular'].forEach(function(prop){
       res[prop].forEach(function(cand){
         var upCand = cand.toUpperCase();
-        if(upCand in memo){
-          cand = memo[upCand];
-          var sug = $N('p', {
-            class: 'suggestion listed'
-          }, cand);
-        } else {
-          var sug = $N('p', {
-            class: 'suggestion'
-          }, cand);
-        }
-        self.elmTags[cand] = sug;
-        connect(sug, 'onclick', cand, function(ev){
-          if(hasElementClass(sug, 'used')){
-            self.removeWord(cand);
-            removeElementClass(sug, 'used');
+        if(!(upCand in suggestions)){
+          suggestions[upCand] = true;
+          if(upCand in memo){
+            cand = memo[upCand];
+            var sug = $N('p', {
+              class: 'suggestion listed'
+            }, cand);
           } else {
-            self.injectCandidates(cand, true);
+            var sug = $N('p', {
+              class: 'suggestion'
+            }, cand);
           }
-        });
-        df.appendChild(sug);
+          self.elmTags[cand] = sug;
+          connect(sug, 'onclick', cand, function(ev){
+            if(hasElementClass(sug, 'used')){
+              self.removeWord(cand);
+              removeElementClass(sug, 'used');
+            } else {
+              self.injectCandidates(cand, true);
+            }
+          });
+          df.appendChild(sug);
+        }
       });
     });
     sg.appendChild(df);
