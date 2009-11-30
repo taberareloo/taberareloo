@@ -17,7 +17,11 @@ Yet Another Tombloo on Chromium
 
 == INSTALL
 
-  install taberareloo.crx
+http://cloud.github.com/downloads/Constellation/taberareloo/taberareloo.crx
+
+== SCREENSHOT
+
+http://farm3.static.flickr.com/2537/4146114763_d3356c8660_o.png
 
 == DEVELOPERS
 
@@ -45,7 +49,7 @@ Tombloo Code
 (Public Domain)
 Copyright (c) to & Tombloo Dev Team
 
-Icons
+Silk Icons
 (Creative Commons Attribution 2.5 License)
 Copyright (c) FAMFAMFAM
 
