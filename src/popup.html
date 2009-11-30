@@ -29,13 +29,29 @@ var Config  = background.TBRL.Config;
 var main = new Deferred();
 connect(window, 'onDOMContentLoaded', window, function(ev){
   getSelected().addCallback(function(tab){
-    main.callback({
-      type : 'link',
-      item : tab.title,
-      itemUrl: tab.url,
-      page : tab.title,
-      pageUrl: tab.url
-    });
+    if(tab.title){
+      main.callback({
+        type : 'link',
+        item : tab.title,
+        itemUrl: tab.url,
+        page : tab.title,
+        pageUrl: tab.url
+      });
+    } else {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'title'
+      }, function(res){
+        log(res);
+        var title = res.title;
+        main.callback({
+          type : 'link',
+          item : title,
+          itemUrl: tab.url,
+          page : title,
+          pageUrl: tab.url
+        });
+      });
+    }
   });
 });
 

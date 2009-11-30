@@ -230,7 +230,7 @@
         d.errback(item.res);
       }
     }
-  }
+  };
   var post = (function(){
     var ID = 0;
     return function(ps){
@@ -255,5 +255,31 @@
         d.errback(item.res);
       }
     }
-  }
+  };
+  chrome.extension.onRequest.addListener(function(req, sender, func){
+    function title_getter(){
+      var title = document.title;
+      if(!title){
+        var elms = document.getElementsByTagName('title');
+        if(elms.length){
+          title = elms[0].textContent;
+        }
+      }
+      return title;
+    }
+    if(req.request === 'title'){
+      var title = title_getter();
+      if(title){
+        func({
+          title: title
+        });
+      } else {
+        connect(document, 'onDOMContentLoaded', null, function(ev){
+          func({
+            title: title_getter()
+          });
+        });
+      }
+    }
+  });
 })();
