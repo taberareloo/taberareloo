@@ -46,4 +46,5 @@ task :upload do
     :description => "updates.xml version: #{$version}"
   )
 end
+
 # vim: syntax=ruby
