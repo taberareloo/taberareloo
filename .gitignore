@@ -2,3 +2,5 @@ package/
 *.swp
 *.bak
 *.orig
+*.crx
+*.zip

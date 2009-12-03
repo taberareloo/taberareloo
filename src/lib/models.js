@@ -679,6 +679,7 @@ Models.register({
   },
 
   update : function(status){
+    var self = this;
     return maybeDeferred((status.length < 140)?
       status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
     ).addCallback(function(status){

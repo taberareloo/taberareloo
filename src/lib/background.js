@@ -59,6 +59,74 @@ var request = function(url,opt){
   return doXHR(url, opt);
 };
 
+var request_v2 = function(url, opt){
+  var req = new XMLHttpRequest(), ret = new Deferred();
+
+  opt = update({
+    method: 'GET',
+    sendContent: {}
+  }, opt || {});
+
+  if(opt.queryString){
+    var qs = queryString(opt.queryString, true);
+    url += qs;
+  }
+
+  if('username' in opt){
+    req.open(opt.method ? opt.method : (opt.sendContent)? 'POST' : 'GET', url, true, opt.username, opt.password);
+  } else {
+    req.open(opt.method ? opt.method : (opt.sendContent)? 'POST' : 'GET', url, true);
+  }
+
+  if(opt.charset) req.overrideMimeType(opt.charset);
+
+  if(opt.sendContent){
+    var content = queryString(opt.sendContent, false);
+    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  } else {
+    req.setRequestHeader('Content-Type', 'application/octet-stream');
+  }
+
+  req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+  if(opt.headers){
+    Object.keys(opt.headers).forEach(function(key){
+      req.setRequestHeader(key, opt.headers[key]);
+    });
+  }
+
+  var position = -1;
+  var error = false;
+
+  req.onprogress = function(e){
+    position = e.position;
+  }
+  req.onreadystatechange = function(e){
+    if(req.readyState === 4){
+      var length = 0;
+      try {
+        length = parseInt(req.getResponseHeader('Content-Length'), 10);
+      } catch(e) {
+        console.log('ERROR', e);
+      }
+      // 最終時のlengthと比較
+      if(position !== length){
+        if(opt.denyRedirection){
+          ret.errback(req);
+          error = true;
+        }
+      }
+      if(!error){
+        if (req.status >= 200 && req.status < 300)
+          ret.callback(req);
+        else
+          ret.errback(req);
+      }
+    }
+  }
+  req.send(opt.sendContent);
+  return ret;
+}
+
 var TBRL = {
   // default config
   Config: {
