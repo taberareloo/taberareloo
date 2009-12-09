@@ -64,4 +64,4 @@ task :upload do
   )
 end
 
-# vim: syntax=ruby
+# vim: syntax=ruby fileencoding=utf-8
