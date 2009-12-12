@@ -20,7 +20,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
 
   // smoothing slide
   var inner     = $('inner');
-  var slides = ['services', 'post', 'entry', 'about'];
+  var slides = ['services', 'post', 'entry', 'about', 'changes'];
   var tabs = $A(document.getElementsByClassName('tab'));
   var now_active = 0;
   addElementClass(tabs[now_active], 'active');
@@ -395,6 +395,7 @@ input#save {
   <li class="tab"><p class="post">Post</p></li>
   <li class="tab"><p class="entry">Entry Contents / etc.</p></li>
   <li class="tab"><p class="about">About</p></li>
+  <li class="tab"><p class="changes">Changes</p></li>
 </ul>
 <div id="container">
   <div id="inner">
@@ -479,6 +480,16 @@ input#save {
           <p>Copyright (c) <a href="http://www.famfamfam.com/">FAMFAMFAM</a></p>
         </div>
       </div>
+    </div>
+    <div id="changes" class="slide">
+    <div class="item">
+      <h2>0.0.7</h2>
+      <ul>
+        <li>add option title</li>
+        <li>not lose your description/tags/title/posters in case you close popup</li>
+        <li>not open popup when the page is not enabled to post</li>
+      </ol>
+    </div>
     </div>
   </div>
 </div>

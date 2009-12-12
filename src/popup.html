@@ -11,14 +11,6 @@
 <script type="text/javascript" src="lib/utils.js"></script>
 <script type="text/javascript">
 <!--
-function getSelected(){
-  var d = new Deferred();
-  chrome.tabs.getSelected(null, function(tab){
-    d.callback(tab);
-  });
-  return d;
-};
-
 var background = chrome.extension.getBackgroundPage();
 var log = function(target){
   background.console.log.apply(background.console, arguments);
@@ -26,12 +18,23 @@ var log = function(target){
 };
 var Config  = background.TBRL.Config;
 
+function getSelected(){
+  var d = new Deferred();
+  chrome.tabs.getSelected(null, function(tab){
+    if(background.TBRL.Service.isEnableSite(tab.url)){
+      d.callback(tab);
+    } else {
+      window.close();
+    }
+  });
+  return d;
+};
+
 var main = new Deferred();
 connect(window, 'onDOMContentLoaded', window, function(ev){
   getSelected().addCallback(function(tab){
     if(background.TBRL.Popup.contents[tab.url]){
-      var ps = background.TBRL.Popup.contents[tab.url];
-      main.callback(ps);
+      main.callback(background.TBRL.Popup.contents[tab.url]);
     } else if(tab.title){
       main.callback({
         type : 'link',
@@ -67,6 +70,7 @@ main.addCallback(function(ps){
     ps.description = desc.body();
     ps.item = title.body();
     ps.tags = tags.body();
+    ps.enabledPosters = posters.enabled();
     background.TBRL.Popup.contents[ps.itemUrl] = ps;
   }
   connect($('post'), 'onclick', window, function(ev){
@@ -190,13 +194,20 @@ var Posters = function(ps){
   this.elmButton = $('post');
   this.models = background.Models;
   this.enables = {};
+  if(!ps.enabledPosters){
+    ps.enabledPosters = [];
+  }
   this.posters = this.models.check(ps);
   var df = $DF();
   var config = Config['services'];
   this.buttons = [];
   this.posters.forEach(function(poster){
     var obj = config[poster.name] || {};
-    var res = obj[ps.type] || 'enabled';
+    if(~ps.enabledPosters.indexOf(poster.name)){
+      var res = 'default';
+    } else {
+      var res = obj[ps.type] || 'enabled';
+    }
     if(res !== 'disabled'){
       var img = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
       connect(img, 'onclick', self, function(){
@@ -218,6 +229,12 @@ var Posters = function(ps){
   });
   this.elmPanel.appendChild(df);
 };
+
+Posters.prototype = {
+  enabled: function(){
+    return keys(this.enables);
+  }
+}
 
 var Tags = function(ps){
   var self = this;

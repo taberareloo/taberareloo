@@ -18,5 +18,5 @@
    "id": "df7bd16438644971bbfbfc7d59fb6715",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs" ],
-   "version": "0.0.6"
+   "version": "0.0.7"
 }

@@ -144,6 +144,9 @@ var TBRL = {
   },
   Service: {
     post: function(ps){
+    },
+    isEnableSite: function(link){
+      return link.indexOf('http') === 0;
     }
   },
   Popup: {
