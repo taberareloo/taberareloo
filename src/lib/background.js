@@ -148,7 +148,8 @@ var TBRL = {
   },
   Popup: {
     defaultSuggester: 'HatenaBookmark',
-    tags : null
+    tags : null,
+    contents : {}
   },
   configSet: function(config){
     TBRL.Config = config;
