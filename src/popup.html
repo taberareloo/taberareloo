@@ -62,54 +62,63 @@ main.addCallback(function(ps){
   var tags    = new Tags(ps);
   var desc    = new Desc(ps);
   var posters = new Posters(ps);
-  connect($('post'), 'onclick', window, function(ev){
-    try{
-    ps.description = desc.body();
-    ps.item = title.body();
-    ps.tags = tags.body();
-    tags.addNewTags();
-    var memo = {};
-    items(posters.enables).forEach(function(pair){
-      var name = pair[0], poster = pair[1];
-      memo[name] = poster.post(ps);
-    });
-    DeferredHash(memo).addCallback(function(hash){
-      var flag = false;
-      var result = {};
-      items(hash).forEach(function(pair){
-        var name = pair[0], res = pair[1];
-        if(!res[0]){
-          flag = true;
-          if(!result[res[1].message]){
-            result[res[1].message] = [name];
-          } else {
-            result[res[1].message].push(name);
-          }
-        }
-      });
-      var message = [];
-      Object.keys(result).forEach(function(key){
-        message.push(key);
-        result[key].forEach(function(provider){
-          message.push('    '+provider);
-        });
-      });
-      if(flag){
-        message.push('\nwill you reopen?');
-        background.backgroundError(message.join('\n'), ps.itemUrl);
-      }
-    });
-    this.close();
-    }catch(e){
-    log(e);
-    }
-  });
-  connect(window, 'onunload', window, function(ev){
-    log('unload', ev);
+  var posted = false;
+  var psSet = function(){
     ps.description = desc.body();
     ps.item = title.body();
     ps.tags = tags.body();
     background.TBRL.Popup.contents[ps.itemUrl] = ps;
+  }
+  connect($('post'), 'onclick', window, function(ev){
+    posted = true;
+    try{
+      ps.description = desc.body();
+      ps.item = title.body();
+      ps.tags = tags.body();
+      tags.addNewTags();
+      var memo = {};
+      items(posters.enables).forEach(function(pair){
+        var name = pair[0], poster = pair[1];
+        memo[name] = poster.post(ps);
+      });
+      DeferredHash(memo).addCallback(function(hash){
+        var flag = false;
+        var result = {};
+        items(hash).forEach(function(pair){
+          var name = pair[0], res = pair[1];
+          if(!res[0]){
+            flag = true;
+            if(!result[res[1].message]){
+              result[res[1].message] = [name];
+            } else {
+              result[res[1].message].push(name);
+            }
+          }
+        });
+        var message = [];
+        Object.keys(result).forEach(function(key){
+          message.push(key);
+          result[key].forEach(function(provider){
+            message.push('    '+provider);
+          });
+        });
+        if(flag){
+          psSet();
+          message.push('\nwill you reopen?');
+          background.backgroundError(message.join('\n'), ps.itemUrl);
+        } else {
+          delete background.TBRL.Popup.contents[ps.itemUrl];
+        }
+      });
+      this.close();
+    }catch(e){
+      log(e);
+    }
+  });
+  connect(window, 'onunload', window, function(ev){
+    if(!posted){
+      psSet();
+    }
   });
 });
 
