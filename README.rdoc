@@ -1,6 +1,7 @@
 = Taberareloo
 
-* http://github.com/Constellation/taberareloo
+http://github.com/Constellation/taberareloo/raw/master/src/skin/fork64.png
+http://github.com/Constellation/taberareloo
 
 == DESCRIPTION
 
