@@ -1,6 +1,7 @@
 = Taberareloo
 
 http://github.com/Constellation/taberareloo/raw/master/src/skin/fork64.png
+
 http://github.com/Constellation/taberareloo
 
 == DESCRIPTION
@@ -33,11 +34,12 @@ and
 == INSTALL
 
 install at this Google chrome extensions gallery page
+
 https://chrome.google.com/extensions/detail/ldcnohnnlpgglecmkldelbmiokgmikno
 
 == SCREENSHOT
 
-http://farm3.static.flickr.com/2537/4146114763_d3356c8660_o.png
+http://farm3.static.flickr.com/2639/4182059274_dfb9fe06e8_o.png
 
 == DEVELOPERS
 
