@@ -5,6 +5,20 @@
 == DESCRIPTION
 
 Yet Another Tombloo on Chromium
+Tombloo and Taberareloo are the Cross Post Support Tool for SBM and other services.
+
+Services example:
+  Delicious
+  GoogleBookmarks
+  FriendFeed
+  Twitter
+  Instapaper
+
+and
+
+  HatenaBookmark
+  LivedoorClip
+  YahooBookmark (these are Japanese Popular SBM)
 
 == FEATURES/PROBLEMS
 
@@ -17,7 +31,8 @@ Yet Another Tombloo on Chromium
 
 == INSTALL
 
-http://cloud.github.com/downloads/Constellation/taberareloo/taberareloo.crx
+install at this Google chrome extensions gallery page
+https://chrome.google.com/extensions/detail/ldcnohnnlpgglecmkldelbmiokgmikno
 
 == SCREENSHOT
 
@@ -27,6 +42,7 @@ http://farm3.static.flickr.com/2537/4146114763_d3356c8660_o.png
 
 Taberareloo Dev Team
 * Constellation
+* os0x
 
 Tombloo Dev Team
 * to
@@ -53,3 +69,5 @@ Silk Icons
 (Creative Commons Attribution 2.5 License)
 Copyright (c) FAMFAMFAM
 
+Taberareloo Fork Icons
+Copyright (c) os0x

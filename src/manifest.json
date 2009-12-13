@@ -6,17 +6,20 @@
       "run_at": "document_start"
    } ],
    "browser_action": {
-     "default_icon" : "skin/link.png",
+     "default_icon" : "skin/fork16.png",
      "default_title": "taberareloo",
      "popup"        : "popup.html"
    },
    "options_page": "options.html",
    "icons": {
-     "48": "skin/taberareloo.png"
+     "128": "skin/fork128.png",
+     "64": "skin/fork64.png",
+     "32": "skin/fork32.png",
+     "16": "skin/fork16.png"
    },
    "description": "Yet Another Tombloo on Chromium",
    "id": "df7bd16438644971bbfbfc7d59fb6715",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs" ],
-   "version": "0.0.7"
+   "version": "0.0.8"
 }
