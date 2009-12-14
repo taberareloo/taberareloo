@@ -6,7 +6,7 @@
       "run_at": "document_start"
    } ],
    "browser_action": {
-     "default_icon" : "skin/fork16.png",
+     "default_icon" : "skin/fork19.png",
      "default_title": "taberareloo",
      "popup"        : "popup.html"
    },
@@ -20,5 +20,5 @@
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs" ],
-   "version": "0.0.8"
+   "version": "0.0.9"
 }
