@@ -127,6 +127,16 @@ var request_v2 = function(url, opt){
   return ret;
 }
 
+function getSelected(){
+  var d = new Deferred();
+  chrome.tabs.getSelected(null, function(tab){
+    if(TBRL.Service.isEnableSite(tab.url)){
+      d.callback(tab);
+    }
+  });
+  return d;
+};
+
 var TBRL = {
   // default config
   Config: {
@@ -152,6 +162,7 @@ var TBRL = {
   Popup: {
     defaultSuggester: 'HatenaBookmark',
     tags : null,
+    tabs: [],
     contents : {}
   },
   configSet: function(config){
@@ -166,3 +177,12 @@ if(window.localStorage.options){
   window.localStorage.options = JSON.stringify(TBRL.Config);
 }
 
+chrome.extension.onRequest.addListener(function(req, sender, func){
+  if(req.request === 'quick'){
+    getSelected().addCallback(function(tab){
+      TBRL.Popup.tabs.push(tab);
+      window.open(chrome.extension.getURL('popup.html'), 'QuickPost', 'width=450,height=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
+      func({});
+    });
+  }
+});

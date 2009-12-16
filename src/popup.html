@@ -17,15 +17,58 @@ var log = function(target){
   return target;
 };
 var Config  = background.TBRL.Config;
-
 function getSelected(){
   var d = new Deferred();
-  chrome.tabs.getSelected(null, function(tab){
+  log('tab');
+  try{
+  if(background.TBRL.Popup.tabs.length){
+    var tab = background.TBRL.Popup.tabs.pop();
     if(background.TBRL.Service.isEnableSite(tab.url)){
-      d.callback(tab);
+      setTimeout(function(){
+        d.callback(tab);
+      }, 0);
     } else {
-      window.close();
+      //window.close();
     }
+  } else {
+    chrome.tabs.getSelected(null, function(tab){
+      if(background.TBRL.Service.isEnableSite(tab.url)){
+        d.callback(tab);
+      } else {
+        //window.close();
+      }
+    });
+  }
+  }catch(e){
+   log(e);
+   }
+  return d;
+};
+
+function getTitle(tab){
+  if(tab.title){
+    return succeed(tab.title);
+  } else {
+    var d = new Deferred();
+    chrome.tabs.sendRequest(tab.id, {
+      request: 'title'
+    }, function(res){
+      d.callback(res.title);
+    });
+    return d;
+  }
+}
+
+function getPsInfo(tab){
+  var d = new Deferred();
+  chrome.tabs.sendRequest(tab.id, {
+    request: 'popup',
+    content: {
+      title: tab.title,
+      url  : tab.url
+    }
+  }, function(res){
+    d.callback(res);
   });
   return d;
 };
@@ -35,32 +78,16 @@ connect(window, 'onDOMContentLoaded', window, function(ev){
   getSelected().addCallback(function(tab){
     if(background.TBRL.Popup.contents[tab.url]){
       main.callback(background.TBRL.Popup.contents[tab.url]);
-    } else if(tab.title){
-      main.callback({
-        type : 'link',
-        item : tab.title,
-        itemUrl: tab.url,
-        page : tab.title,
-        pageUrl: tab.url
-      });
     } else {
-      chrome.tabs.sendRequest(tab.id, {
-        request: 'title'
-      }, function(res){
-        var title = res.title;
-        main.callback({
-          type : 'link',
-          item : title,
-          itemUrl: tab.url,
-          page : title,
-          pageUrl: tab.url
-        });
+      getPsInfo(tab).addCallback(function(ps){
+        main.callback(ps);
       });
     }
   });
 });
 
 main.addCallback(function(ps){
+  log(ps);
   var title   = new Title(ps);
   var tags    = new Tags(ps);
   var desc    = new Desc(ps);
@@ -114,7 +141,7 @@ main.addCallback(function(ps){
           delete background.TBRL.Popup.contents[ps.itemUrl];
         }
       });
-      this.close();
+      //this.close();
     }catch(e){
       log(e);
     }
@@ -681,6 +708,13 @@ Tags.prototype = {
       sg.style.display = 'block';
     }
     this.suggestionShown = !this.suggestionShown;
+    wait(0).addCallback(this.resize);
+  },
+
+  resize: function(){
+    var root = document.documentElement;
+    var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
+    window.resizeBy(0, height);
   }
 };
 

@@ -1,7 +1,7 @@
 // vim: fileencoding=utf-8
 // content script space
+
 (function(){
-  if(window !== window.parent) return;
 
   var connection = chrome.extension.connect({name : 'TBRL'});
   var lid = 0;
@@ -36,12 +36,14 @@
         }
         // alt + z
         if(id === "U+005A" && (ev.metaKey || ev.altKey) && !ev.shiftKey && !ev.ctrlKey){
+          TBRL.openQuickPostForm();
+          /*
           var context = update({
             document :document,
             window : window,
             title : document.title,
-            selection : ''+window.getSelection(),
-            target : TBRL.target || document,
+            selection : window.getSelection().toString(),
+            target : TBRL.target || document
           }, window.location);
           var exts = Extractors.check(context);
           if(exts.length){
@@ -50,12 +52,24 @@
               return post(res);
             });
           }
+          */
+          window.open(chrome.extension.getURL('options.html'));
         }
       }
     },
     mousehandler : function(ev){
       // 監視
       TBRL.target = ev.target;
+    },
+    openQuickPostForm : function(){
+      try{
+      chrome.extension.sendRequest("dkmeljijeecdpehddhkbielfgjhpmann", {
+        request: "quick"
+      }, function(res){
+      });
+      }catch(e){
+        alert(e);
+      }
     }
   }
   TBRL.init();
@@ -88,7 +102,7 @@
           if(form.reblog_post_id){
             // self.trimReblogInfo(form);
             // Tumblrから他サービスへポストするため画像URLを取得しておく
-            if(form['post[type]']=='photo')
+            if(form['post[type]']==='photo')
               form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0].value;
           }
           return form;
@@ -110,8 +124,8 @@
             favorite : {
               name     : 'Tumblr',
               endpoint : endpoint,
-              form     : form,
-            },
+              form     : form
+            }
           }, self.convertToParams(form));
         })
       },
@@ -131,36 +145,36 @@
           return {
             type    : 'quote',
             item    : form['post[one]'],
-            body    : form['post[two]'],
+            body    : form['post[two]']
           }
         case 'photo':
           return {
             itemUrl : form.image,
-            body    : form['post[two]'],
+            body    : form['post[two]']
           }
         case 'link':
           return {
             item    : form['post[one]'],
             itemUrl : form['post[two]'],
-            body    : form['post[three]'],
+            body    : form['post[three]']
           };
         case 'quote':
           // FIXME: post[two]検討
           return {
-            body    : form['post[one]'],
+            body    : form['post[one]']
           };
         case 'video':
           // FIXME: post[one]検討
           return {
-            body    : form['post[two]'],
+            body    : form['post[two]']
           };
         case 'conversation':
           return {
             item : form['post[one]'],
-            body : form['post[two]'],
+            body : form['post[two]']
           };
         }
-      },
+      }
     },
     {
       name : 'ReBlog - Tumblr',
@@ -170,7 +184,7 @@
       },
       extract : function(ctx){
         return Extractors.ReBlog.extractByPage(ctx, ctx.document);
-      },
+      }
     },
     {
       name : 'ReBlog - Dashboard',
@@ -185,7 +199,22 @@
       getLink : function(ctx){
         var link = $X('./ancestor-or-self::li[starts-with(normalize-space(@class), "post")]//a[@title="Permalink"]', ctx.target)[0];
         return link && link.href;
+      }
+    },
+    {
+      name : 'Quote',
+      ICON : 'chrome://tombloo/skin/quote.png',
+      check : function(ctx){
+        return ctx.selection;
       },
+      extract : function(ctx){
+        return {
+          type    : 'quote',
+          item    : ctx.title,
+          itemUrl : ctx.href,
+          body    : escapeHTML(ctx.selection.trim())
+        }
+      }
     },
     {
       name : 'Link',
@@ -199,7 +228,7 @@
           item    : ctx.title,
           itemUrl : ctx.href
         }
-      },
+      }
     }
   ]);
 
@@ -255,7 +284,7 @@
       }
     }
   };
-  chrome.extension.onRequest.addListener(function(req, sender, func){
+  var getTitle = function(){
     function title_getter(){
       var title = document.title;
       if(!title){
@@ -266,19 +295,40 @@
       }
       return title;
     }
-    if(req.request === 'title'){
-      var title = title_getter();
-      if(title){
-        func({
-          title: title
+    var title = title_getter();
+    if(title){
+      return succeed(title);
+    } else {
+      var d = new Deferred();
+      connect(document, 'onDOMContentLoaded', null, function(ev){
+        d.callback(title_getter());
+      });
+      return d;
+    }
+  };
+  chrome.extension.onRequest.addListener(function(req, sender, func){
+    if(req.request === 'popup'){
+      var content = req.content;
+      (content.title ? succeed(content.title):getTitle()).addCallback(function(title){
+        var ctx = update({
+          document :document,
+          window : window,
+          title : title,
+          selection : window.getSelection().toString(),
+          target : TBRL.target || document
+        }, window.location);
+        if(Extractors.Quote.check(ctx)){
+          var d = Extractors.Quote.extract(ctx);
+        } else {
+          var d = Extractors.Link.extract(ctx);
+        }
+        maybeDeferred(d).addCallback(function(ps){
+          func(update({
+            page    : title,
+            pageUrl : content.url
+          }, ps));
         });
-      } else {
-        connect(document, 'onDOMContentLoaded', null, function(ev){
-          func({
-            title: title_getter()
-          });
-        });
-      }
+      });
     }
   });
 })();
