@@ -20,6 +20,7 @@
   var TBRL = {
     target : null,
     config : null,
+    ldr_plus_taberareloo : false,
     init : function(config){
       TBRL.config = config;
       document.addEventListener('keydown', TBRL.keyhandler, false);
@@ -33,11 +34,28 @@
           post_handler(item);
         }
       });
+
+      var host = location.host;
+      if((host === 'reader.livedoor.com' || host === 'fastladder.com') &&
+        TBRL.config['post']['ldr_plus_taberareloo']){
+        var script = document.createElement('script');
+        script.type = "text/javascript";
+        script.charset = "utf-8";
+        script.src = chrome.extension.getURL('lib/ldr_plus_taberareloo.js');
+        document.head.appendChild(script);
+        window.addEventListener('Taberareloo.LDR', TBRL.ldr, false);
+        TBRL.ldr_plus_taberareloo = true;
+      }
+
     },
     unload : function(){
       document.removeEventListener('unload', TBRL.unload, false);
       document.removeEventListener('keydown', TBRL.handler, false);
       document.removeEventListener('mousemove', TBRL.mousehandler, false);
+      TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
+    },
+    ldr : function(){
+      // FIXME
     },
     keyhandler : function(ev){
       var t = ev.target;
@@ -543,10 +561,6 @@
         if(m){
           ctx.title = m[1];
         }
-        /*
-        if(ctx.document.contentType.match(/^image/))
-          ctx.title = ctx.href.split('/').pop();
-        */
 
         return {
           type    : 'photo',
