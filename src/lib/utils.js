@@ -2,12 +2,13 @@
 
 // http://gist.github.com/198443
 // via http://github.com/hatena/hatena-bookmark-xul/blob/master/chrome/content/common/05-HTMLDocumentCreator.js
+// a little modified
 function createHTML(source){
   var doc = document.implementation.createHTMLDocument ?
-    document.implementation.createHTMLDocument('hogehoge') :
+    document.implementation.createHTMLDocument('TABERARELOO') :
     document.implementation.createDocument(null, 'html', null);
   var range = document.createRange();
-  range.selectNodeContents(document.documentElement);
+  range.selectNodeContents(doc.documentElement);
   var fragment = range.createContextualFragment(source);
   var headChildNames = {
     title: true,
