@@ -1,0 +1,194 @@
+/* vim: fileencoding=utf-8 */
+
+.disabled {
+  opacity: 0.5;
+}
+.hide {
+  display : none !important;
+}
+body {
+  overflow: hidden;
+}
+div#main {
+  margin :2px;
+  padding:2px;
+  min-width  : 400px;
+  min-height : 100px;
+}
+div#icon_container > * {
+  display: inline-block;
+}
+div#titlebar .title_type > * {
+  display: inline;
+}
+div#titlebar {
+  color: gray;
+}
+p#type {
+  text-transform : capitalize;
+}
+div#toggle_detail {
+  display: inline-block;
+  height: 14px;
+  width: 14px;
+}
+div#title {
+  display: block;
+  height : 30px;
+}
+p#title_text {
+  text-overflow: ellipsis;
+  margin : 5px 0px 0px 0px;
+  padding: 4px 2px 0px 2px;
+  font-size: 90%;
+  width : 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+div#edit input {
+  width: 100%;
+  -webkit-border-radius: 4px;
+  border: solid 1px silver;
+  overflow: hidden;
+}
+textarea {
+  width: 100%;
+  -webkit-border-radius: 4px;
+  border: solid 1px silver;
+  overflow: auto;
+}
+div#edit > * {
+  margin: 5px;
+}
+input#tags {
+  width: 95% !important;
+}
+div#loading_icon {
+  display: inline-block;
+  height: 14px;
+  width: 14px;
+}
+div.loading {
+  background-image: url("../skin/loading.gif");
+  background-repeat: no-repeat;
+  background-position: left top;
+}
+div.loaded {
+  background-image: url("../skin/arrow-down.png");
+  background-repeat: no-repeat;
+  background-position: left top;
+  cursor: pointer;
+}
+div.loaded:hover {
+  background-position: center top;
+}
+div.loaded:hover:active {
+  background-position: right top;
+}
+div.loaded.extended {
+  background-image: url("../skin/arrow-up.png");
+  background-repeat: no-repeat;
+  background-position: left top;
+}
+div.loaded.extended:hover {
+  background-position: center top;
+}
+div.loaded.extended:hover:active {
+  background-position: right top;
+}
+ol#listbox {
+  font-size: 85%;
+  color: gray;
+  position: absolute;
+  margin: 0px;
+  padding: 0px;
+  border: solid 1px silver;
+  list-style: none none inside;
+}
+ol#listbox > li {
+  padding: 0px 5px;
+  background-color: #ffffff;
+}
+div#suggestions {
+  display: none;
+}
+p.suggestion {
+  color: gray;
+  padding: 3px;
+  margin: 7px;
+  font-size: 80%;
+  display: inline-block;
+  -webkit-border-radius: 4px;
+  cursor: pointer;
+}
+p.suggestion.listed {
+  border: 1px solid silver;
+  padding: 2px;
+}
+p.suggestion.used {
+  color: white;
+  background-color: darkgray;
+}
+p.suggestion:hover {
+  color: white;
+  padding: 7px;
+  margin: 3px;
+  background-color: lightgray;
+}
+p.suggestion.listed:hover {
+  padding: 6px;
+}
+div#pic {
+  margin-right : auto;
+  margin-left : auto;
+}
+img#image {
+  display: block;
+  max-width : 100%;
+}
+textarea#desc {
+  height : 100px;
+}
+textarea#bd {
+  height : 100px;
+}
+p#count, p#size {
+  text-align: right;
+  font-size : 50%;
+  color: gray;
+}
+div#posters {
+  margin-top: 0.8em;
+}
+div#posters img.poster {
+  display: inline-block;
+  border: transparent solid;
+  border-width: 0px 0px;
+  margin: 8px 8px;
+  width :16px;
+  height:16px;
+  cursor: pointer;
+}
+div#posters img.poster:hover {
+  width : 24px;
+  height: 24px;
+  margin-top: 0px;
+  margin-left : 4px;
+  margin-right: 4px;
+}
+div#posters img.poster:hover:active {
+  width : 22px;
+  height: 22px;
+  margin-bottom: 10px;
+  margin-left : 5px;
+  margin-right: 5px;
+}
+input#post {
+  width : 100%;
+  height: 30px;
+  -webkit-border-radius: 4px;
+  cursor: pointer;
+}
+div#massage {
+  display: none;
+}

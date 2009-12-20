@@ -1,3 +1,5 @@
+// vim: fileencoding=utf-8
+
 var Models = new Repository();
 
 function backgroundAlert(message){
@@ -36,7 +38,7 @@ var Tumblr = {
     var self = this;
     return this.getToken().addCallback(function(token){
       return request(Tumblr.TUMBLR_URL+'delete', {
-        redirectionLimit : 0,
+        denyRedirection: true,
         referrer    : Tumblr.TUMBLR_URL,
         sendContent : {
           id          : id,
@@ -89,7 +91,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    return (/(regular|photo|quote|link|conversation|video)/).test(ps.type);
+    return /(?:regular|photo|quote|link|conversation|video)/.test(ps.type);
   },
 
   /**
@@ -311,9 +313,10 @@ Models.register({
   ICON : 'http://b.hatena.ne.jp/favicon.ico',
 
   POST_URL : 'http://b.hatena.ne.jp/add',
+  JSON_URL : 'http://b.hatena.ne.jp/my.name',
 
   check : function(ps){
-    return (/(photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -322,13 +325,18 @@ Models.register({
   },
 
   getToken : function(){
-    if(this.token){
+    if(this.token && this.name){
       return succeed(this.token);
     } else {
       var self = this;
-      return request(HatenaBookmark.POST_URL).addCallback(function(res){
-        if(res.responseText.extract(/new Hatena.Bookmark.User\('.*?',\s.*'(.*?)', /))
-        return self.token = RegExp.$1;
+      return request(HatenaBookmark.JSON_URL).addCallback(function(res){
+        var data = JSON.parse(res.responseText);
+        if(!data["login"]){
+          throw new Error(getMessage('error.notLoggedin'));
+        }
+        self.token = data['rks'];
+        self.name  = data['name'];
+        return self.token;
       });
     }
   },
@@ -336,7 +344,7 @@ Models.register({
   addBookmark : function(url, title, tags, description){
     return this.getToken().addCallback(function(token){
       return request('http://b.hatena.ne.jp/bookmarklet.edit', {
-        redirectionLimit : 0,
+        denyRedirection: true,
         method: 'POST',
         sendContent : {
           rks     : token,
@@ -361,13 +369,18 @@ Models.register({
     var self = this;
     return succeed().addCallback(function(){
       return request(self.POST_URL, {
-        sendContent : {
+        queryString : {
           mode : 'confirm',
           url  : url
         }
       })
     }).addCallback(function(res){
-      var tags = JSON.parse('(' + res.responseText.extract(/var tags =(.*);$/m) + ')') || {};
+      try{
+        var tags = JSON.parse('(' + res.responseText.extract(/var tags =(.*);$/m) + ')') || {};
+      }catch(e){
+        throw new Error(getMessage('error.notLoggedin'));
+      }
+
 
       return {
         duplicated : (/bookmarked-confirm/).test(res.responseText),
@@ -494,7 +507,7 @@ Models.register({
   },
 
   check : function(ps){
-    return (/(photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -510,7 +523,7 @@ Models.register({
         throw new Error(getMessage('error.notLoggedin'));
 
       return request('http://delicious.com' + $X('id("saveitem")/@action', doc)[0], {
-        redirectionLimit : 0,
+        denyRedirection: true,
         sendContent : update(formContents(elmForm), {
           description : ps.item,
           jump        : 'no',
@@ -529,7 +542,7 @@ Models.register({
   POST_URL : 'http://clip.livedoor.com/clip/add',
 
   check : function(ps){
-    return (/(photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -544,7 +557,7 @@ Models.register({
         public  : ps.private? 'off' : 'on'
       };
       return request(LivedoorClip.POST_URL, {
-        redirectionLimit : 0,
+        denyRedirection: true,
         sendContent : content
       });
     });
@@ -557,14 +570,18 @@ Models.register({
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      return {
-        duplicated : !!$X('//form[@name="delete_form"]', doc)[0],
-        tags : $X('//div[@class="TagBox"]/span/text()', doc).map(function(tag){
-          return {
-            name      : tag,
-            frequency : -1
-          };
-        })
+      if($X('id("loginFormbox")', doc)[0]){
+        throw new Error(getMessage('error.notLoggedin'));
+      } else {
+        return {
+          duplicated : !!$X('//form[@name="delete_form"]', doc)[0],
+          tags : $X('//div[@class="TagBox"]/span/text()', doc).map(function(tag){
+            return {
+              name      : tag,
+              frequency : -1
+            };
+          })
+        }
       }
     });
   },
@@ -582,8 +599,9 @@ Models.register({
         if(res.responseText.match(/"postkey" value="(.*)"/)){
           self.token = RegExp.$1;
           return self.token;
+        } else {
+          throw new Error(getMessage('error.notLoggedin'));
         }
-        throw new Error(getMessage('error.notLoggedin'));
       });
     }
   }
@@ -599,7 +617,7 @@ Models.register({
   ICON : Models.Google.ICON,
 
   check : function(ps){
-    return (/(photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -615,7 +633,7 @@ Models.register({
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]')[0];
       var fs = formContents(form);
       return request('http://www.google.com'+$X('//form[@name="add_bkmk_form"]/@action', doc)[0], {
-        redirectionLimit : 0,
+        denyRedirection: true,
         sendContent  : {
           title      : ps.item,
           bkmk       : ps.itemUrl,
@@ -651,7 +669,7 @@ Models.register({
     var self = this;
     return this.getToken().addCallback(function(token){
       return request('https://friendfeed.com/a/bookmarklet', {
-        redirectionLimit : 0,
+        denyRedirection: true,
         sendContent : {
           at      : token,
           link    : ps.pageUrl,
@@ -671,7 +689,7 @@ Models.register({
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
-    return (/(regular|photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return /(?:regular|photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -680,7 +698,7 @@ Models.register({
 
   update : function(status){
     var self = this;
-    return maybeDeferred((status.length < 140)?
+    return maybeDeferred((status.length < 140 && !TBRL.Config['post']['always_shorten_url'])?
       status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
     ).addCallback(function(status){
       return Twitter.getToken().addCallback(function(token){
@@ -700,7 +718,7 @@ Models.register({
   getToken : function(){
     return request(this.URL + '/account/settings').addCallback(function(res){
       var html = res.responseText;
-      if(~html.indexOf('class="signin"'))
+      if(~html.indexOf('login'))
         throw new Error(getMessage('error.notLoggedin'));
 
       return {
@@ -715,7 +733,7 @@ Models.register({
     return Twitter.getToken().addCallback(function(ps){
       ps._method = 'delete';
       return request(self.URL + '/status/destroy/' + id, {
-        redirectionLimit : 0,
+        denyRedirection: true,
         referrer : self.URL + '/',
         sendContent : ps
       });
@@ -726,7 +744,7 @@ Models.register({
     var self = this;
     return Twitter.getToken().addCallback(function(ps){
       return request(self.URL + '/favourings/create/' + id, {
-        redirectionLimit : 0,
+        denyRedirection: true,
         referrer : self.URL + '/',
         sendContent : ps
       });
@@ -748,18 +766,19 @@ Models.register({
   ICON : chrome.extension.getURL('skin/instapaper.ico'),
   POST_URL: 'http://www.instapaper.com/edit',
   check : function(ps){
-    return (/(quote|link)/).test(ps.type);
+    return /(?:quote|link)/.test(ps.type);
   },
   post : function(ps){
     var url = this.POST_URL;
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id(content)/form')[0])
+      if($X('id("content")/form', doc)[0]){
         throw new Error(getMessage('error.notLoggedin'));
+      }
       return $X('//input[@id="form_key"]/@value', doc)[0];
     }).addCallback(function(token){
       return request(url, {
-        redirectionLimit: 0,
+        denyRedirection: true,
         sendContent: {
           'form_key': token,
           'bookmark[url]': ps.itemUrl,
@@ -780,9 +799,10 @@ Models.register({
   parse : function(ps){
     ps.appid = this.APP_ID;
     return request('http://jlp.yahooapis.jp/MAService/V1/parse', {
-      charset     : 'utf-8',
+      charset     : 'text/xml;utf-8',
       sendContent : ps
     }).addCallback(function(res){
+      console.log(res);
       return res.responseXML;
     });
   },
@@ -793,7 +813,6 @@ Models.register({
       response : 'reading'
     }).addCallback(function(res){
       return $X('descendant::reading/text()', res);
-      //return $A(res.getElementsByTagName('reading')).map(function(i){return i.textContent});
     });
   },
 
@@ -809,7 +828,7 @@ Models.register({
   ICON : 'http://bookmarks.yahoo.co.jp/favicon.ico',
 
   check : function(ps){
-    return (/(photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -821,7 +840,7 @@ Models.register({
       return formContents($X('id("addbookmark")/descendant::div[contains(concat(" ",normalize-space(@class)," ")," bd ")]', doc)[0]);
     }).addCallback(function(fs){
       return request('http://bookmarks.yahoo.co.jp/action/post/done', {
-        redirectionLimit : 0,
+        denyRedirection: true,
         sendContent  : {
           title      : ps.item,
           url        : ps.itemUrl,
@@ -902,11 +921,11 @@ Models.register({
   URL  : 'http://is.gd/',
 
   shorten : function(url){
-    if((/\/\/is\.gd\//).test(url))
+    if(/\/\/is\.gd\//.test(url))
       return succeed(url);
 
     return request(this.URL + '/api.php', {
-      redirectionLimit : 0,
+      denyRedirection: true,
       queryString : {
         longurl : url
       }
@@ -917,7 +936,7 @@ Models.register({
 
   expand : function(url){
     return request(url, {
-      redirectionLimit : 0
+      denyRedirection : true
     }).addCallback(function(res){
       return res.channel.URI.spec;
     });
@@ -934,7 +953,7 @@ Models.register({
 
   shorten : function(url){
     var self = this;
-    if((/\/\/bit\.ly/).test(url))
+    if(/\/\/bit\.ly/.test(url))
       return succeed(url);
 
     return this.callMethod('shorten', {

@@ -1,0 +1,120 @@
+/* vim: fileencoding=utf-8 */
+
+ul#tabs {
+  display: block;
+  width: 800px;
+  padding: 1px;
+  margin: 0px 0px 10px 0px;
+  background-color: lightgray;
+}
+li.tab {
+  display: inline-block;
+  padding: 7px;
+  margin: 8px;
+  background-color: gray;
+  -webkit-border-radius: 4px;
+  list-style: none inside;
+  cursor: pointer;
+}
+li.tab p {
+  display: inline;
+  color: white;
+  font-size: 90%;
+}
+li.tab:hover {
+  padding: 7px;
+  margin: 8px;
+  background-color: darkgray;
+}
+li.tab:hover:active {
+  background-color: dimgray;
+  padding: 5px;
+  margin: 10px;
+}
+li.tab.active {
+  background-color: silver;
+}
+div#container {
+  overflow: hidden;
+  width: 800px;
+  padding: 0px;
+  margin: 0px;
+  /*-webkit-border-radius: 9px;*/
+  border: 1px solid gray;
+}
+div#inner {
+  width: 500%;
+  heigt: 100%;
+  -webkit-transition: margin-left 0.1s ease-out;
+}
+div.slide {
+  font-size: 80%;
+  float: left;
+  position: relative;
+  display: inline;
+  overflow: auto;
+  width: 20%;
+  height: 500px;
+}
+div.option,
+div.item {
+  padding: 10px;
+  margin: 10px;
+  border: 1px solid silver;
+  -webkit-border-radius: 4px;
+}
+div.option a,
+div.item a{
+  text-decoration: none;
+  color: gray;
+}
+p.service_text {
+  display: inline;
+}
+img.service_icon {
+  display: inline;
+  margin-top: 2px;
+  margin-right: 5px;
+  width: 16px;
+  height: 16px;
+}
+div.button_container {
+  padding: 8px;
+}
+div.button {
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+div.button.empty {
+  background-image: url("../skin/empty.png");
+  cursor: auto;
+}
+div.button.enabled {
+  background-image: url("../skin/enabled.png");
+}
+div.button.disabled {
+  background-image: url("../skin/disabled.png");
+}
+div.button.default {
+  background-image: url("../skin/default.png");
+}
+div.tag_provider_set > * {
+  margin: 3px;
+}
+img.tag_provider_icon {
+  display: inline;
+  width: 16px;
+  height: 16px;
+}
+p.tag_provider_text {
+  display: inline;
+}
+input.text_input {
+  width : 100%;
+}
+input#save {
+  width: 800px;
+  cursor: pointer;
+}
