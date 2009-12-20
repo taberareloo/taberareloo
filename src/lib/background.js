@@ -178,7 +178,7 @@ var TBRL = {
           var success = ress[name][0], res = ress[name][1];
           if(!success){
             var msg = name + ': ' +
-              (res.message.status ? 'HTTP Status Code ' + res.message.status : '\n' + res.message.indent(4));
+              (res.message.status ? '\n' + ('HTTP Status Code ' + res.message.status).indent(4) : '\n' + res.message.indent(4));
             errs.push(msg);
           }
         }

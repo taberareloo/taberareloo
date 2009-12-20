@@ -38,7 +38,7 @@ var Tumblr = {
     var self = this;
     return this.getToken().addCallback(function(token){
       return request(Tumblr.TUMBLR_URL+'delete', {
-        denyRedirection: true,
+        //denyRedirection: true,
         referrer    : Tumblr.TUMBLR_URL,
         sendContent : {
           id          : id,
@@ -325,7 +325,7 @@ Models.register({
   },
 
   getToken : function(){
-    if(this.token && this.name){
+    if(this.token && this.user){
       return succeed(this.token);
     } else {
       var self = this;
@@ -335,7 +335,7 @@ Models.register({
           throw new Error(getMessage('error.notLoggedin'));
         }
         self.token = data['rks'];
-        self.name  = data['name'];
+        self.user  = data['name'];
         return self.token;
       });
     }
@@ -344,7 +344,7 @@ Models.register({
   addBookmark : function(url, title, tags, description){
     return this.getToken().addCallback(function(token){
       return request('http://b.hatena.ne.jp/bookmarklet.edit', {
-        denyRedirection: true,
+        //denyRedirection: true,
         method: 'POST',
         sendContent : {
           rks     : token,
@@ -523,7 +523,7 @@ Models.register({
         throw new Error(getMessage('error.notLoggedin'));
 
       return request('http://delicious.com' + $X('id("saveitem")/@action', doc)[0], {
-        denyRedirection: true,
+        //denyRedirection: true,
         sendContent : update(formContents(elmForm), {
           description : ps.item,
           jump        : 'no',
@@ -557,8 +557,13 @@ Models.register({
         public  : ps.private? 'off' : 'on'
       };
       return request(LivedoorClip.POST_URL, {
-        denyRedirection: true,
+        //denyRedirection: true,
         sendContent : content
+      }).addCallback(function(res){
+        var doc = createHTML(res.responseText);
+        if($X('id("loginFormbox")', doc)[0]){
+          throw new Error(getMessage('error.notLoggedin'));
+        }
       });
     });
   },
@@ -633,7 +638,7 @@ Models.register({
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]')[0];
       var fs = formContents(form);
       return request('http://www.google.com'+$X('//form[@name="add_bkmk_form"]/@action', doc)[0], {
-        denyRedirection: true,
+        //denyRedirection: true,
         sendContent  : {
           title      : ps.item,
           bkmk       : ps.itemUrl,
@@ -669,7 +674,7 @@ Models.register({
     var self = this;
     return this.getToken().addCallback(function(token){
       return request('https://friendfeed.com/a/bookmarklet', {
-        denyRedirection: true,
+        //denyRedirection: true,
         sendContent : {
           at      : token,
           link    : ps.pageUrl,
@@ -733,7 +738,7 @@ Models.register({
     return Twitter.getToken().addCallback(function(ps){
       ps._method = 'delete';
       return request(self.URL + '/status/destroy/' + id, {
-        denyRedirection: true,
+        //denyRedirection: true,
         referrer : self.URL + '/',
         sendContent : ps
       });
@@ -744,7 +749,7 @@ Models.register({
     var self = this;
     return Twitter.getToken().addCallback(function(ps){
       return request(self.URL + '/favourings/create/' + id, {
-        denyRedirection: true,
+        //denyRedirection: true,
         referrer : self.URL + '/',
         sendContent : ps
       });
@@ -778,7 +783,7 @@ Models.register({
       return $X('//input[@id="form_key"]/@value', doc)[0];
     }).addCallback(function(token){
       return request(url, {
-        denyRedirection: true,
+        //denyRedirection: true,
         sendContent: {
           'form_key': token,
           'bookmark[url]': ps.itemUrl,
@@ -840,7 +845,7 @@ Models.register({
       return formContents($X('id("addbookmark")/descendant::div[contains(concat(" ",normalize-space(@class)," ")," bd ")]', doc)[0]);
     }).addCallback(function(fs){
       return request('http://bookmarks.yahoo.co.jp/action/post/done', {
-        denyRedirection: true,
+        //denyRedirection: true,
         sendContent  : {
           title      : ps.item,
           url        : ps.itemUrl,
@@ -925,7 +930,7 @@ Models.register({
       return succeed(url);
 
     return request(this.URL + '/api.php', {
-      denyRedirection: true,
+      //denyRedirection: true,
       queryString : {
         longurl : url
       }
@@ -936,7 +941,7 @@ Models.register({
 
   expand : function(url){
     return request(url, {
-      denyRedirection : true
+      //denyRedirection : true
     }).addCallback(function(res){
       return res.channel.URI.spec;
     });
