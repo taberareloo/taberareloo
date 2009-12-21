@@ -12,6 +12,18 @@ window.addEventListener('load', function(){
       }
     });
   });
+  var CHROME_GESTURES = 'jpkfjicglakibpenojifdiepckckakgk';
+  var CHROME_KEYCONFIG = 'okneonigbfnolfkmfgjmaeniipdjkgkl';
+  var action = {
+    group:'Taberareloo',
+    actions:[
+      {name:'Taberareloo.link'},
+      {name:'Taberareloo.quote'},
+      {name:'Taberareloo.general'}
+    ]
+  };
+  chrome.extension.sendRequest(CHROME_GESTURES, action);
+  chrome.extension.sendRequest(CHROME_KEYCONFIG, action);
 }, false);
 
 var request_handler = function(item, con){
@@ -144,12 +156,13 @@ function getSelected(){
 var TBRL = {
   // default config
   Config: {
-    "version" : "0.0.9",
+    "version" : "1.0.0",
     "services": {
     },
     "post"    : {
       "tag_auto_complete" : true,
       "tag_provider"      : "HatenaBookmark",
+      "keyconfig"         : false,
       "shortcutkey_linkquickpost" : "",
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",

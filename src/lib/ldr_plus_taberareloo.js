@@ -2,7 +2,6 @@
 // LDR + Taberareloo
 
 (function(){
-
   function taberareloo(){
     try{
       var feed = get_active_feed();
@@ -14,7 +13,8 @@
       var ev = document.createEvent('MessageEvent');
       ev.initMessageEvent('Taberareloo.LDR', true, false, text, location.protocol+"//"+location.host, "", window);
       target.dispatchEvent(ev);
-    }catch(e){ }
+      addClass($x('ancestor::div[starts-with(@id, "item_count")]/parent::div', target), 'TBRL_posted');
+    }catch(e){}
   }
 
   var id = setTimeout(function(){
@@ -25,6 +25,11 @@
       id = setTimeout(arguments.callee, 100);
     }
   }, 0);
+
+  function $x(exp, context){
+    context = context || document;
+    return document.evaluate(exp, context, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  }
 
 })();
 

@@ -1,0 +1,11 @@
+.TBRL_posted,
+.TBRL_posted a{
+  color : silver !important;
+}
+.TBRL_posted .item_body a{
+  color : dimgray !important;
+}
+.TBRL_posted img{
+  opacity: 0.5;
+}
+

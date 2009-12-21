@@ -38,6 +38,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var thumbnail = new ThumbnailTemplate();
   // trim reblog info
   var reblog_check = new Check('trim_reblog_info', !!Config.entry["trim_reblog_info"]);
+  // keyconfig
+  var keyconfig_check = new Check("keyconfig", !!Config.post['keyconfig']);
   // shortcutkey quick link post
   var link_quick_short = new Shortcutkey("shortcutkey_linkquickpost", true);
   // shortcutkey quick link post
@@ -62,6 +64,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'tag_provider'     : p,
           'tag_auto_complete': t,
           'ldr_plus_taberareloo': ld,
+          'keyconfig' : keyconfig_check.body(),
           'shortcutkey_linkquickpost': lk,
           "shortcutkey_quotequickpost" : qk,
           "shortcutkey_quickpost" : k,

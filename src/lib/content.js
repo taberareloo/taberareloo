@@ -23,7 +23,6 @@
     ldr_plus_taberareloo : false,
     init : function(config){
       TBRL.config = config;
-      document.addEventListener('keydown', TBRL.keyhandler, false);
       document.addEventListener('mousemove', TBRL.mousehandler, false);
       document.addEventListener('unload', TBRL.unload, false);
       connection.onMessage.addListener(function(item){
@@ -38,6 +37,12 @@
       var host = location.host;
       if((host === 'reader.livedoor.com' || host === 'fastladder.com') &&
         TBRL.config['post']['ldr_plus_taberareloo']){
+
+        var style = document.createElement('link');
+        style.rel = 'stylesheet';
+        style.href = chrome.extension.getURL('styles/ldr.css');
+        document.head.appendChild(style);
+
         var script = document.createElement('script');
         script.type = "text/javascript";
         script.charset = "utf-8";
@@ -46,16 +51,72 @@
         window.addEventListener('Taberareloo.LDR', TBRL.ldr, false);
         TBRL.ldr_plus_taberareloo = true;
       }
-
+      window.addEventListener('Taberareloo.link', TBRL.link, false);
+      window.addEventListener('Taberareloo.quote', TBRL.quote, false);
+      window.addEventListener('Taberareloo.general', TBRL.general, false);
+      !TBRL.config['post']['keyconfig'] && document.addEventListener('keydown', TBRL.keyhandler, false);
     },
     unload : function(){
-      document.removeEventListener('unload', TBRL.unload, false);
+      !TBRL.config['post']['keyconfig'] && ocument.removeEventListener('unload', TBRL.unload, false);
       document.removeEventListener('keydown', TBRL.handler, false);
       document.removeEventListener('mousemove', TBRL.mousehandler, false);
+      window.removeEventListener('Taberareloo.link', TBRL.link, false);
+      window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
+      window.removeEventListener('Taberareloo.general', TBRL.general, false);
       TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
     },
-    ldr : function(){
-      // FIXME
+    ldr : function(ev){
+      var data = JSON.parse(ev.data);
+      var target = ev.target;
+      var body = $X('ancestor::div[starts-with(@id, "item_count")]/parent::div//div[@class="item_body"]', target)[0];
+      var ctx = update({
+          document  : document,
+          window    : window,
+          selection : '' + window.getSelection(),
+          target    : target,
+          event     : {},
+          title     : null,
+          mouse     : null,
+          menu      : null
+      }, window.location);
+      if([
+        'flickr.com/',
+        'http://ffffound.com',
+        'http://www.bighappyfunhouse.com',
+        'http://f.hatena.ne.jp',
+        'http://lpcoverlover.com',
+        'http://www.chicksnbreasts.com',
+        '1eb46a2f1f83c340eee10cd49c144625'].some(function(pattern){
+          return ~data.feed.indexOf(pattern);
+      })){
+        ctx.onImage = true;
+        ctx.target = $X('.//img[1]', body)[0];
+      }
+      var ext = Extractors.check(ctx)[0];
+      console.log(ctx, ext);
+      return TBRL.share(ctx, ext, ext.name.match(/^Link /));
+    },
+    link : function(ev){
+      return maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
+      .addCallback(function(ps){
+        TBRL.openQuickPostForm(ps);
+      });
+    },
+    quote: function(ev){
+      return maybeDeferred(Extractors.Photo.extract(TBRL.createContext()))
+      .addCallback(function(ps){
+        TBRL.openQuickPostForm(ps);
+      });
+    },
+    general: function(ev){
+      var ctx = TBRL.createContext();
+      var exts = Extractors.check(ctx);
+      if(exts.length){
+        maybeDeferred(exts[0].extract(ctx))
+        .addCallback(function(ps){
+          TBRL.openQuickPostForm(ps);
+        });
+      }
     },
     keyhandler : function(ev){
       var t = ev.target;
@@ -70,25 +131,11 @@
         var quote_quick_post = TBRL.config['post']['shortcutkey_quotequickpost'];
         var quick_post = TBRL.config['post']['shortcutkey_quickpost'];
         if(link_quick_post && key === link_quick_post){
-          maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
-          .addCallback(function(ps){
-            TBRL.openQuickPostForm(ps);
-          });
+          TBRL.link();
         } else if(quote_quick_post && key === quote_quick_post){
-          //maybeDeferred(Extractors.Quote.extract(context))
-          maybeDeferred(Extractors.Photo.extract(TBRL.createContext()))
-          .addCallback(function(ps){
-            TBRL.openQuickPostForm(ps);
-          });
+          TBRL.quote();
         } else if(quick_post && key === quick_post){
-          var ctx = TBRL.createContext();
-          var exts = Extractors.check(ctx);
-          if(exts.length){
-            maybeDeferred(exts[0].extract(ctx))
-            .addCallback(function(ps){
-              TBRL.openQuickPostForm(ps);
-            });
-          }
+          TBRL.general();
         }
         }catch(e){
           alert(e);
@@ -122,6 +169,8 @@
           pageUrl : location.href
         }, ps)
       }, function(res){ });
+    },
+    share: function(ctx, ext, open){
     },
     getConfig : function(){
       var d = new Deferred();
