@@ -4,6 +4,7 @@
 var Repository = function(){
   this.list = [];
 }
+
 Repository.prototype = {
   clear : function(){
     this.names.forEach(function(name){
@@ -46,15 +47,15 @@ Repository.prototype = {
       this.list.push(d);
       this[d.name] = d;
     }, this);
+  },
+  get values(){
+    return this.list.filter(function(i){ return i.name });
+  },
+  get names(){
+    return this.values.map(itemgetter('name'));
+  },
+  get size(){
+    return this.values.length;
   }
 }
-Repository.prototype.__defineGetter__('values', function(){
-    return this.list.filter(function(i){ return i.name });
-});
-Repository.prototype.__defineGetter__('names', function(){
-    return this.values().map(itemgetter('name'));
-});
-Repository.prototype.__defineGetter__('size', function(){
-    return this.values().length;
-});
 

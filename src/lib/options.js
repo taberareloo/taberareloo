@@ -95,7 +95,7 @@ var Services = function(){
     row.icon = model.ICON;
     var config = configs[model.name] || {};
     Services.TYPES.forEach(function(type){
-      var postable = (type === 'favorite')? !!model.fovor : model.check({
+      var postable = (type === 'favorite')? !!model.favor : model.check({
         type: type,
         pageUrl: {
           match : function(){ return true }

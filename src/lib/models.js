@@ -2,26 +2,6 @@
 
 var Models = new Repository();
 
-function backgroundAlert(message){
-	alert(message);
-}
-function backgroundConfirm(message){
-	return confirm(message);
-}
-
-function backgroundError(message, url){
-	var res = confirm(message);
-	if(res){
-		chrome.tabs.getSelected(null, function(tab){
-			chrome.tabs.create({
-				index:tab.index+1,
-				url:url,
-				selected:true
-			});
-		});
-	}
-}
-
 var Tumblr = {
   name : 'Tumblr',
   ICON : 'http://www.tumblr.com/images/favicon.gif',
@@ -807,7 +787,6 @@ Models.register({
       charset     : 'text/xml;utf-8',
       sendContent : ps
     }).addCallback(function(res){
-      console.log(res);
       return res.responseXML;
     });
   },
@@ -1016,7 +995,33 @@ function shortenUrls(text, model){
   });
 }
 
-Models.values.forEach(function(val){
-  this[val.name] = val;
-}, this);
+Models.copyTo(this);
 
+Models.check = function(ps){
+  return this.values.filter(function(m){
+    if((ps.favorite && ps.favorite.name === m.name) || (m.check && m.check(ps)))
+      return true;
+  });
+}
+
+Models.getDefaults = function(ps){
+  var config = TBRL.Config['services'];
+  return this.check(ps).filter(function(m){
+    return Models.getPostConfig(config, m.name, ps) === 'default';
+  });
+}
+
+Models.getEnables = function(ps){
+  var config = TBRL.Config['services'];
+  return this.check(ps).filter(function(m){
+    m.config = (m.config || {});
+
+    var val = m.config[ps.type] = models.getPostConfig(config, m.name, ps);
+    return val === null || /default|enable/.test(val);
+  });
+}
+
+Models.getPostConfig = function(config, name, ps){
+  var c = config[name] || {};
+  return (ps.favorite && ps.favorite.name === name)? c.favorite : c[ps.type];
+}

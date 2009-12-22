@@ -57,7 +57,7 @@
       !TBRL.config['post']['keyconfig'] && document.addEventListener('keydown', TBRL.keyhandler, false);
     },
     unload : function(){
-      !TBRL.config['post']['keyconfig'] && ocument.removeEventListener('unload', TBRL.unload, false);
+      !TBRL.config['post']['keyconfig'] && document.removeEventListener('unload', TBRL.unload, false);
       document.removeEventListener('keydown', TBRL.handler, false);
       document.removeEventListener('mousemove', TBRL.mousehandler, false);
       window.removeEventListener('Taberareloo.link', TBRL.link, false);
@@ -93,7 +93,6 @@
         ctx.target = $X('.//img[1]', body)[0];
       }
       var ext = Extractors.check(ctx)[0];
-      console.log(ctx, ext);
       return TBRL.share(ctx, ext, ext.name.match(/^Link /));
     },
     link : function(ev){
@@ -170,7 +169,18 @@
         }, ps)
       }, function(res){ });
     },
-    share: function(ctx, ext, open){
+    share: function(ctx, ext, show){
+      maybeDeferred(ext.extract(ctx))
+      .addCallback(function(ps){
+        chrome.extension.sendRequest(id, {
+          request: "share",
+          show   : show,
+          content: update({
+            page    : document.title,
+            pageUrl : location.href
+          }, ps)
+        }, function(res){ });
+      });
     },
     getConfig : function(){
       var d = new Deferred();
@@ -431,12 +441,8 @@
         });
       },
       extractByPage : function(ctx, doc){
-        try{
         return this.extractByEndpoint(ctx,
           unescapeHTML(this.getFrameUrl(doc)).replace(/.+&pid=(.*)&rk=(.*)/, this.TUMBLR_URL+'reblog/$1/$2'));
-        }catch(e){
-          alert(e);
-        }
       },
       extractByEndpoint : function(ctx, endpoint){
         var self = this;

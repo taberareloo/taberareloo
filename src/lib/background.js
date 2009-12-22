@@ -1,5 +1,24 @@
 // vim: fileencoding=utf-8
 
+function backgroundAlert(message){
+	alert(message);
+}
+function backgroundConfirm(message){
+	return confirm(message);
+}
+function backgroundError(message, url){
+	var res = confirm(message);
+	if(res){
+		chrome.tabs.getSelected(null, function(tab){
+			chrome.tabs.create({
+				index:tab.index+1,
+				url:url,
+				selected:true
+			});
+		});
+	}
+}
+
 window.addEventListener('load', function(){
   chrome.self.onConnect.addListener(function(port){
     // connection session
@@ -162,7 +181,7 @@ var TBRL = {
     "post"    : {
       "tag_auto_complete" : true,
       "tag_provider"      : "HatenaBookmark",
-      "keyconfig"         : false,
+      "keyconfig"         : true,
       "shortcutkey_linkquickpost" : "",
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",
@@ -174,6 +193,9 @@ var TBRL = {
     }
   },
   Service: {
+    alertPreference: function(type){
+      alert('error.noPoster\n'+type.capitalize().indent(4));
+    },
     post: function(ps, posters){
       var self = this;
       var ds   = {};
@@ -204,6 +226,15 @@ var TBRL = {
       }).addErrback(function(err){
         self.alertError(err, ps.page, ps.pageUrl, ps);
       });
+    },
+    open: function(tab, ps){
+      var height = 'height=450';
+      if(ps.type === 'quote' || ps.type === 'regular'){
+        height = 'height=250'
+      }
+      var win = window.open(chrome.extension.getURL('popup.html'), 'QuickPost', height+',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
+      win.tab = tab;
+      win.ps = ps;
     },
     isEnableSite: function(link){
       return link.indexOf('http') === 0;
@@ -238,16 +269,26 @@ if(window.localStorage.options){
 
 var onRequestsHandlers = {
   quick: function(req, sender, func){
-    var ps = req.content;
     getSelected().addCallback(function(tab){
-      var height = 'height=450';
-      if(ps.type === 'quote' || ps.type === 'regular'){
-        height = 'height=250'
-      }
-      var win = window.open(chrome.extension.getURL('popup.html'), 'QuickPost', height+',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
-      win.tab = tab;
-      win.ps = req.content;
+      TBRL.Service.open(tab, req.content);
       func({});
+    });
+  },
+  share: function(req, sender, func){
+    getSelected().addCallback(function(tab){
+      var ps = req.content;
+      if(req.show){
+        TBRL.Service.open(tab, ps);
+      } else {
+        var posters = Models.getDefaults(ps);
+        if(!posters.length){
+          TBRL.Service.alertPreference(ps.type);
+        } else {
+          TBRL.Service.post(ps, posters);
+        }
+      }
+      func({});
+    }).addErrback(function(e){
     });
   },
   config: function(req, sender, func){
@@ -258,6 +299,7 @@ var onRequestsHandlers = {
     func(req.content);
   }
 }
+
 chrome.extension.onRequest.addListener(function(req, sender, func){
   var handler = onRequestsHandlers[req.request];
   handler && handler.apply(this, arguments);
