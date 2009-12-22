@@ -3,9 +3,11 @@
 function backgroundAlert(message){
 	alert(message);
 }
+
 function backgroundConfirm(message){
 	return confirm(message);
 }
+
 function backgroundError(message, url){
 	var res = confirm(message);
 	if(res){
@@ -17,6 +19,13 @@ function backgroundError(message, url){
 			});
 		});
 	}
+}
+
+function addTab(url, focus){
+  chrome.tabs.create({
+    url: url,
+    selected: focus
+  });
 }
 
 window.addEventListener('load', function(){
