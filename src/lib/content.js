@@ -635,6 +635,31 @@
     },
 
     {
+      name : 'Photo - 4u',
+      ICON : 'http://static.straightline.jp/html/common/static/favicon.ico',
+      check : function(ctx){
+        return ctx.onImage &&
+          ctx.href.match(/^http:\/\/4u\.straightline\.jp\/image\//) &&
+          ctx.target.src.match(/\/static\/upload\/l\/l_/);
+      },
+      extract : function(ctx){
+        var author = $X('(//div[@class="entry-information"]//a)[1]', ctx.document)[0];
+        var iLoveHer = $X('//div[@class="entry-item fitem"]//a/@href', ctx.document)[0];
+        return {
+          type      : 'photo',
+          item      : ctx.title.extract(/(.*) - 4U/i),
+          itemUrl   : ctx.target.src,
+          author    : author.textContent.trim(),
+          authorUrl : author.href,
+          favorite : {
+            name : '4u',
+            id : iLoveHer && decodeURIComponent(iLoveHer.extract('src=([^&]*)')),
+          }
+        };
+      }
+    },
+
+    {
       name : 'Photo - image link',
       ICON : skin+'photo.png',
       check : function(ctx){

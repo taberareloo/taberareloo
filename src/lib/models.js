@@ -266,6 +266,53 @@ Tumblr.Quote = {
 Models.register(Tumblr);
 
 Models.register({
+  name : '4u',
+  ICON : 'http://static.straightline.jp/html/common/static/favicon.ico',
+
+  URL : 'http://4u.straightline.jp/',
+
+  check : function(ps){
+    return ps.type === 'photo' && !ps.file;
+  },
+
+  post : function(ps){
+    return request(this.URL + 'power/manage/register', {
+      referrer : ps.pageUrl,
+      queryString : {
+        site_title  : ps.page,
+        site_url    : ps.pageUrl,
+        alt         : ps.item,
+        src         : ps.itemUrl,
+        bookmarklet : 1,
+      },
+    }).addCallback(function(res){
+      if(/login/.test(res.responseText)){
+        throw new Error(getMessage('error.notLoggedin'));
+      }
+    });
+  },
+
+  favor : function(ps){
+    return this.iLoveHer(ps.favorite.id);
+  },
+
+  iLoveHer : function(id){
+    return request(this.URL + 'user/manage/do_register', {
+      redirectionLimit : 0,
+      referrer : this.URL,
+      queryString : {
+        src : id,
+      },
+    }).addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if($X('//form[@action="http://4u.straightline.jp/admin/login"]', doc)[0]){
+        throw new Error(getMessage('error.notLoggedin'));
+      }
+    });
+  }
+});
+
+Models.register({
   name : 'Hatena',
   ICON : 'http://www.hatena.ne.jp/favicon.ico',
 
@@ -637,7 +684,7 @@ Models.register({
 
   post : function(url){
     return request('http://www.google.com/search?client=navclient-auto&ch=' + GoogleWebHistory.getCh(url) + '&features=Rank&q=info:' + escape(url));
-  },
+  }
 });
 
 Models.register({
