@@ -10,6 +10,7 @@ Yet Another Tombloo on Chromium
 Tombloo and Taberareloo are the Cross Post Support Tool for SBM and other services.
 
 Services example:
+  Tumblr
   Delicious
   GoogleBookmarks
   FriendFeed
@@ -17,15 +18,19 @@ Services example:
   Instapaper
 
 and
-
   HatenaBookmark
   LivedoorClip
   YahooBookmark (these are Japanese Popular SBM)
 
+and
+  4u
+  Clipp
+  Wassr (these are Japanese Service)
+
+
 == FEATURES/PROBLEMS
 
-* post links to a lot of services
-* only link type (future: photo etc. <- Gleam API)
+* post to a lot of services
 
 == DEPENDENCIES
 
