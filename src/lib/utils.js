@@ -59,12 +59,12 @@ function addDefaultPrefix(xpath, prefix) {
   function replacer(token, identifier, suffix, term, operator, modifier) {
     if (suffix) {
       tokenType =
-        (suffix == ':' || (suffix == '::' && (identifier == 'attribute' || identifier == 'namespace')))
+        (suffix === ':' || (suffix === '::' && (identifier === 'attribute' || identifier === 'namespace')))
         ? MODIFIER : OPERATOR;
     } else if (identifier) {
-      if (tokenType == OPERATOR && identifier != '*')
+      if (tokenType === OPERATOR && identifier != '*')
         token = prefix + token;
-      tokenType = (tokenType == TERM) ? OPERATOR : TERM;
+      tokenType = (tokenType === TERM) ? OPERATOR : TERM;
     } else {
       tokenType = term ? TERM : operator ? OPERATOR : MODIFIER;
     }
@@ -120,7 +120,7 @@ function $X (exp, context) {
 // Public License
 function joinText(txts, delm, trimTag){
   if(!txts) return '';
-  if(delm==null) delm = ',';
+  if(delm===null) delm = ',';
   txts = [].concat(txts).filter(operator.truth).flatten();
   return (trimTag? txts.map(methodcaller('trimTag')) : txts).join(delm);
 }
@@ -249,7 +249,7 @@ function keyString(e){
   // 初回呼び出し時にキーテーブルを作成する
   var table = [];
   for(var name in KeyEvent)
-    if(name.indexOf('DOM_VK_')==0)
+    if(name.indexOf('DOM_VK_')===0)
       table[KeyEvent[name]] = name.substring(7);
 
   return (keyString = function(e){
@@ -284,9 +284,9 @@ function update(t, s){
 }
 
 function maybeDeferred(d) {
-  return typeof(d) == 'function'?
+  return typeof(d) === 'function'?
     MochiKit.Async.maybeDeferred(d) :
-    (d==null || !d.addCallback)?
+    (d===null || !d.addCallback)?
       succeed(d) :
       d;
 }
@@ -320,12 +320,12 @@ function isEmpty(obj){
 function queryString(params, question){
   if(isEmpty(params)) return '';
 
-  if(typeof(params)=='string') return params;
+  if(typeof(params)==='string') return params;
 
   var qeries = [];
   for(var key in params){
     var value = params[key];
-    if(value==null)
+    if(value===null)
       continue;
     else if(value instanceof Array)
       value.forEach(function(val){
@@ -380,7 +380,7 @@ var $N = function(name, attr, childs){
     case "object":
     for(var i=0, len=childs.length; i<len; i++){
       var child = childs[i];
-      if(typeof child == "string"){
+      if(typeof child === "string"){
         ret.appendChild(document.createTextNode(child));
       } else {
         ret.appendChild(child);
@@ -393,6 +393,15 @@ var $N = function(name, attr, childs){
 var $T = function(mes){
   return document.createTextNode(mes);
 };
+
+var createURI = (function(){
+  var anchor = document.createElement('a');
+  return function(link){
+    var a = anchor.cloneNode(false);
+    a.href = link;
+    return a;
+  }
+})();
 
 function DeferredHash(ds){
   var props = keys(ds);

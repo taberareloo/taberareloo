@@ -71,7 +71,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    return /(?:regular|photo|quote|link|conversation|video)/.test(ps.type);
+    return /regular|photo|quote|link|conversation|video/.test(ps.type);
   },
 
   /**
@@ -113,7 +113,7 @@ var Tumblr = {
         self.trimReblogInfo(form);
 
         // Tumblrから他サービスへポストするため画像URLを取得しておく
-        if(form['post[type]']=='photo')
+        if(form['post[type]']==='photo')
           form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
       }
 
@@ -296,7 +296,7 @@ Models.register({
   JSON_URL : 'http://b.hatena.ne.jp/my.name',
 
   check : function(ps){
-    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -487,7 +487,7 @@ Models.register({
   },
 
   check : function(ps){
-    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -522,7 +522,7 @@ Models.register({
   POST_URL : 'http://clip.livedoor.com/clip/add',
 
   check : function(ps){
-    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -602,7 +602,7 @@ Models.register({
   ICON : Models.Google.ICON,
 
   check : function(ps){
-    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -636,7 +636,7 @@ Models.register({
   name : 'FriendFeed',
   ICON : 'http://friendfeed.com/favicon.ico',
   check : function(ps){
-    return (/(photo|quote|link|conversation|video)/).test(ps.type) && !ps.file;
+    return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
   },
 
   getToken : function(){
@@ -674,7 +674,7 @@ Models.register({
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
-    return /(?:regular|photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -751,7 +751,7 @@ Models.register({
   ICON : chrome.extension.getURL('skin/instapaper.ico'),
   POST_URL: 'http://www.instapaper.com/edit',
   check : function(ps){
-    return /(?:quote|link)/.test(ps.type);
+    return /quote|link/.test(ps.type);
   },
   post : function(ps){
     var url = this.POST_URL;
@@ -812,7 +812,7 @@ Models.register({
   ICON : 'http://bookmarks.yahoo.co.jp/favicon.ico',
 
   check : function(ps){
-    return /(?:photo|quote|link|conversation|video)/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -831,7 +831,7 @@ Models.register({
           desc       : joinText([ps.body, ps.description], ' ', true),
           tags       : ps.tags? ps.tags.join(' ') : '',
           crumbs     : fs.crumbs,
-          visibility : ps.private==null? fs.visibility : (ps.private? 0 : 1)
+          visibility : ps.private===null? fs.visibility : (ps.private? 0 : 1)
         }
       });
     });
@@ -873,6 +873,134 @@ Models.register({
         })
       };
     });
+  }
+});
+
+Models.register({
+  name: 'Clipp',
+  ICON: 'http://clipp.in/favicon.ico',
+  CLIPP_URL: 'http://clipp.in/',
+
+  check: function(ps) {
+    return /photo|quote|link|video/.test(ps.type) && !ps.file;
+  },
+  post: function(ps) {
+    var endpoint = this.CLIPP_URL + 'bookmarklet/add';
+    var self = this;
+
+    return self.postForm(function() {
+      return self.getForm(endpoint).addCallback(function(form){
+        update(form, self[ps.type.capitalize()].convertToForm(ps));
+
+        self.appendTags(form, ps);
+
+        if (ps.type === 'video' && !form.embed_code) {
+          // embed_tagを取得してformに設定する
+          var address = form.address;
+          return request(address).addCallback(function(res) {
+            var doc = createHTML(res.responseText);
+            var uri = createURI(address);
+            var host = uri ? uri.host : '';
+            if (host.match('youtube.com')) {
+              form.embed_code = $X('id("embed_code")/@value', doc)[0] || '';
+            }
+            return request(endpoint, { sendContent: form });
+          });
+        }
+        return request(endpoint, { sendContent: form });
+      });
+    });
+  },
+  getForm: function(url) {
+    return request(url).addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      var form = $X('//form', doc)[0];
+      if(form.action === '/bookmarklet/account/login'){
+        throw new Error(getMessage('error.notLoggedin'));
+      } else {
+        return formContents(form);
+      }
+    });
+  },
+  appendTags: function(form, ps) {
+    return update(form, {
+      tags: (ps.tags && ps.tags.length) ? joinText(ps.tags, ',') : ''
+    });
+  },
+  favor: function(ps) {
+    // メモをreblogフォームの適切なフィールドの末尾に追加する
+
+    var form = ps.favorite.form;
+    items(this[ps.type.capitalize()].convertToForm({
+      description: ps.description
+    })).forEach(function(pair) {
+      var name = pair[0], value = pair[1];
+      if (!value) return;
+      form[name] += value;
+    });
+
+    this.appendTags(form, ps);
+
+    return this.postForm(function(){
+      return request(ps.favorite.endpoint, { sendContent: form });
+    });
+  },
+  postForm: function(fn) {
+    var CLIPP_URL = this.CLIPP_URL;
+    var d = succeed();
+    d.addCallback(fn);
+    d.addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      if($X('descendant::ul[contains(concat(" ",normalize-space(@class)," ")," error ")]', doc)[0]){
+        throw new Error('Error posting entry.');
+      } else if($X('//form[@action="/bookmarklet/account/login"]', doc)[0]){
+        throw new Error(getMessage('error.notLoggedin'));
+      }
+    });
+    return d;
+  },
+  Link: {
+    convertToForm: function(ps) {
+      return {
+        title: ps.item,
+        address: ps.itemUrl,
+        description: escapeHTML(ps.description)
+      };
+    }
+  },
+  Quote: {
+    convertToForm: function(ps) {
+      return {
+        title: ps.item,
+        address: ps.itemUrl,
+        quote: ps.body ? ps.body.replace(/\n/g, '<br>') : '',
+        description: escapeHTML(ps.description)
+      };
+    }
+  },
+  Photo: {
+    convertToForm: function(ps) {
+      return {
+        title: ps.item,
+        address: ps.pageUrl,
+        image_address: ps.itemUrl,
+        description: joinText([
+          (ps.item ? ps.item.link(ps.pageUrl) : '') + (ps.author ? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
+          '<p>' + escapeHTML(ps.description) + '</p>' ], '')
+      };
+    }
+  },
+  Video: {
+    convertToForm: function(ps) {
+      return {
+        title: ps.item,
+        address: ps.pageUrl,
+        embed_code: ps.body || '',
+        description: joinText([
+          (ps.item ? ps.item.link(ps.pageUrl) : '') + (ps.author ? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
+          '<p>' + escapeHTML(ps.description) + '</p>' ], '')
+      };
+    }
   }
 });
 
@@ -1016,7 +1144,7 @@ Models.getEnables = function(ps){
   return this.check(ps).filter(function(m){
     m.config = (m.config || {});
 
-    var val = m.config[ps.type] = models.getPostConfig(config, m.name, ps);
+    var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps);
     return val === null || /default|enable/.test(val);
   });
 }

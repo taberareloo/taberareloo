@@ -369,35 +369,33 @@ var Posters = function(ps){
   if(!ps.enabledPosters){
     ps.enabledPosters = [];
   }
-  this.posters = this.models.check(ps);
+  this.posters = this.models.getEnables(ps);
   var df = $DF();
   var config = Config['services'];
   this.buttons = [];
   this.posters.forEach(function(poster){
     var obj = config[poster.name] || {};
     if(~ps.enabledPosters.indexOf(poster.name)){
-      var res = 'default';
+      var res = true;
     } else {
-      var res = obj[ps.type] || 'enabled';
+      var res = obj[ps.type] === 'default';
     }
-    if(res !== 'disabled'){
-      var img = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
-      connect(img, 'onclick', self, function(){
-        if(!addElementClass(img, 'disabled')){
-          removeElementClass(img, 'disabled');
-          self.enables[poster.name] = poster;
-        } else {
-          delete self.enables[poster.name];
-        }
-      });
-      if(res === 'default'){
+    var img = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
+    connect(img, 'onclick', self, function(){
+      if(!addElementClass(img, 'disabled')){
+        removeElementClass(img, 'disabled');
         self.enables[poster.name] = poster;
       } else {
-        addElementClass(img, 'disabled');
+        delete self.enables[poster.name];
       }
-      df.appendChild(img);
-      self.buttons.push(img);
+    });
+    if(res){
+      self.enables[poster.name] = poster;
+    } else {
+      addElementClass(img, 'disabled');
     }
+    df.appendChild(img);
+    self.buttons.push(img);
   });
   this.elmPanel.appendChild(df);
 };

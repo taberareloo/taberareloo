@@ -110,6 +110,7 @@
     general: function(ev){
       var ctx = TBRL.createContext();
       var exts = Extractors.check(ctx);
+      log(exts[0].name);
       if(exts.length){
         maybeDeferred(exts[0].extract(ctx))
         .addCallback(function(ps){
@@ -150,7 +151,7 @@
         target : TBRL.target || document
       }, window.location);
       if(ctx.target){
-        ctx.link    = $X('.//ancestor::a', ctx.target)[0];
+        ctx.link    = $X('./ancestor::a', ctx.target)[0];
         ctx.onLink  = !!ctx.link;
         ctx.onImage = ctx.target instanceof HTMLImageElement;
       }
@@ -345,6 +346,81 @@
       extract: function(ctx){
         Extractors.GoogleReader.getItem(ctx);
         return Extractors.Link.extract(ctx);
+      }
+    },
+
+    {
+      name: 'ReBlog - Clipp',
+      ICON: 'http://clipp.in/favicon.ico',
+      CLIPP_URL: 'http://clipp.in/',
+      check: function(ctx) {
+        return this.getLink(ctx);
+      },
+      extract: function(ctx) {
+        var link = this.getLink(ctx);
+        if(!link)
+          return {};
+
+        var self = this;
+        var endpoint = this.CLIPP_URL + 'bookmarklet' + link;
+        return this.getForm(endpoint).addCallback(function(form) {
+          return update({
+            type: 'link',
+            item: ctx.title,
+            itemUrl: ctx.href,
+            favorite: {
+              name: 'Clipp',
+              endpoint: endpoint,
+              form: form
+            }
+          }, self.convertToParams(form));
+        });
+      },
+      getForm: function(url, ignoreError) {
+        return request(url).addCallback(function(res) {
+          var doc = createHTML(res.responseText);
+          var form = $X('//form', doc)[0];
+          return formContents(form);
+        });
+      },
+      checkEntryPage: function(ctx) {
+        return /clipp.in\/entry\/\d+/.test(ctx.href);
+      },
+      getLink: function(ctx) {
+        return this.checkEntryPage(ctx) ? this.getLinkByPage(ctx.document) : this.getLinkByTarget(ctx);
+      },
+      getLinkByPage: function(doc) {
+        return $X('//a[contains(@href, "add?reblog=")]/@href', doc)[0];
+      },
+      getLinkByTarget: function(ctx) {
+        return $X('./ancestor-or-self::div[contains(concat(" ", @class, " "), " item ")]//a[contains(@href, "add?reblog=")]/@href', ctx.target)[0];
+      },
+      convertToParams: function(form) {
+        if (form.embed_code)
+          return {
+            type: 'video',
+            item: form.title,
+            itemUrl: form.address,
+            body: form.embed_code
+          };
+        else if (form.image_address)
+          return {
+            type: 'photo',
+            item: form.title,
+            itemUrl: form.image_address
+          };
+        else if (form.quote && form.quote != '<br>')
+          return {
+            type: 'quote',
+            item: form.title,
+            itemUrl: form.address,
+            body: form.quote
+          };
+        return {
+          type: 'link',
+          item: form.title,
+          itemUrl: form.address
+        };
       }
     },
 
@@ -563,7 +639,7 @@
       ICON : skin+'photo.png',
       check : function(ctx){
         if(!ctx.onLink)
-          return;
+          return false;
 
         var uri = ctx.link.href;
         return uri && (/[^\/]*\.(?:png|gif|jpe?g)$/i).test(uri);
