@@ -283,8 +283,8 @@ Models.register({
         site_url    : ps.pageUrl,
         alt         : ps.item,
         src         : ps.itemUrl,
-        bookmarklet : 1,
-      },
+        bookmarklet : 1
+      }
     }).addCallback(function(res){
       if(/login/.test(res.responseText)){
         throw new Error(getMessage('error.notLoggedin'));
@@ -301,8 +301,8 @@ Models.register({
       redirectionLimit : 0,
       referrer : this.URL,
       queryString : {
-        src : id,
-      },
+        src : id
+      }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('//form[@action="http://4u.straightline.jp/admin/login"]', doc)[0]){
@@ -967,6 +967,34 @@ Models.register({
 });
 
 Models.register({
+  name : 'Wassr',
+  ICON : 'http://wassr.jp/favicon.ico',
+
+  check : function(ps){
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+  },
+
+  post : function(ps){
+    return this.addMessage(joinText([ps.item, ps.itemUrl, ps.body, ps.description], ' ', true));
+  },
+
+  addMessage : function(message){
+    return request('http://wassr.jp/my/').addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if($X('id("LoginForm")', doc)[0])
+        throw new Error(getMessage('error.notLoggedin'));
+
+      return request('http://wassr.jp/my/status/add', {
+        //redirectionLimit : 0,
+        sendContent : update(formContents($X('id("HeadBox")/descendant::form', doc)[0]), {
+          message : message
+        })
+      });
+    })
+  }
+});
+
+Models.register({
   name: 'Clipp',
   ICON: 'http://clipp.in/favicon.ico',
   CLIPP_URL: 'http://clipp.in/',
@@ -1235,7 +1263,7 @@ Models.getEnables = function(ps){
     m.config = (m.config || {});
 
     var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps);
-    return val === null || /default|enable/.test(val);
+    return val === undefined || /default|enable/.test(val);
   });
 }
 

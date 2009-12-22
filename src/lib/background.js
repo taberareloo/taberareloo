@@ -130,7 +130,7 @@ var request = function(url, opt){
 
   if(opt.charset) req.overrideMimeType(opt.charset);
 
-  req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+  //req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
   if(opt.headers){
     Object.keys(opt.headers).forEach(function(key){
       req.setRequestHeader(key, opt.headers[key]);

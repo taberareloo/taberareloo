@@ -370,6 +370,7 @@ var Posters = function(ps){
     ps.enabledPosters = [];
   }
   this.posters = this.models.getEnables(ps);
+  log(this.posters.map(itemgetter('name')));
   var df = $DF();
   var config = Config['services'];
   this.buttons = [];
