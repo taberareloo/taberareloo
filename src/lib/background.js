@@ -1,24 +1,24 @@
 // vim: fileencoding=utf-8
 
 function backgroundAlert(message){
-	alert(message);
+  alert(message);
 }
 
 function backgroundConfirm(message){
-	return confirm(message);
+  return confirm(message);
 }
 
 function backgroundError(message, url){
-	var res = confirm(message);
-	if(res){
-		chrome.tabs.getSelected(null, function(tab){
-			chrome.tabs.create({
-				index:tab.index+1,
-				url:url,
-				selected:true
-			});
-		});
-	}
+  var res = confirm(message);
+  if(res){
+    chrome.tabs.getSelected(null, function(tab){
+      chrome.tabs.create({
+        index:tab.index+1,
+        url:url,
+        selected:true
+      });
+    });
+  }
 }
 
 function addTab(url, focus){
