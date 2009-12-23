@@ -419,6 +419,7 @@ var Tags = function(ps, toggle){
   this.popup = new Popup(this);
   this.suggestionShown = false;
   this.elmTags = {};
+  var ignoreTags = toggle;
 
   var tags = this.tags = $('tags');
   // unload
@@ -434,28 +435,33 @@ var Tags = function(ps, toggle){
       this.provider   = background.TBRL.Popup.provider;
       self.autoComplete = true;
     }
-    background.Models[Config['post']['tag_provider']]
-    .getSuggestions(ps.itemUrl)
-    .addCallback(function(res){
-      self.arrangeSuggestions(res);
-      self.setSuggestions(res);
-      self.setTags(res.tags);
+    if(!ignoreTags){
+      background.Models[Config['post']['tag_provider']]
+      .getSuggestions(ps.itemUrl)
+      .addCallback(function(res){
+        self.arrangeSuggestions(res);
+        self.setSuggestions(res);
+        self.setTags(res.tags);
 
-      var icon = $('loading_icon');
-      removeElementClass(icon, 'loading');
-      addElementClass(icon, 'loaded');
-      connect(icon, 'onclick', self, function(ev){
-        this.toggleSuggestions();
-        if(!addElementClass(icon, 'extended')){
-          removeElementClass(icon, 'extended');
-        }
+        var icon = $('loading_icon');
+        removeElementClass(icon, 'loading');
+        addElementClass(icon, 'loaded');
+        connect(icon, 'onclick', self, function(ev){
+          this.toggleSuggestions();
+          if(!addElementClass(icon, 'extended')){
+            removeElementClass(icon, 'extended');
+          }
+        });
+      }).addErrback(function(e){
+        alert(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+        var icon = $('loading_icon');
+        removeElementClass(icon, 'loading');
+        addElementClass(icon, 'loaded');
       });
-    }).addErrback(function(e){
-      alert(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+    } else {
       var icon = $('loading_icon');
-      removeElementClass(icon, 'loading');
-      addElementClass(icon, 'loaded');
-    });
+      icon.parentNode.removeChild(icon);
+    }
   } else {
     var icon = $('loading_icon');
     icon.parentNode.removeChild(icon);
