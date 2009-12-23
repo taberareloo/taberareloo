@@ -60,6 +60,13 @@ function getPsInfo(tab){
   return d;
 };
 
+function notify(message){
+  var msg = $('message');
+  $D(msg);
+  msg.appendChild($N('p', null, message));
+  addElementClass(msg, 'shown');
+};
+
 var main = new Deferred();
 connect(window, 'onDOMContentLoaded', window, function(ev){
   getSelected().addCallback(function(tab){
@@ -453,7 +460,11 @@ var Tags = function(ps, toggle){
           }
         });
       }).addErrback(function(e){
-        alert(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+        if(isPopup){
+          notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+        } else {
+          alert(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+        }
         var icon = $('loading_icon');
         removeElementClass(icon, 'loading');
         addElementClass(icon, 'loaded');

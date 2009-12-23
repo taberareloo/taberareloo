@@ -187,6 +187,16 @@ input#post {
   -webkit-border-radius: 4px;
   cursor: pointer;
 }
-div#massage {
-  display: none;
+div#message {
+  visibility: collapse;
+}
+div#message.shown {
+  color: #333;
+  margin-top: 20px;
+  padding: 10px;
+  min-height: 100px;
+  visibility: visible;
+  background: #FFFF99;
+  border: 1px solid #F0D67C;
+  overflow: hidden;
 }
