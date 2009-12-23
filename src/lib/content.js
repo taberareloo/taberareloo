@@ -2,11 +2,10 @@
 // content script space
 
 var connection = chrome.extension.connect({name : 'TBRL'});
-var id = chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1];
 
 var log = function(){
   var d = new Deferred();
-  chrome.extension.sendRequest(id, {
+  chrome.extension.sendRequest(TBRL.id, {
     request: "log",
     content: $A(arguments)
   }, function(res){
@@ -18,6 +17,7 @@ var log = function(){
 var TBRL = {
   target : null,
   config : null,
+  id     : chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   ldr_plus_taberareloo : false,
   init : function(config){
     TBRL.config = config;
@@ -32,6 +32,29 @@ var TBRL = {
       }
     });
 
+    var style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = chrome.extension.getURL('styles/general.css');
+    document.head.appendChild(style);
+
+    TBRL.insertLDR();
+
+    window.addEventListener('Taberareloo.link', TBRL.link, false);
+    window.addEventListener('Taberareloo.quote', TBRL.quote, false);
+    window.addEventListener('Taberareloo.general', TBRL.general, false);
+    !TBRL.config['post']['keyconfig'] && document.addEventListener('keydown', TBRL.keyhandler, false);
+  },
+  unload : function(){
+    !TBRL.config['post']['keyconfig'] && document.removeEventListener('unload', TBRL.unload, false);
+    document.removeEventListener('keydown', TBRL.handler, false);
+    document.removeEventListener('mousemove', TBRL.mousehandler, false);
+    window.removeEventListener('Taberareloo.link', TBRL.link, false);
+    window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
+    window.removeEventListener('Taberareloo.general', TBRL.general, false);
+    TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
+    TBRL.field_shown && TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
+  },
+  insertLDR: function(){
     var host = location.host;
     if((host === 'reader.livedoor.com' || host === 'fastladder.com') &&
       TBRL.config['post']['ldr_plus_taberareloo']){
@@ -49,19 +72,6 @@ var TBRL = {
       window.addEventListener('Taberareloo.LDR', TBRL.ldr, false);
       TBRL.ldr_plus_taberareloo = true;
     }
-    window.addEventListener('Taberareloo.link', TBRL.link, false);
-    window.addEventListener('Taberareloo.quote', TBRL.quote, false);
-    window.addEventListener('Taberareloo.general', TBRL.general, false);
-    !TBRL.config['post']['keyconfig'] && document.addEventListener('keydown', TBRL.keyhandler, false);
-  },
-  unload : function(){
-    !TBRL.config['post']['keyconfig'] && document.removeEventListener('unload', TBRL.unload, false);
-    document.removeEventListener('keydown', TBRL.handler, false);
-    document.removeEventListener('mousemove', TBRL.mousehandler, false);
-    window.removeEventListener('Taberareloo.link', TBRL.link, false);
-    window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
-    window.removeEventListener('Taberareloo.general', TBRL.general, false);
-    TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
   },
   ldr : function(ev){
     var data = JSON.parse(ev.data);
@@ -106,15 +116,61 @@ var TBRL = {
     });
   },
   general: function(ev){
+    if(TBRL.field_shown){
+      TBRL.field_delete();
+    }
+    if(!TBRL.field){
+      TBRL.field = $N('div', {
+        id: 'taberareloo_background'
+      });
+      TBRL.ol = $N('ol', {
+        id: 'taberareloo_list'
+      });
+      TBRL.field.appendChild(TBRL.ol);
+    }
+    TBRL.field_shown = true;
+    TBRL.field.addEventListener('click', TBRL.field_clicked, true);
+
     var ctx = TBRL.createContext();
     var exts = Extractors.check(ctx);
-    log(exts[0].name);
     if(exts.length){
-      maybeDeferred(exts[0].extract(ctx))
-      .addCallback(function(ps){
-        TBRL.openQuickPostForm(ps);
+      TBRL.ctx  = ctx;
+      TBRL.exts = exts;
+      TBRL.buttons = exts.map(function(ext){
+        var li = $N('li', {
+          'class': 'taberareloo_button'
+        }, [$N('img', {
+          src: ext.ICON
+        }), $N('span', {}, ext.name)]);
+        TBRL.ol.appendChild(li);
+        return li;
       });
     }
+    (document.body || document.documentElement).appendChild(TBRL.field);
+  },
+  field_clicked: function(ev){
+    var li = $X('./ancestor-or-self::li[@class="taberareloo_button"]', ev.target)[0];
+    if(li){
+      var index = TBRL.buttons.indexOf(li);
+      var ext = TBRL.exts[index];
+      log(ext.name);
+      try{
+        maybeDeferred(ext.extract(TBRL.ctx))
+        .addCallback(function(ps){
+          TBRL.openQuickPostForm(ps);
+        }).addErrback(function(e){
+          console.log(e);
+        });
+      }catch(e){}
+    }
+    TBRL.field_delete();
+  },
+  field_delete: function(){
+    TBRL.buttons = null;
+    $D(TBRL.ol);
+    TBRL.field.parentNode.removeChild(TBRL.field);
+    TBRL.field_shown = false;
+    TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
   },
   keyhandler : function(ev){
     var t = ev.target;
@@ -149,7 +205,7 @@ var TBRL = {
       target : TBRL.target || document
     }, window.location);
     if(ctx.target){
-      ctx.link    = $X('./ancestor::a', ctx.target)[0];
+      ctx.link    = $X('./ancestor-or-self::a', ctx.target)[0];
       ctx.onLink  = !!ctx.link;
       ctx.onImage = ctx.target instanceof HTMLImageElement;
     }
@@ -160,7 +216,7 @@ var TBRL = {
     TBRL.target = ev.target;
   },
   openQuickPostForm : function(ps){
-    chrome.extension.sendRequest(id, {
+    chrome.extension.sendRequest(TBRL.id, {
       request: "quick",
       content: update({
         page    : document.title,
@@ -171,7 +227,7 @@ var TBRL = {
   share: function(ctx, ext, show){
     maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
-      chrome.extension.sendRequest(id, {
+      chrome.extension.sendRequest(TBRL.id, {
         request: "share",
         show   : show,
         content: update({
@@ -183,7 +239,7 @@ var TBRL = {
   },
   getConfig : function(){
     var d = new Deferred();
-    chrome.extension.sendRequest(id, {
+    chrome.extension.sendRequest(TBRL.id, {
       request: "config"
     }, function(res){
       d.callback(res);
