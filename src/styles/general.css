@@ -33,6 +33,7 @@ li.taberareloo_button {
   font-size: 11pt;
   text-align: left;
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(204, 204, 204)), color-stop(1, rgb(102, 102, 102)));
+  cursor: pointer;
 }
 li.taberareloo_button:hover {
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(187, 204, 221)), color-stop(1, rgb(51, 102, 153)));
