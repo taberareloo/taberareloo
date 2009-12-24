@@ -381,11 +381,11 @@ var Posters = function(ps){
   var config = Config['services'];
   this.buttons = [];
   this.posters.forEach(function(poster){
-    var obj = config[poster.name] || {};
+    var stat = self.models.getConfig(ps, poster);
     if(~ps.enabledPosters.indexOf(poster.name)){
       var res = true;
     } else {
-      var res = obj[ps.type] === 'default';
+      var res = stat === 'default';
     }
     var img = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
     connect(img, 'onclick', self, function(){

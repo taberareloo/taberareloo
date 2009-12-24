@@ -1263,8 +1263,19 @@ Models.getEnables = function(ps){
     m.config = (m.config || {});
 
     var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps);
-    return val === undefined || /default|enable/.test(val);
+    return val === undefined || /default|enabled/.test(val);
   });
+}
+
+Models.getConfig = function(ps, poster){
+  var c  = Models.getPostConfig(TBRL.Config['services'], poster.name, ps);
+  if(c === 'default'){
+    return 'default';
+  } else if(c === undefined || 'enabled' === c){
+    return 'enabled';
+  } else {
+    return 'disabled';
+  }
 }
 
 Models.getPostConfig = function(config, name, ps){
