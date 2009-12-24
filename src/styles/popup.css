@@ -10,7 +10,7 @@ body {
 div#main {
   margin :2px;
   padding:2px;
-  min-width  : 400px;
+  width  : 400px;
   min-height : 100px;
 }
 div#icon_container > * {
