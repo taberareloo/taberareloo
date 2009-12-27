@@ -705,18 +705,16 @@ Models.register({
       if(doc.getElementById('gaia_loginform'))
         throw new Error(getMessage('error.notLoggedin'));
 
-      var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]')[0];
+      var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
       var fs = formContents(form);
       return request('http://www.google.com'+$X('//form[@name="add_bkmk_form"]/@action', doc)[0], {
         //denyRedirection: true,
-        sendContent  : {
+        sendContent  : update(fs, {
           title      : ps.item,
           bkmk       : ps.itemUrl,
           annotation : joinText([ps.body, ps.description], ' ', true),
-          labels     : ps.tags? ps.tags.join(',') : '',
-          btnA       : fs.btnA,
-          sig        : fs.sig
-        }
+          labels     : ps.tags? ps.tags.join(',') : ''
+        })
       });
     });
   }
