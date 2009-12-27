@@ -1,6 +1,7 @@
 // vim: fileencoding=utf-8
 
 var background = chrome.extension.getBackgroundPage();
+var form = null;
 var log = function(target){
   background.console.log.apply(background.console, arguments);
   return target;
@@ -83,7 +84,7 @@ connect(window, 'onDOMContentLoaded', window, function(ev){
 });
 
 main.addCallback(function(ps){
-  var form = new Form(ps);
+  form = new Form(ps);
 });
 
 var Form = function(ps){
@@ -92,6 +93,7 @@ var Form = function(ps){
   this.savers = {};
   this.toggles = [];
   this.shown = false;
+  this.shortcutkeys = background.TBRL.Popup.shortcutkeys;
 
   this.savers['enabledPosters'] = this.posters = new Posters(ps);
 
@@ -106,17 +108,13 @@ var Form = function(ps){
     }
   });
 
-  connect($('post'), 'onclick', this, function(ev){
-    try{
-      this.posted = true;
-      this.save();
-      if(this.tags) this.tags.addNewTags();
-      background.TBRL.Service.post(this.ps, this.posters.body());
-      window.close();
-    }catch(e){
-      log(e);
-    }
+  connect(window, 'onkeydown', this, function(ev){
+    var key = keyString(ev._event);
+    var func = Form.shortcutkeys[key];
+    func && func(ev);
   });
+
+  connect($('post'), 'onclick', this, 'post');
 
   var toggle_detail = $('toggle_detail');
   connect(toggle_detail, 'onclick', this, function(ev){
@@ -138,7 +136,7 @@ Form.prototype = {
     var desc    = this.savers['description'] = this.desc = new Desc(ps);
     this.toggles = [title, link];
     // resize timingはそれぞれ異なる場合がある(photoなどは画像がloadされたとき)
-    callLater(0, Form.resize);
+    callLater(0.1, Form.resize);
   },
   quote: function(){
     var ps = this.ps;
@@ -148,7 +146,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
     this.toggles = [title, link, tags, desc];
-    callLater(0, Form.resize);
+    callLater(0.1, Form.resize);
   },
   photo: function(){
     var ps = this.ps;
@@ -164,7 +162,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps);
     this.toggles = [title, tags];
-    callLater(0, Form.resize);
+    callLater(0.1, Form.resize);
   },
   video: function(){
     var ps = this.ps;
@@ -173,7 +171,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
     this.toggles = [title, tags, link, desc];
-    callLater(0, Form.resize);
+    callLater(0.1, Form.resize);
   },
   save: function(){
     Object.keys(this.savers).forEach(function(key){
@@ -181,11 +179,28 @@ Form.prototype = {
     }, this);
     background.TBRL.Popup.contents[this.ps.itemUrl] = this.ps;
   },
+  post: function(){
+    try{
+      this.posted = true;
+      this.save();
+      if(this.tags) this.tags.addNewTags();
+      background.TBRL.Service.post(this.ps, this.posters.body());
+      window.close();
+    }catch(e){
+      log(e);
+    }
+  },
   toggle: function(){
     this.toggles.forEach(function(unit){
       unit.toggle();
     });
-    callLater(0, Form.resize);
+    callLater(0.1, Form.resize);
+  }
+};
+
+Form.shortcutkeys = {
+  'CTRL + RETURN': function(ev){
+    form.post();
   }
 };
 
