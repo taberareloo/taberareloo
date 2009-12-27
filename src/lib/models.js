@@ -105,6 +105,8 @@ var Tumblr = {
     var self = this;
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
+      if($X('id("account_form")', doc)[0])
+        throw new Error(getMessage('error.notLoggedin'));
       var form = formContents($X('id("edit_post")', doc)[0]);
       delete form.preview_post;
       form.redirect_to = Tumblr.TUMBLR_URL+'dashboard';
@@ -172,7 +174,19 @@ var Tumblr = {
    */
   postForm : function(fn){
     var self = this;
-    return succeed().addCallback(fn);
+    return succeed().addCallback(fn).addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if($X('id("account_form")', doc)[0]){
+        throw new Error(getMessage('error.notLoggedin'));
+      } else if($X('id("posts")', doc)[0]){
+        return;
+      } else {
+        if(res.responseText.match('more tomorrow'))
+          throw new Error('You\'ve exceeded your daily post limit.');
+        else
+          throw new Error("Error posting entry.");
+      }
+    });
   },
 
   /**
@@ -185,6 +199,8 @@ var Tumblr = {
     var self = this;
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
+      if($X('id("account_form")', doc))
+        throw new Error(getMessage('error.notLoggedin'));
       return self.token = $X('id("form_key")/@value', doc)[0];
     });
   }
