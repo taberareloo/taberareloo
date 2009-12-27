@@ -41,3 +41,7 @@ li.taberareloo_button:hover {
 li.taberareloo_button > * {
  margin-right: 10px;
 }
+li.taberareloo_button > img {
+  width: 16px;
+  height: 16px;
+}
