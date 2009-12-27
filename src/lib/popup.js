@@ -199,8 +199,12 @@ Form.prototype = {
 };
 
 Form.shortcutkeys = {
-  'CTRL + RETURN': function(ev){
+  'CTRL + RETURN': function(){
     form.post();
+  },
+  'ESCAPE': function(ev){
+    ev.stop();
+    window.close();
   }
 };
 
