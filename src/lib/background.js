@@ -262,7 +262,8 @@ var TBRL = {
     defaultSuggester: 'HatenaBookmark',
     tags : null,
     tabs: [],
-    contents : {}
+    contents : {},
+    suggestionShownDefault: false
   },
   configSet: function(config){
     TBRL.Config = config;

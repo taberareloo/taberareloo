@@ -444,6 +444,8 @@ var Tags = function(ps, toggle){
   this.autoComplete = false;
   this.popup = new Popup(this);
   this.suggestionShown = false;
+  this.suggestionIcon  = $('loading_icon');
+  this.suggestionShownDefault = background.TBRL.Popup.suggestionShownDefault;
   this.elmTags = {};
   var ignoreTags = toggle;
 
@@ -469,15 +471,12 @@ var Tags = function(ps, toggle){
         self.setSuggestions(res);
         self.setTags(res.tags);
 
-        var icon = $('loading_icon');
-        removeElementClass(icon, 'loading');
-        addElementClass(icon, 'loaded');
-        connect(icon, 'onclick', self, function(ev){
-          this.toggleSuggestions();
-          if(!addElementClass(icon, 'extended')){
-            removeElementClass(icon, 'extended');
-          }
-        });
+        removeElementClass(self.suggestionIcon, 'loading');
+        addElementClass(self.suggestionIcon, 'loaded');
+        connect(self.suggestionIcon, 'onclick', self, 'toggleSuggestions');
+        if(self.suggestionShownDefault){
+          self.toggleSuggestions();
+        }
       }).addErrback(function(e){
         if(isPopup){
           notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
@@ -906,8 +905,11 @@ Tags.prototype = {
     } else {
       sg.style.display = 'block';
     }
-    this.suggestionShown = !this.suggestionShown;
-    callLater(0, Form.resize);
+    background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = !this.suggestionShown;
+    if(!addElementClass(this.suggestionIcon, 'extended')){
+      removeElementClass(this.suggestionIcon, 'extended');
+    }
+    return callLater(0, Form.resize);
   }
 };
 
