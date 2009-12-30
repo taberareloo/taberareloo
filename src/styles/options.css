@@ -1,5 +1,3 @@
-/* vim: fileencoding=utf-8 */
-
 ul#tabs {
   display: block;
   width: 800px;
@@ -67,6 +65,12 @@ div.option a,
 div.item a{
   text-decoration: none;
   color: gray;
+}
+tr.service:nth-of-type(odd) {
+  background-color: #F1F1F1;
+}
+tr.service:nth-of-type(even) {
+  background-color: white;
 }
 p.service_text {
   display: inline;
