@@ -133,25 +133,28 @@ var TBRL = {
 
     var ctx = TBRL.createContext();
     var exts = Extractors.check(ctx);
-    if(exts.length){
-      TBRL.ctx  = ctx;
-      TBRL.exts = exts;
-      TBRL.buttons = exts.map(function(ext){
-        var li = $N('li', {
-          'class': 'taberareloo_button'
-        }, [$N('img', {
-          src: ext.ICON
-        }), $N('span', {}, ext.name)]);
-        TBRL.ol.appendChild(li);
-        return li;
-      });
-    }
+    TBRL.ctx  = ctx;
+    TBRL.exts = exts;
+    TBRL.buttons = exts.map(function(ext, index){
+      var button = $N('button', {
+        'type' : 'button',
+        'class': 'taberareloo_button'
+      }, [$N('img', {
+        src: ext.ICON
+      }), $N('span', null, ext.name)]);
+      var li = $N('li', {
+        'class': 'taberareloo_item'
+      }, button);
+      TBRL.ol.appendChild(li);
+      return button;
+    });
     (document.body || document.documentElement).appendChild(TBRL.field);
+    TBRL.buttons[0].focus();
   },
   field_clicked: function(ev){
-    var li = $X('./ancestor-or-self::li[@class="taberareloo_button"]', ev.target)[0];
-    if(li){
-      var index = TBRL.buttons.indexOf(li);
+    var button = $X('./ancestor-or-self::button[@class="taberareloo_button"]', ev.target)[0];
+    if(button){
+      var index = TBRL.buttons.indexOf(button);
       var ext = TBRL.exts[index];
       log(ext.name);
       try{

@@ -378,13 +378,17 @@ var $N = function(name, attr, childs){
     ret.appendChild(document.createTextNode(childs));
     break;
     case "object":
-    for(var i=0, len=childs.length; i<len; i++){
-      var child = childs[i];
-      if(typeof child === "string"){
-        ret.appendChild(document.createTextNode(child));
-      } else {
-        ret.appendChild(child);
+    if(isArrayLike(childs)){
+      for(var i=0, len=childs.length; i<len; i++){
+        var child = childs[i];
+        if(typeof child === "string"){
+          ret.appendChild(document.createTextNode(child));
+        } else {
+          ret.appendChild(child);
+        }
       }
+    } else {
+      ret.appendChild(childs);
     }
   }
   return ret;
