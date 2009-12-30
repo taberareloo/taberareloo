@@ -188,13 +188,15 @@ var TBRL = {
     "services": {
     },
     "post"    : {
-      "tag_auto_complete" : true,
       "tag_provider"      : "HatenaBookmark",
-      "keyconfig"         : true,
-      "shortcutkey_linkquickpost" : "",
+      "tag_auto_complete" : true,
+      "ldr_plus_taberareloo" : false,
+      "dashboard_plus_taberareloo" : false,
+      "keyconfig"            : true,
+      "shortcutkey_linkquickpost"  : "",
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",
-      "always_shorten_url" : false
+      "always_shorten_url"    : false
     },
     "entry"   : {
       "trim_reblog_info"  : false,

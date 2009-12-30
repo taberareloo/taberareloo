@@ -124,9 +124,11 @@ function joinText(txts, delm, trimTag){
   txts = [].concat(txts).filter(operator.truth).flatten();
   return (trimTag? txts.map(methodcaller('trimTag')) : txts).join(delm);
 }
+
 function tagName(elm){
   return elm.tagName? elm.tagName.toLowerCase() : '';
 }
+
 // from https://developer.mozilla.org/En/DOM/Event/UIEvent/KeyEvent
 var KeyEvent = {
   'DOM_VK_CANCEL'        : 3,

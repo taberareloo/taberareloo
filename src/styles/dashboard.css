@@ -1,0 +1,19 @@
+div#FLASH_MESSAGE{
+  position : fixed;
+  font-size : 500%;
+  z-index : 10000;
+
+  padding : 50px;
+  left : 50%;
+  top : 50%;
+  margin : -1em;
+
+  background-color : #444;
+  color : #FFF;
+  -moz-border-radius: 0.3em;
+  border-radius: 0.3em;
+  min-width : 1em;
+  text-align : center;
+
+  -webkit-transition: opacity -left 0.4s ease-out;
+}

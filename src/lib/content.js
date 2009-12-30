@@ -38,6 +38,7 @@ var TBRL = {
     document.head.appendChild(style);
 
     TBRL.insertLDR();
+    TBRL.insertDashboard();
 
     window.addEventListener('Taberareloo.link', TBRL.link, false);
     window.addEventListener('Taberareloo.quote', TBRL.quote, false);
@@ -52,6 +53,7 @@ var TBRL = {
     window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
     window.removeEventListener('Taberareloo.general', TBRL.general, false);
     TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
+    TBRL.dashboard_plus_taberareloo && window.removeEventListener('Taberareloo.Dashboard', TBRL.dashboard, false);
     TBRL.field_shown && TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
   },
   insertLDR: function(){
@@ -102,6 +104,40 @@ var TBRL = {
     }
     var ext = Extractors.check(ctx)[0];
     return TBRL.share(ctx, ext, ext.name.match(/^Link /));
+  },
+  insertDashboard : function(){
+    if(/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) &&
+      TBRL.config['post']['dashboard_plus_taberareloo']){
+
+      var style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = chrome.extension.getURL('styles/dashboard.css');
+      document.head.appendChild(style);
+
+      var script = document.createElement('script');
+      script.type = "text/javascript";
+      script.charset = "utf-8";
+      script.src = chrome.extension.getURL('lib/dashboard_plus_taberareloo.js');
+      document.head.appendChild(script);
+
+      window.addEventListener('Taberareloo.Dashboard', TBRL.dashboard, false);
+      TBRL.dashboard_plus_taberareloo = true;
+    }
+  },
+  dashboard : function(ev){
+    var target = ev.target;
+    var ctx = update({
+        document  : document,
+        window    : window,
+        selection : '' + window.getSelection(),
+        target    : target,
+        event     : {},
+        title     : null,
+        mouse     : null,
+        menu      : null
+    }, window.location);
+    var ext = Extractors['ReBlog - Dashboard'];
+    if(ext.check(ctx)) TBRL.share(ctx, ext, false);
   },
   link : function(ev){
     return maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
