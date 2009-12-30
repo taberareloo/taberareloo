@@ -154,38 +154,39 @@ var TBRL = {
   general: function(ev){
     if(TBRL.field_shown){
       TBRL.field_delete();
-    }
-    if(!TBRL.field){
-      TBRL.field = $N('div', {
-        id: 'taberareloo_background'
-      });
-      TBRL.ol = $N('ol', {
-        id: 'taberareloo_list'
-      });
-      TBRL.field.appendChild(TBRL.ol);
-    }
-    TBRL.field_shown = true;
-    TBRL.field.addEventListener('click', TBRL.field_clicked, true);
+    } else {
+      if(!TBRL.field){
+        TBRL.field = $N('div', {
+          id: 'taberareloo_background'
+        });
+        TBRL.ol = $N('ol', {
+          id: 'taberareloo_list'
+        });
+        TBRL.field.appendChild(TBRL.ol);
+      }
+      TBRL.field_shown = true;
+      TBRL.field.addEventListener('click', TBRL.field_clicked, true);
 
-    var ctx = TBRL.createContext();
-    var exts = Extractors.check(ctx);
-    TBRL.ctx  = ctx;
-    TBRL.exts = exts;
-    TBRL.buttons = exts.map(function(ext, index){
-      var button = $N('button', {
-        'type' : 'button',
-        'class': 'taberareloo_button'
-      }, [$N('img', {
-        src: ext.ICON
-      }), $N('span', null, ext.name)]);
-      var li = $N('li', {
-        'class': 'taberareloo_item'
-      }, button);
-      TBRL.ol.appendChild(li);
-      return button;
-    });
-    (document.body || document.documentElement).appendChild(TBRL.field);
-    TBRL.buttons[0].focus();
+      var ctx = TBRL.createContext();
+      var exts = Extractors.check(ctx);
+      TBRL.ctx  = ctx;
+      TBRL.exts = exts;
+      TBRL.buttons = exts.map(function(ext, index){
+        var button = $N('button', {
+          'type' : 'button',
+          'class': 'taberareloo_button'
+        }, [$N('img', {
+          src: ext.ICON
+        }), $N('span', null, ext.name)]);
+        var li = $N('li', {
+          'class': 'taberareloo_item'
+        }, button);
+        TBRL.ol.appendChild(li);
+        return button;
+      });
+      (document.body || document.documentElement).appendChild(TBRL.field);
+      TBRL.buttons[0].focus();
+    }
   },
   field_clicked: function(ev){
     var button = $X('./ancestor-or-self::button[@class="taberareloo_button"]', ev.target)[0];
@@ -205,11 +206,13 @@ var TBRL = {
     TBRL.field_delete();
   },
   field_delete: function(){
-    TBRL.buttons = null;
-    $D(TBRL.ol);
-    TBRL.field.parentNode.removeChild(TBRL.field);
-    TBRL.field_shown = false;
-    TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
+    if(TBRL.field_shown){
+      TBRL.buttons = null;
+      $D(TBRL.ol);
+      TBRL.field.parentNode.removeChild(TBRL.field);
+      TBRL.field_shown = false;
+      TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
+    }
   },
   keyhandler : function(ev){
     var t = ev.target;
