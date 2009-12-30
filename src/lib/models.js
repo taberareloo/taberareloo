@@ -861,7 +861,7 @@ Models.register({
     var url = this.POST_URL;
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("content")/form', doc)[0]){
+      if(!$X('id("userpanel")/a[contains(concat(" ",normalize-space(@href)," "), " /user/logout ")]', doc)[0]){
         throw new Error(getMessage('error.notLoggedin'));
       }
       return $X('//input[@id="form_key"]/@value', doc)[0];
