@@ -701,8 +701,10 @@ Extractors.register([
     check : function(ctx){
       if(ctx.target && ctx.document){
         var bg = Extractors['Photo - background image'].lookupBG(ctx.target, ctx.document);
-        var m = bg.match(/url\s*\(\s*['"]?\s*(https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)\s*['"]?\s*\)/);
-        if(m) ctx.bgImageURL = m[1];
+        if(bg){
+          var m = bg.match(/url\s*\(\s*['"]?\s*(https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)\s*['"]?\s*\)/);
+          if(m) ctx.bgImageURL = m[1];
+        }
       }
       return ctx.bgImageURL;
     },
