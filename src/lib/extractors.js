@@ -2,7 +2,6 @@
 
 var skin = chrome.extension.getURL('skin/');
 var Extractors = new Repository();
-
 Extractors.register([
   {
     name : 'LDR',
@@ -458,7 +457,7 @@ Extractors.register([
         authorUrl : author.href,
         favorite : {
           name : '4u',
-          id : iLoveHer && decodeURIComponent(iLoveHer.extract('src=([^&]*)')),
+          id : iLoveHer && decodeURIComponent(iLoveHer.extract('src=([^&]*)'))
         }
       };
     }
@@ -700,7 +699,27 @@ Extractors.register([
     name : 'Photo - background image',
     ICON : skin+'photo.png',
     check : function(ctx){
+      if(ctx.target && ctx.document){
+        var bg = Extractors['Photo - background image'].lookupBG(ctx.target, ctx.document);
+        var m = bg.match(/url\s*\(\s*['"]?\s*(https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)\s*['"]?\s*\)/);
+        if(m) ctx.bgImageURL = m[1];
+      }
       return ctx.bgImageURL;
+    },
+    lookupBG: function(elm, doc){
+      return (function(target){
+        var bg = getComputedStyle(elm, '').backgroundImage;
+        if(bg){
+          return bg;
+        } else {
+          var parent = elm.parentNode;
+          if(parent === doc){
+            return null;
+          } else {
+            return arguments.callee(parent);
+          }
+        }
+      })(elm);
     },
     extract : function(ctx){
       return {
