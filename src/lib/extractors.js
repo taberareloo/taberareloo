@@ -707,19 +707,23 @@ Extractors.register([
       return ctx.bgImageURL;
     },
     lookupBG: function(elm, doc){
-      return (function(target){
-        var bg = getComputedStyle(elm, '').backgroundImage;
-        if(bg){
-          return bg;
-        } else {
-          var parent = elm.parentNode;
-          if(parent === doc){
-            return null;
+      if(elm !== doc){
+        return (function(target){
+          var bg = getComputedStyle(elm, '').backgroundImage;
+          if(bg){
+            return bg;
           } else {
-            return arguments.callee(parent);
+            var parent = elm.parentNode;
+            if(parent === doc){
+              return null;
+            } else {
+              return arguments.callee(parent);
+            }
           }
-        }
-      })(elm);
+        })(elm);
+      } else {
+        return null;
+      }
     },
     extract : function(ctx){
       return {
