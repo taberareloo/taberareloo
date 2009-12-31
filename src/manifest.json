@@ -20,5 +20,5 @@
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs" ],
-   "version": "1.0.0"
+   "version": "1.0.1"
 }
