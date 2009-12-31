@@ -284,8 +284,8 @@ var onRequestsHandlers = {
   quick: function(req, sender, func){
     getSelected().addCallback(function(tab){
       TBRL.Service.open(tab, req.content);
-      func({});
     });
+    func({});
   },
   share: function(req, sender, func){
     getSelected().addCallback(function(tab){

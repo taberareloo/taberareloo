@@ -140,13 +140,13 @@ var TBRL = {
     if(ext.check(ctx)) TBRL.share(ctx, ext, false);
   },
   link : function(ev){
-    return maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
+    maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
     .addCallback(function(ps){
       TBRL.openQuickPostForm(ps);
     });
   },
   quote: function(ev){
-    return maybeDeferred(Extractors.Quote.extract(TBRL.createContext()))
+    maybeDeferred(Extractors.Quote.extract(TBRL.createContext()))
     .addCallback(function(ps){
       TBRL.openQuickPostForm(ps);
     });
@@ -264,7 +264,8 @@ var TBRL = {
         page    : document.title,
         pageUrl : location.href
       }, ps)
-    }, function(res){ });
+    }, function(res){
+    });
   },
   share: function(ctx, ext, show){
     maybeDeferred(ext.extract(ctx))

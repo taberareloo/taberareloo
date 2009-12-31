@@ -25,9 +25,9 @@ function getSelected(){
           window.close();
         }
       } else {
-        id = setTimeout(arguments.callee);
+        id = setTimeout(arguments.callee, 0);
       }
-    });
+    }, 0);
   } else {
     isPopup = true;
     chrome.tabs.getSelected(null, function(tab){
@@ -232,8 +232,8 @@ var Title = function(ps, toggle){
   this.shownInput = false;
   this.shown = true;
 
-  textTitle.appendChild($T(ps.item));
-  inputTitle.setAttribute('value', ps.item);
+  textTitle.appendChild($T(ps.item || ""));
+  inputTitle.setAttribute('value', ps.item || "");
   connect(textTitle.parentNode, 'onclick', this, 'showInputTitle');
   connect(inputTitle, 'onblur', this, 'hideInputTitle');
 };
