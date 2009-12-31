@@ -249,7 +249,11 @@ Tumblr.Video = {
 
 Tumblr.Link = {
   convertToForm : function(ps){
-    var thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
+    if(ps.pageUrl){
+      var thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
+    } else {
+      var thumb = null;
+    }
     return {
       'post[type]'  : ps.type,
       'post[one]'   : ps.item,
