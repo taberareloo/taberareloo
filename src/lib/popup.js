@@ -11,15 +11,23 @@ var isPopup = false;
 
 function getSelected(){
   var d = new Deferred();
-  if(window.tab){
-    var tab = window.tab;
-    if(background.TBRL.Service.isEnableSite(tab.url)){
-      setTimeout(function(){
-        d.callback(tab);
-      }, 0);
-    } else {
-      window.close();
-    }
+  if(location.hash === '#quick'){
+    var id = setTimeout(function(){
+      clearTimeout(id);
+      var tab = window.tab;
+      log(tab);
+      if(tab){
+        if(background.TBRL.Service.isEnableSite(tab.url)){
+          setTimeout(function(){
+            d.callback(tab);
+          }, 0);
+        } else {
+          window.close();
+        }
+      } else {
+        id = setTimeout(arguments.callee);
+      }
+    });
   } else {
     isPopup = true;
     chrome.tabs.getSelected(null, function(tab){

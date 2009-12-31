@@ -204,6 +204,7 @@ var TBRL = {
     }
   },
   Service: {
+    count: 0,
     alertPreference: function(type){
       alert('error.noPoster\n'+type.capitalize().indent(4));
     },
@@ -243,7 +244,7 @@ var TBRL = {
       if(ps.type === 'quote' || ps.type === 'regular'){
         height = 'height=250'
       }
-      var win = window.open(chrome.extension.getURL('popup.html'), 'QuickPost', height+',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
+      var win = window.open(chrome.extension.getURL('popup.html')+'#quick', 'QuickPost '+(TBRL.Service.count++), height+',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
       win.tab = tab;
       win.ps = ps;
     },
