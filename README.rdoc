@@ -32,9 +32,13 @@ and
 
 * post to a lot of services
 
+== VERSION
+
+1.0.0
+
 == DEPENDENCIES
 
-* after Chromium version 4.0.257.0 (33043)
+* Chromium or Google Chrome
 
 == INSTALL
 
@@ -44,7 +48,7 @@ https://chrome.google.com/extensions/detail/ldcnohnnlpgglecmkldelbmiokgmikno
 
 == SCREENSHOT
 
-http://farm3.static.flickr.com/2639/4182059274_dfb9fe06e8_o.png
+http://farm5.static.flickr.com/4030/4230713294_14aa84791f_o.png
 
 == DEVELOPERS
 
