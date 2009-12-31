@@ -146,7 +146,7 @@ var TBRL = {
     });
   },
   quote: function(ev){
-    return maybeDeferred(Extractors.Photo.extract(TBRL.createContext()))
+    return maybeDeferred(Extractors.Quote.extract(TBRL.createContext()))
     .addCallback(function(ps){
       TBRL.openQuickPostForm(ps);
     });
