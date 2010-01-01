@@ -40,7 +40,7 @@ Repository.prototype = {
       for(var i = 0, len = vals.length; i < len; ++i){
         if(vals[i].name === target) break;
       }
-      vals.splice((after? i+1 : i), 0).concat(defs);
+      vals.splice.apply(vals, [(after ? i+1 : i), 0].concat(defs));
       defs = vals;
     }
     defs.forEach(function(d){
