@@ -199,12 +199,25 @@ var Tumblr = {
     var self = this;
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc))
+      if($X('id("account_form")', doc)[0])
         throw new Error(getMessage('error.notLoggedin'));
       return self.token = $X('id("form_key")/@value', doc)[0];
     });
-  }
+  },
 
+  getTumblelogs : function(){
+    return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if($X('id("account_form")', doc)[0])
+        throw new Error(getMessage('error.notLoggedin'));
+      return $X('id("channel_id")//option[@value!=0]', doc).map(function(opt){
+        return {
+          id : opt.value,
+          name: opt.textContent
+        }
+      });
+    });
+  }
 };
 
 
@@ -751,7 +764,7 @@ Models.register({
     return request('http://friendfeed.com/share/bookmarklet/frame')
     .addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc).length){
+      if($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]){
         throw new Error(getMessage('error.notLoggedin'));
       }
       return $X('descendant::input[contains(concat(" ",normalize-space(@name)," ")," at ")]/@value', doc)[0];
@@ -1299,4 +1312,30 @@ Models.getConfig = function(ps, poster){
 Models.getPostConfig = function(config, name, ps){
   var c = config[name] || {};
   return (ps.favorite && ps.favorite.name === name)? c.favorite : c[ps.type];
+}
+
+Models.multipleTumblelogs = [];
+Models.getMultiTumblelogs = function(){
+  Models.removeMultiTumblelogs();
+  return Tumblr.getTumblelogs().addCallback(function(blogs){
+    return blogs.map(function(blog){
+      var model = update({}, Tumblr);
+      model.name = 'Tumblr - ' + blog.name;
+      addBefore(model, 'appendTags', function(form, ps){
+        form.channel_id = blog.id;
+      });
+      Models.register(model, 'Tumblr', true);
+      Models.multipleTumblelogs.push(model);
+      return model;
+    });
+  }).addErrback(function(e){
+    alert('Multiple Tumblelog'+ ': ' +
+      (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+  });
+}
+Models.removeMultiTumblelogs = function(){
+  Models.multipleTumblelogs.forEach(function(model){
+    Models.remove(model);
+  });
+  Models.multipleTumblelogs = [];
 }

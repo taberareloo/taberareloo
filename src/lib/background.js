@@ -197,7 +197,8 @@ var TBRL = {
       "shortcutkey_linkquickpost"  : "",
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",
-      "always_shorten_url"    : false
+      "always_shorten_url"    : false,
+      "multi_tumblelogs"      : false
     },
     "entry"   : {
       "trim_reblog_info"  : false,
@@ -280,6 +281,8 @@ if(window.localStorage.options){
 } else {
   window.localStorage.options = JSON.stringify(TBRL.Config);
 }
+
+if(TBRL.Config.post['multi_tumblelogs']) Models.getMultiTumblelogs();
 
 var onRequestsHandlers = {
   quick: function(req, sender, func){

@@ -17,6 +17,27 @@ Repository.prototype = {
       return !!~i.name.search(name);
     });
   },
+  remove: function(model){
+    var list = this.list, compare = null, name;
+    if(typeof(model) === 'string'){
+      name = model;
+      compare = function(m){
+        return m.name === model;
+      }
+    } else {
+      name = model.name;
+      compare = function(m){
+        return m === model;
+      }
+    }
+    for(var i = 0, len = this.list.length; i < len; ++i){
+      if(compare(list[i])){
+        list.splice(i, 1);
+        break;
+      }
+    }
+    if(name) delete this[name];
+  },
   copyTo : function(t){
     t.list = $A(this.list);
     t.list.forEach(function(def){

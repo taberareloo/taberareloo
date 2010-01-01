@@ -66,6 +66,10 @@ div.item a{
   text-decoration: none;
   color: gray;
 }
+div.option_line > * {
+  display: inline-block;
+  margin : 5px 10px;
+}
 tr.service:nth-of-type(odd) {
   background-color: #F1F1F1;
 }
@@ -107,13 +111,32 @@ div.button.default {
 div.tag_provider_set > * {
   margin: 3px;
 }
-img.tag_provider_icon {
-  display: inline;
+img.tag_provider_icon,
+img.tumblelog_icon {
+  display: inline-block;
+  margin: 3px 3px 0px 3px;
   width: 16px;
   height: 16px;
 }
 p.tag_provider_text {
-  display: inline;
+  display: inline-block;
+}
+div.tumblelog {
+  height: 20px;
+}
+div.tumblelog:nth-of-type(odd) {
+  background-color: #F1F1F1;
+}
+div.tumblelog:nth-of-type(even) {
+  background-color: white;
+}
+div.tumblelog > *{
+  margin-left: 3px;
+  margin-right: 3px;
+  display: inline-block;
+}
+p.tumblelog_text {
+  margin-top : 0px;
 }
 input.text_input {
   width : 100%;
@@ -121,4 +144,7 @@ input.text_input {
 input#save {
   width: 800px;
   cursor: pointer;
+}
+p.userscript_title {
+  min-width: 200px;
 }

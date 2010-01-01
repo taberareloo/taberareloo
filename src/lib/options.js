@@ -38,6 +38,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post["googlereader_plus_taberareloo"]);
   // Shorten URL
   var shorten_check = new Check('always_shorten_url', !!Config.post['always_shorten_url']);
+  // multiple tumblelogs
+  var tumble_check = new Check('multi_tumblelogs', !!Config.post["multi_tumblelogs"]);
+  var tumble_list = new TumbleList();
   // thumbnail template
   var thumbnail = new ThumbnailTemplate();
   // trim reblog info
@@ -50,39 +53,36 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var quote_quick_short = new Shortcutkey("shortcutkey_quotequickpost", true);
   // quick post
   var quick_short = new Shortcutkey("shortcutkey_quickpost", true);
+
   connect($('save'), 'onclick', window, function(ev){
-    var s  = services.body();
-    var p  = provider.body();
-    var t  = tag_check.body();
-    var ld = ldr_check.body();
-    var dsbd = dashboard_check.body();
-    var gr = gr_check.body();
-    var th = thumbnail.body();
-    var r  = reblog_check.body();
     var lk = link_quick_short.body();
     var qk = quote_quick_short.body();
     var k = quick_short.body();
-    var sc = shorten_check.body();
+    var tcheck = tumble_check.body();
     if(!Shortcutkey.isConflict(lk, qk, k)){
       background.TBRL.configSet({
-        'services' : s,
+        'services' : services.body(),
         'post'     : {
-          'tag_provider'     : p,
-          'tag_auto_complete': t,
-          'ldr_plus_taberareloo': ld,
-          'dashboard_plus_taberareloo': dsbd,
-          'googlereader_plus_taberareloo': gr,
+          'tag_provider'     : provider.body(),
+          'tag_auto_complete': tag_check.body(),
+          'ldr_plus_taberareloo': ldr_check.body(),
+          'dashboard_plus_taberareloo': dashboard_check.body(),
+          'googlereader_plus_taberareloo': gr_check.body(),
           'keyconfig' : keyconfig_check.body(),
           'shortcutkey_linkquickpost': lk,
           "shortcutkey_quotequickpost" : qk,
           "shortcutkey_quickpost" : k,
-          "always_shorten_url" : sc
+          "always_shorten_url" : shorten_check.body(),
+          "multi_tumblelogs"   : tcheck
         },
         'entry'    : {
-          'thumbnail_template' : th,
-          'trim_reblog_info'   : r
+          'thumbnail_template' : thumbnail.body(),
+          'trim_reblog_info'   : reblog_check.body()
         }
       });
+      if(!tcheck){
+        tumble_list.remove();
+      }
       this.close();
     } else {
       alert('Key Definition Conflict \n  Please set different keys each other');
@@ -180,7 +180,7 @@ Services.ELMS = {
   }),
   'default': $N('div', {
     class:'button default'
-  }),
+  })
 };
 
 Services.prototype = {
@@ -312,6 +312,47 @@ Shortcutkey.isConflict = function(){
 Shortcutkey.prototype = {
   body: function(){
     return this.elm.value;
+  }
+};
+
+var TumbleList = function(){
+  var self = this;
+  this.field = $("multi_tumble_field");
+  this.button = $("multi_tumblelogs_button");
+  connect(this.button, 'onclick', this, 'clicked');
+  var df = $DF();
+  background.Models.multipleTumblelogs.forEach(function(model){
+    df.appendChild(self.createElement(model));
+  });
+  this.field.appendChild(df);
+};
+
+TumbleList.prototype = {
+  clicked: function(ev){
+    var self = this;
+    $D(this.field);
+    background.Models.getMultiTumblelogs().addCallback(function(models){
+      var df = $DF();
+      models.forEach(function(model){
+        df.appendChild(self.createElement(model));
+      });
+      self.field.appendChild(df);
+    });
+  },
+  createElement: function(model){
+    var img = $N('img', {
+      src: model.ICON,
+      class: 'tumblelog_icon'
+    });
+    var label = $N('p', {
+      class: 'tumblelog_text'
+    }, model.name);
+    return $N('div', {
+      'class': 'tumblelog'
+    }, [img, label]);
+  },
+  remove: function(){
+    background.Models.removeMultiTumblelogs();
   }
 };
 
