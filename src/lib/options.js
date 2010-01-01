@@ -34,6 +34,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var ldr_check = new Check('ldr_plus_taberareloo', !!Config.post["ldr_plus_taberareloo"]);
   // Dashboard + Taberareloo
   var dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post["dashboard_plus_taberareloo"]);
+  // GoogleReader + Taberareloo
+  var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post["googlereader_plus_taberareloo"]);
   // Shorten URL
   var shorten_check = new Check('always_shorten_url', !!Config.post['always_shorten_url']);
   // thumbnail template
@@ -54,6 +56,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
     var t  = tag_check.body();
     var ld = ldr_check.body();
     var dsbd = dashboard_check.body();
+    var gr = gr_check.body();
     var th = thumbnail.body();
     var r  = reblog_check.body();
     var lk = link_quick_short.body();
@@ -68,6 +71,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'tag_auto_complete': t,
           'ldr_plus_taberareloo': ld,
           'dashboard_plus_taberareloo': dsbd,
+          'googlereader_plus_taberareloo': gr,
           'keyconfig' : keyconfig_check.body(),
           'shortcutkey_linkquickpost': lk,
           "shortcutkey_quotequickpost" : qk,

@@ -192,6 +192,7 @@ var TBRL = {
       "tag_auto_complete" : true,
       "ldr_plus_taberareloo" : false,
       "dashboard_plus_taberareloo" : false,
+      "googlereader_plus_taberareloo" : false,
       "keyconfig"            : true,
       "shortcutkey_linkquickpost"  : "",
       "shortcutkey_quotequickpost" : "",
