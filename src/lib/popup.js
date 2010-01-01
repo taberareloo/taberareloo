@@ -143,6 +143,7 @@ Form.prototype = {
     var tags    = this.savers['tags'] = this.tags  = new Tags(ps);
     var desc    = this.savers['description'] = this.desc = new Desc(ps);
     this.toggles = [title, link];
+    tags.focus();
     // resize timingはそれぞれ異なる場合がある(photoなどは画像がloadされたとき)
     callLater(0.1, Form.resize);
   },
@@ -154,6 +155,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
     this.toggles = [title, link, tags, desc];
+    body.focus();
     callLater(0.1, Form.resize);
   },
   photo: function(){
@@ -170,6 +172,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps);
     this.toggles = [title, tags];
+    desc.focus();
     callLater(0.1, Form.resize);
   },
   video: function(){
@@ -359,6 +362,9 @@ Desc.prototype = {
   body: function(){
     return this.desc.value;
   },
+  focus: function(){
+    this.desc.focus();
+  },
   toggle: function(){
     if(this.shown){
       this.description.setAttribute('style', 'display:none');
@@ -383,6 +389,9 @@ var Body = function(ps, toggle){
 Body.prototype = {
   body: function(){
     return this.bd.value;
+  },
+  focus: function(){
+    this.bd.focus();
   },
   toggle: function(){
     if(this.shown){
@@ -572,6 +581,10 @@ Tags.prototype = {
       });
     }
     this.shown = !this.shown;
+  },
+
+  focus: function(){
+    this.tags.focus();
   },
 
   body: function(){

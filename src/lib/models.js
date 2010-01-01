@@ -179,7 +179,7 @@ var Tumblr = {
       if($X('id("account_form")', doc)[0]){
         throw new Error(getMessage('error.notLoggedin'));
       } else if($X('id("posts")', doc)[0]){
-        return;
+        return null;
       } else {
         if(res.responseText.match('more tomorrow'))
           throw new Error('You\'ve exceeded your daily post limit.');
