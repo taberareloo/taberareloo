@@ -269,6 +269,11 @@ function keyString(e){
   })(e);
 }
 
+function stop(ev){
+  ev.preventDefault();
+  ev.stopPropagation();
+}
+
 function unescapeHTML(s){
   return s.replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
