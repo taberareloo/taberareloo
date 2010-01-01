@@ -84,7 +84,7 @@ Extractors.register([
     getItem: function(ctx, getOnly){
       if(!ctx.href.match(/\/\/www\.google\.[^\/]+\/reader\//))
         return;
-      var item = $X('ancestor-or-self::div[contains(concat(" ",@clas," ")," entry ")]', ctx.target);
+      var item = $X('ancestor-or-self::div[contains(concat(" ",@class," ")," entry ")]', ctx.target)[0];
       if(!item)
         return;
       var res = {
