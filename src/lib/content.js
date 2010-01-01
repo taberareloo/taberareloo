@@ -38,6 +38,7 @@ var TBRL = {
     document.head.appendChild(style);
 
     TBRL.insertLDR();
+    TBRL.insertGoogleReader();
     TBRL.insertDashboard();
 
     window.addEventListener('Taberareloo.link', TBRL.link, false);
@@ -54,6 +55,7 @@ var TBRL = {
     window.removeEventListener('Taberareloo.general', TBRL.general, false);
     TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
     TBRL.dashboard_plus_taberareloo && window.removeEventListener('Taberareloo.Dashboard', TBRL.dashboard, false);
+    TBRL.googlereader_plus_taberareloo && document.removeEventListener('keydown', TBRL.googlereader, false);
     TBRL.field_shown && TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
   },
   insertLDR: function(){
@@ -63,7 +65,7 @@ var TBRL = {
 
       var style = document.createElement('link');
       style.rel = 'stylesheet';
-      style.href = chrome.extension.getURL('styles/ldr.css');
+      style.href = chrome.extension.getURL('styles/reader.css');
       document.head.appendChild(style);
 
       var script = document.createElement('script');
@@ -82,7 +84,7 @@ var TBRL = {
     var ctx = update({
         document  : document,
         window    : window,
-        selection : '' + window.getSelection(),
+        selection : window.getSelection().toString(),
         target    : target,
         event     : {},
         title     : null,
@@ -102,6 +104,78 @@ var TBRL = {
       ctx.onImage = true;
       ctx.target = $X('.//img[1]', body)[0];
     }
+    var ext = Extractors.check(ctx)[0];
+    return TBRL.share(ctx, ext, ext.name.match(/^Link /));
+  },
+  insertGoogleReader: function(){
+    if(/^https?:\/\/www\.google\.[^/\.]+\/reader\//.test(location.href) &&
+      TBRL.config['post']['googlereader_plus_taberareloo']){
+      var style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = chrome.extension.getURL('styles/reader.css');
+
+      document.head.appendChild(style);
+      document.addEventListener('keydown', TBRL.googlereader, false);
+      TBRL.googlereader_plus_taberareloo = true;
+    }
+  },
+  googlereader : function(ev){
+    var key = keyString(ev);
+    if(key !== 'SHIFT + T') return null;
+    stop(ev);
+    function get_current_item(){
+      var item = {
+        parent: null,
+        body: null,
+        target: null,
+        feed: {
+          channel: {
+            link: null
+          }
+        }
+      }, link;
+      try {
+        item.parent = $X('id("current-entry")/descendant::div[contains(concat(" ", normalize-space(@class), " "), " entry-container ")]')[0] || null;
+        item.body = $X('id("current-entry")/descendant::div[contains(concat(" ", normalize-space(@class), " "), " item-body ")]')[0] || null;
+        item.target = $X('id("current-entry")/descendant::a[contains(concat(" ", normalize-space(@class), " "), " entry-title-link ")]')[0] || null;
+        link = $X('id("current-entry")/descendant::a[contains(concat(" ", normalize-space(@class), " "), " entry-source-title ")]')[0] || null;
+        if(link &&  link.href) item.feed.channel.link = decodeURIComponent(link.href.replace(/^.*\/(?=http)/, ''));
+        if(!item.parent || !item.body || !item.target || !item.feed.channel.link){
+          throw 'get_current_item error';
+        } else {
+          return item;
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+
+    var item = get_current_item();
+    if(!item) return null;
+    var ctx = update({
+      document  : document,
+      window    : window,
+      selection : window.getSelection().toString(),
+      target    : item.target,
+      event     : {},
+      title     : null,
+      mouse     : null,
+      menu      : null
+    }, window.location);
+    if([
+      'flickr.com/',
+      'http://ffffound.com',
+      'http://www.bighappyfunhouse.com',
+      'http://f.hatena.ne.jp',
+      'http://lpcoverlover.com',
+      'http://www.chicksnbreasts.com',
+      '1eb46a2f1f83c340eee10cd49c144625'].some(function(pattern){
+        return item.feed.channel.link.indexOf(pattern) != -1;
+    })){
+      ctx.onImage = true;
+      ctx.target = $X('./descendant::img[0]', item.body)[0];
+    }
+    addElementClass(item.parent, 'TBRL_posted');
     var ext = Extractors.check(ctx)[0];
     return TBRL.share(ctx, ext, ext.name.match(/^Link /));
   },
