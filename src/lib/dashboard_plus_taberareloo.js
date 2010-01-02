@@ -4,6 +4,9 @@
 
 (function(){
 
+// id:os0x
+window.key_commands_are_suspended = true;
+
 function get_current(){
   var paragraphs = $X('id("posts")/li[starts-with(@id, "post") or starts-with(@id, "tweet")]'), toplist = new Array(paragraphs.length), current = null;
 
