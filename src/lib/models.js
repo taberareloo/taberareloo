@@ -1258,6 +1258,12 @@ Models.register({
   }
 });
 
+Models.register(update({}, Models['bit.ly'], {
+  name: 'j.mp',
+  ICON: 'http://j.mp/static/images/favicon.png',
+  URL : 'http://api.j.mp'
+}));
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+/g;
   if(!reUrl.test(text))
