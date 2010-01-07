@@ -304,7 +304,7 @@ Models.register(Tumblr);
 
 Models.register({
   name : '4u',
-  ICON : 'http://static.straightline.jp/html/common/static/favicon.ico',
+  ICON : 'http://4u.straightline.jp/favicon.ico',
 
   URL : 'http://4u.straightline.jp/',
 

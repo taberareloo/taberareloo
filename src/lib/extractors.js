@@ -434,7 +434,7 @@ Extractors.register([
 
   {
     name : 'Photo - 4u',
-    ICON : 'http://static.straightline.jp/html/common/static/favicon.ico',
+    ICON : 'http://4u.straightline.jp/favicon.ico',
     check : function(ctx){
       return ctx.onImage &&
         ctx.href.match(/^http:\/\/4u\.straightline\.jp\/image\//) &&
