@@ -37,14 +37,14 @@ var TBRL = {
     style.href = chrome.extension.getURL('styles/general.css');
     document.head.appendChild(style);
 
-    TBRL.insertLDR();
-    TBRL.insertGoogleReader();
-    TBRL.insertDashboard();
-
     window.addEventListener('Taberareloo.link', TBRL.link, false);
     window.addEventListener('Taberareloo.quote', TBRL.quote, false);
     window.addEventListener('Taberareloo.general', TBRL.general, false);
     !TBRL.config['post']['keyconfig'] && document.addEventListener('keydown', TBRL.keyhandler, false);
+
+    (TBRL.userscripts = UserScripts.check()).forEach(function(script){
+      script.exec();
+    });
   },
   unload : function(){
     !TBRL.config['post']['keyconfig'] && document.removeEventListener('unload', TBRL.unload, false);
@@ -53,165 +53,10 @@ var TBRL = {
     window.removeEventListener('Taberareloo.link', TBRL.link, false);
     window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
     window.removeEventListener('Taberareloo.general', TBRL.general, false);
-    TBRL.ldr_plus_taberareloo && window.removeEventListener('Taberareloo.LDR', TBRL.ldr, false);
-    TBRL.dashboard_plus_taberareloo && window.removeEventListener('Taberareloo.Dashboard', TBRL.dashboard, false);
-    TBRL.googlereader_plus_taberareloo && document.removeEventListener('keydown', TBRL.googlereader, false);
     TBRL.field_shown && TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
-  },
-  insertLDR: function(){
-    var host = location.host;
-    if((host === 'reader.livedoor.com' || host === 'fastladder.com') &&
-      TBRL.config['post']['ldr_plus_taberareloo']){
-
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.href = chrome.extension.getURL('styles/reader.css');
-      document.head.appendChild(style);
-
-      var script = document.createElement('script');
-      script.type = "text/javascript";
-      script.charset = "utf-8";
-      script.src = chrome.extension.getURL('lib/ldr_plus_taberareloo.js');
-      document.head.appendChild(script);
-      window.addEventListener('Taberareloo.LDR', TBRL.ldr, false);
-      TBRL.ldr_plus_taberareloo = true;
-    }
-  },
-  ldr : function(ev){
-    var data = JSON.parse(ev.data);
-    var target = ev.target;
-    var body = $X('ancestor::div[starts-with(@id, "item_count")]/parent::div//div[@class="item_body"]', target)[0];
-    var ctx = update({
-        document  : document,
-        window    : window,
-        selection : window.getSelection().toString(),
-        target    : target,
-        event     : {},
-        title     : null,
-        mouse     : null,
-        menu      : null
-    }, window.location);
-    if([
-      'flickr.com/',
-      'http://ffffound.com',
-      'http://www.bighappyfunhouse.com',
-      'http://f.hatena.ne.jp',
-      'http://lpcoverlover.com',
-      'http://www.chicksnbreasts.com',
-      '1eb46a2f1f83c340eee10cd49c144625'].some(function(pattern){
-        return ~data.feed.indexOf(pattern);
-    })){
-      ctx.onImage = true;
-      ctx.target = $X('.//img[1]', body)[0];
-    }
-    var ext = Extractors.check(ctx)[0];
-    return TBRL.share(ctx, ext, ext.name.match(/^Link /));
-  },
-  insertGoogleReader: function(){
-    if(/^https?:\/\/www\.google\.[^/\.]+\/reader\//.test(location.href) &&
-      TBRL.config['post']['googlereader_plus_taberareloo']){
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.href = chrome.extension.getURL('styles/reader.css');
-
-      document.head.appendChild(style);
-      document.addEventListener('keydown', TBRL.googlereader, false);
-      TBRL.googlereader_plus_taberareloo = true;
-    }
-  },
-  googlereader : function(ev){
-    var key = keyString(ev);
-    if(key !== 'SHIFT + T') return null;
-    stop(ev);
-    function get_current_item(){
-      var item = {
-        parent: null,
-        body: null,
-        target: null,
-        feed: {
-          channel: {
-            link: null
-          }
-        }
-      }, link;
-      try {
-        item.parent = $X('id("current-entry")/descendant::div[contains(concat(" ", normalize-space(@class), " "), " entry-container ")]')[0] || null;
-        item.body = $X('id("current-entry")/descendant::div[contains(concat(" ", normalize-space(@class), " "), " item-body ")]')[0] || null;
-        item.target = $X('id("current-entry")/descendant::a[contains(concat(" ", normalize-space(@class), " "), " entry-title-link ")]')[0] || null;
-        link = $X('id("current-entry")/descendant::a[contains(concat(" ", normalize-space(@class), " "), " entry-source-title ")]')[0] || null;
-        if(link &&  link.href) item.feed.channel.link = decodeURIComponent(link.href.replace(/^.*\/(?=http)/, ''));
-        if(!item.parent || !item.body || !item.target || !item.feed.channel.link){
-          throw 'get_current_item error';
-        } else {
-          return item;
-        }
-      } catch (e) {
-        return null;
-      }
-    }
-
-    var item = get_current_item();
-    if(!item) return null;
-    var ctx = update({
-      document  : document,
-      window    : window,
-      selection : window.getSelection().toString(),
-      target    : item.target,
-      event     : {},
-      title     : null,
-      mouse     : null,
-      menu      : null
-    }, window.location);
-    if([
-      'flickr.com/',
-      'http://ffffound.com',
-      'http://www.bighappyfunhouse.com',
-      'http://f.hatena.ne.jp',
-      'http://lpcoverlover.com',
-      'http://www.chicksnbreasts.com',
-      '1eb46a2f1f83c340eee10cd49c144625'].some(function(pattern){
-        return item.feed.channel.link.indexOf(pattern) != -1;
-    })){
-      ctx.onImage = true;
-      ctx.target = $X('./descendant::img[0]', item.body)[0];
-    }
-    addElementClass(item.parent, 'TBRL_posted');
-    var ext = Extractors.check(ctx)[0];
-    return TBRL.share(ctx, ext, ext.name.match(/^Link /));
-  },
-  insertDashboard : function(){
-    if(/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) &&
-      TBRL.config['post']['dashboard_plus_taberareloo']){
-
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.href = chrome.extension.getURL('styles/dashboard.css');
-      document.head.appendChild(style);
-
-      var script = document.createElement('script');
-      script.type = "text/javascript";
-      script.charset = "utf-8";
-      script.src = chrome.extension.getURL('lib/dashboard_plus_taberareloo.js');
-      document.head.appendChild(script);
-
-      window.addEventListener('Taberareloo.Dashboard', TBRL.dashboard, false);
-      TBRL.dashboard_plus_taberareloo = true;
-    }
-  },
-  dashboard : function(ev){
-    var target = ev.target;
-    var ctx = update({
-        document  : document,
-        window    : window,
-        selection : '' + window.getSelection(),
-        target    : target,
-        event     : {},
-        title     : null,
-        mouse     : null,
-        menu      : null
-    }, window.location);
-    var ext = Extractors['ReBlog - Dashboard'];
-    if(ext.check(ctx)) TBRL.share(ctx, ext, false);
+    TBRL.userscripts.forEach(function(script){
+      script.unload();
+    });
   },
   link : function(ev){
     maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
@@ -362,8 +207,17 @@ var TBRL = {
       d.callback(res);
     });
     return d;
+  },
+  eval : function(){
+    var args = $A(arguments);
+    var func = args.shift();
+    args = args.map(function(arg){
+      return JSON.stringify(arg);
+    }).join(',')
+    location.href = "javascript:void ("+encodeURIComponent(func.toString())+")("+args+")";
   }
 }
+
 TBRL.getConfig().addCallback(TBRL.init);
 
 Callbacks = {};

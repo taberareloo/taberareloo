@@ -506,3 +506,4 @@ function resolveRelativePath(base){
     }
   }
 }
+

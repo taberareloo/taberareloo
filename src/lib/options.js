@@ -32,10 +32,15 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var tag_check = new Check('tag_auto_complete', !!Config.post["tag_auto_complete"]);
   // LDR + Taberareloo
   var ldr_check = new Check('ldr_plus_taberareloo', !!Config.post["ldr_plus_taberareloo"]);
+  var ldr_short = new Shortcutkey("shortcutkey_ldr_plus_taberareloo", true, function(key){
+    return Shortcutkey.keyString2LDR(key);
+  });
   // Dashboard + Taberareloo
   var dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post["dashboard_plus_taberareloo"]);
+  var dashboard_short = new Shortcutkey("shortcutkey_dashboard_plus_taberareloo", true);
   // GoogleReader + Taberareloo
   var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post["googlereader_plus_taberareloo"]);
+  var gr_short = new Shortcutkey("shortcutkey_googlereader_plus_taberareloo", true);
   // Post with Queue
   var queue_check = new Check('post_with_queue', !!Config.post['post_with_queue']);
   // Shorten URL
@@ -70,6 +75,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'ldr_plus_taberareloo': ldr_check.body(),
           'dashboard_plus_taberareloo': dashboard_check.body(),
           'googlereader_plus_taberareloo': gr_check.body(),
+          "shortcutkey_ldr_plus_taberareloo"  : ldr_short.body(),
+          "shortcutkey_dashboard_plus_taberareloo"  : dashboard_short.body(),
+          "shortcutkey_googlereader_plus_taberareloo"  : gr_short.body(),
           'keyconfig' : keyconfig_check.body(),
           'shortcutkey_linkquickpost': lk,
           "shortcutkey_quotequickpost" : qk,
@@ -276,7 +284,7 @@ ThumbnailTemplate.prototype = {
   }
 };
 
-var Shortcutkey = function(name, meta){
+var Shortcutkey = function(name, meta, filter){
   var elm = this.elm = $(name);
   var clear = $(name+'_clear');
   this.config = Config["post"][name] || '';
@@ -289,6 +297,7 @@ var Shortcutkey = function(name, meta){
       return;
     }
     ev.stop();
+    if(filter && !filter(key)) return;
     elm.value = (key==='ESCAPE')? ''  :
                 (meta)          ? key : key.split(' + ').pop();
   });
@@ -316,6 +325,106 @@ Shortcutkey.prototype = {
   body: function(){
     return this.elm.value;
   }
+};
+
+Shortcutkey.specials = {
+  'DELETE'    : 'delete',
+  'ESCAPE'    : 'esc',
+  'F1'        : 'f1',
+  'F2'        : 'f2',
+  'F3'        : 'f3',
+  'F4'        : 'f4',
+  'F5'        : 'f5',
+  'F6'        : 'f6',
+  'F7'        : 'f7',
+  'F8'        : 'f8',
+  'F9'        : 'f9',
+  'F10'       : 'f10',
+  'F11'       : 'f11',
+  'F12'       : 'f12'
+};
+Shortcutkey.defs = {
+  'TAB'       : 'tab',
+  'BACK_SPACE': 'back',
+  'RETURN'    : 'enter',
+  'ENTER'     : 'enter',
+  'NUMPAD0'   : '0',
+  'NUMPAD1'   : '1',
+  'NUMPAD2'   : '2',
+  'NUMPAD3'   : '3',
+  'NUMPAD4'   : '4',
+  'NUMPAD5'   : '5',
+  'NUMPAD6'   : '6',
+  'NUMPAD7'   : '7',
+  'NUMPAD8'   : '8',
+  'NUMPAD9'   : '9',
+  'SPACE'     : 'space',
+  'PAGE_UP'   : 'pageup',
+  'PAGE_DOWN' : 'pagedown',
+  'END'       : 'end',
+  'HOME'      : 'home',
+  'LEFT'      : 'left',
+  'UP'        : 'up',
+  'RIGHT'     : 'right',
+  'DOWN'      : 'down',
+  'A'         : 'a',
+  'B'         : 'b',
+  'C'         : 'c',
+  'D'         : 'd',
+  'E'         : 'e',
+  'F'         : 'f',
+  'G'         : 'g',
+  'H'         : 'h',
+  'I'         : 'i',
+  'J'         : 'j',
+  'K'         : 'k',
+  'L'         : 'l',
+  'M'         : 'm',
+  'N'         : 'n',
+  'O'         : 'o',
+  'P'         : 'p',
+  'Q'         : 'q',
+  'R'         : 'r',
+  'S'         : 's',
+  'T'         : 't',
+  'U'         : 'u',
+  'V'         : 'v',
+  'W'         : 'w',
+  'X'         : 'x',
+  'Y'         : 'y',
+  'Z'         : 'z'
+};
+
+Shortcutkey.keyString2LDR = function(key){
+  var arr = key.split(' + ');
+  var memo = {};
+  var res = null;
+  ['META', 'CTRL', 'SHIFT', 'ALT'].forEach(function(k){
+    memo[k] = !!~arr.indexOf(k);
+  });
+  memo['KEY'] = arr.last();
+  if(memo['META'] || memo['ALT']){
+    return null;
+  }
+  if(memo['KEY'] in this.specials){
+    if(!(memo['SHIFT'] || memo['CTRL'])){
+      return this.specials[memo['KEY']];
+    } else {
+      return null;
+    }
+  }
+  if(memo['KEY'] in this.defs){
+    memo['KEY'] = this.defs[memo['KEY']];
+    if(memo['SHIFT']){
+      res = memo['KEY'].toUpperCase();
+    } else {
+      res = memo['KEY'].toLowerCase();
+    }
+    if(memo['CTRL']){
+      res = 'ctrl+' + res;
+    }
+  }
+  return res;
 };
 
 var TumbleList = function(){

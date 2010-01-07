@@ -1,7 +1,7 @@
 {
    "background_page": "background.html",
    "content_scripts": [ {
-      "js": [ "lib/Base.js", "lib/DOM.js", "lib/Async.js", "lib/Style.js", "lib/Signal.js", "lib/proto.js", "lib/utils.js", "lib/repository.js", "lib/extractors.js", "lib/content.js" ],
+      "js": [ "lib/Base.js", "lib/DOM.js", "lib/Async.js", "lib/Style.js", "lib/Signal.js", "lib/proto.js", "lib/utils.js", "lib/repository.js", "lib/extractors.js", "lib/userscripts.js", "lib/content.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_end"
    } ],
