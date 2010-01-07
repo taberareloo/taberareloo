@@ -630,12 +630,16 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/www\.nicovideo\.jp\/watch\//);
     },
     extract : function(ctx){
-      return {
-        type    : 'video',
-        item    : ctx.title,
-        itemUrl : ctx.href,
-        body    : $X('//form[@name="form_iframe"]/input/@value', ctx.document)[0]
-      };
+      var embedUrl = resolveRelativePath(ctx.href)($X('descendant::a[starts-with(@href, "/embed/")]/@href', ctx.document)[0]);
+      return request(embedUrl, {charset : 'utf-8'}).addCallback(function(res){
+        var doc = createHTML(res.responseText);
+        return {
+          type    : 'video',
+          item    : ctx.title,
+          itemUrl : ctx.href,
+          body    : $X('//input[@name="script_code"]/@value', doc)[0],
+        };
+      });
     }
   },
 

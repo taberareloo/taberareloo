@@ -481,3 +481,28 @@ function DeferredHash(ds){
     return res;
   });
 }
+
+// Code from ChromeFullFeed
+// (c) id:Constellation MIT License
+function resolveRelativePath(base){
+  var top = base.match(/^https?:\/\/[^\/]+/)[0];
+  var current = base.replace(/\/[^\/]+$/, '/');
+  return function(url){
+    if (url.match(/^https?:\/\//)) {
+      return url;
+    } else if (url.indexOf("/") === 0) {
+      return top + url;
+    } else {
+      var result = current;
+      if(url.indexOf(".") === 0){
+        var count = 15;// 無限ループ防止用. 15回も../や./使ってるURLはさすがにないだろということで.
+        while(url.indexOf(".") === 0 && !(--count === 0)){
+          if(url.substring(0, 3) === "../")
+            result = result.replace(/\/[^\/]+\/$/,"/");
+          url = url.replace(/^\.+\/?/,"")
+        }
+      }
+      return result + url;
+    }
+  }
+}
