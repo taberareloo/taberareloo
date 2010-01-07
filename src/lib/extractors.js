@@ -458,6 +458,22 @@ Extractors.register([
   },
 
   {
+    name : 'Photo - area element',
+    ICON : skin+'photo.png',
+    check: function(ctx){
+      return ctx.document.elementFromPoint && tagName(ctx.target) === 'area'
+    },
+    extract : function(ctx){
+      var target = ctx.target;
+      return {
+        type: 'photo',
+        item: ctx.title,
+        itemUrl: $X('//img[@usemap="#' + target.parentNode.name + '"]', ctx.document)[0].src
+      };
+    }
+  },
+
+  {
     name : 'Photo - image link',
     ICON : skin+'photo.png',
     check : function(ctx){
@@ -637,7 +653,7 @@ Extractors.register([
           type    : 'video',
           item    : ctx.title,
           itemUrl : ctx.href,
-          body    : $X('//input[@name="script_code"]/@value', doc)[0],
+          body    : $X('//input[@name="script_code"]/@value', doc)[0]
         };
       });
     }
