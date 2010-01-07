@@ -630,25 +630,6 @@ Extractors.register([
   },
 
   {
-    name : 'Video - Rimo',
-    ICON : 'http://rimo.tv/favicon.ico',
-    check : function(ctx){
-      return ctx.host === 'rimo.tv' && this.getTag(ctx);
-    },
-    extract : function(ctx){
-      return {
-        type    : 'video',
-        item    : $X('id("play_list_title")/@value', ctx.document) || ctx.title.extract(/ - (.*)/),
-        itemUrl : ctx.href,
-        body    : this.getTag(ctx)
-      };
-    },
-    getTag : function(ctx){
-      return $X('id("player-tag-M")/@value', ctx.document)[0] || $X('(//table[@class="player-embed-tags"]//input)[last()]/@value', ctx.document)[0];
-    }
-  },
-
-  {
     name : 'Video - Nico Nico Douga',
     ICON : 'http://www.nicovideo.jp/favicon.ico',
     check : function(ctx){
