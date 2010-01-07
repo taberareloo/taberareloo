@@ -758,6 +758,56 @@ Models.register({
 });
 
 Models.register({
+  name     : 'Evernote',
+  ICON     : 'http://www.evernote.com/favicon.ico',
+  POST_URL : 'http://www.evernote.com/clip.action',
+
+  check : function(ps){
+    return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
+  },
+
+  post : function(ps){
+    var self = this;
+
+    return this.getToken().addCallback(function(token){
+      return request(self.POST_URL, {
+        redirectionLimit : 0,
+        sendContent : update(token, {
+          saveQuicknote : 'save',
+          format        : 'microclip',
+
+          url      : ps.itemUrl || 'no url',
+          title    : ps.item || 'no title',
+          comment  : ps.description,
+          body     : ps.body,
+          tags     : (ps.tags)? ps.tags.join(',') : '',
+          fullPage : (ps.body)? 'true' : 'false'
+        })
+      });
+    });
+  },
+
+  getToken : function(){
+    return request(this.POST_URL, {
+      sendContent: {
+        format    : 'microclip',
+        quicknote : 'true'
+      }
+    }).addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if($X('id("login_form")', doc)[0])
+        throw new Error(getMessage('error.notLoggedin'));
+
+      return {
+        _sourcePage   : $X('//input[@name="_sourcePage"]/@value', doc)[0],
+        __fp          : $X('//input[@name="__fp"]/@value', doc)[0],
+        noteBookGuide : $X('//select[@name="notebookGuid"]//option[@selected="selected"]/@value', doc)[0]
+      };
+    });
+  }
+});
+
+Models.register({
   name : 'FriendFeed',
   ICON : 'http://friendfeed.com/favicon.ico',
   check : function(ps){
