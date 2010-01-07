@@ -36,6 +36,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post["dashboard_plus_taberareloo"]);
   // GoogleReader + Taberareloo
   var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post["googlereader_plus_taberareloo"]);
+  // Post with Queue
+  var queue_check = new Check('post_with_queue', !!Config.post['post_with_queue']);
   // Shorten URL
   var shorten_check = new Check('always_shorten_url', !!Config.post['always_shorten_url']);
   // multiple tumblelogs
@@ -73,7 +75,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "shortcutkey_quotequickpost" : qk,
           "shortcutkey_quickpost" : k,
           "always_shorten_url" : shorten_check.body(),
-          "multi_tumblelogs"   : tcheck
+          "multi_tumblelogs"   : tcheck,
+          "post_with_queue"    : queue_check.body()
         },
         'entry'    : {
           'thumbnail_template' : thumbnail.body(),

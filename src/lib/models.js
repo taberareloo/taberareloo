@@ -132,6 +132,10 @@ var Tumblr = {
   appendTags : function(form, ps){
     if(ps.private!=null)
       form['post[state]'] = (ps.private)? 'private' : 0;
+    if(TBRL.Config.post['post_with_queue']){
+      if(ps.type !== 'regular')
+        form['post[state]'] = 2;
+    }
 
     return update(form, {
       'post[tags]' : (ps.tags && ps.tags.length)? joinText(ps.tags, ',') : ''

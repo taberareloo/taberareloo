@@ -198,7 +198,8 @@ var TBRL = {
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",
       "always_shorten_url"    : false,
-      "multi_tumblelogs"      : false
+      "multi_tumblelogs"      : false,
+      "post_with_queue"       : false
     },
     "entry"   : {
       "trim_reblog_info"  : false,
