@@ -187,10 +187,11 @@ input#post {
   -webkit-border-radius: 4px;
   cursor: pointer;
 }
-div#message {
+pre#message {
   visibility: collapse;
 }
-div#message.shown {
+pre#message.shown {
+  font-size: 11pt;
   color: #333;
   margin-top: 20px;
   padding: 10px;

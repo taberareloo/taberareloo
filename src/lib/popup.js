@@ -2,6 +2,7 @@
 
 var background = chrome.extension.getBackgroundPage();
 var form = null;
+var ps = null, tab = null;
 var log = function(target){
   background.console.log.apply(background.console, arguments);
   return target;
@@ -11,27 +12,25 @@ var isPopup = false;
 
 function getSelected(){
   var d = new Deferred();
-  if(location.hash === '#quick'){
-    var id = setTimeout(function(){
-      clearTimeout(id);
-      var tab = window.tab;
-      log(tab);
-      if(tab){
-        if(background.TBRL.Service.isEnableSite(tab.url)){
-          setTimeout(function(){
-            d.callback(tab);
-          }, 0);
-        } else {
-          window.close();
-        }
-      } else {
-        id = setTimeout(arguments.callee, 0);
-      }
-    }, 0);
+  var query = queryHash(location.search);
+  if(query['quick']){
+    var id = query['id'];
+    var data = background.TBRL.Popup.data[id];
+    tab = data['tab'];
+    ps = data['ps'];
+    delete background.TBRL.Popup.data[id];
+    if(background.TBRL.Service.isEnableSite(tab.url)){
+      setTimeout(function(){
+        d.callback(tab);
+      }, 0);
+    } else {
+      window.close();
+    }
   } else {
     isPopup = true;
     chrome.tabs.getSelected(null, function(tab){
       if(background.TBRL.Service.isEnableSite(tab.url)){
+        tab = tab;
         d.callback(tab);
       } else {
         window.close();
@@ -64,6 +63,7 @@ function getPsInfo(tab){
       url  : tab.url
     }
   }, function(res){
+    ps = res;
     d.callback(res);
   });
   return d;
@@ -72,8 +72,9 @@ function getPsInfo(tab){
 function notify(message){
   var msg = $('message');
   $D(msg);
-  msg.appendChild($N('p', null, message));
+  msg.appendChild($T(message));
   addElementClass(msg, 'shown');
+  callLater(0, Form.resize);
 };
 
 var main = new Deferred();
@@ -81,12 +82,12 @@ connect(window, 'onDOMContentLoaded', window, function(ev){
   getSelected().addCallback(function(tab){
     if(isPopup && background.TBRL.Popup.contents[tab.url]){
       main.callback(background.TBRL.Popup.contents[tab.url]);
-    } else if(window.ps){
-      main.callback(window.ps);
-    } else {
+    } else if(isPopup){
       getPsInfo(tab).addCallback(function(ps){
         main.callback(ps);
       });
+    } else {
+      main.callback(ps);
     }
   });
 });
@@ -495,11 +496,7 @@ var Tags = function(ps, toggle){
           self.toggleSuggestions();
         }
       }).addErrback(function(e){
-        if(isPopup){
-          notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
-        } else {
-          alert(Config['post']['tag_provider']+'\n'+e.message.indent(4));
-        }
+        notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
         var icon = $('loading_icon');
         removeElementClass(icon, 'loading');
         addElementClass(icon, 'loaded');

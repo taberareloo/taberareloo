@@ -402,6 +402,26 @@ function queryString(params, question){
   return (question? '?' : '') + qeries.join('&');
 }
 
+function queryHash(query){
+  var hash = {};
+  query = query.replace(/^\?/, '');
+  query.split('&').forEach(function(pair){
+    pair = pair.split('=');
+    if(pair.length === 2){
+      var key = pair[0];
+      var val = pair[1];
+      if(!hash[key]){
+        hash[key] = val;
+      } else if(hash[key] instanceof Array){
+        hash[key].push(val);
+      } else {
+        hash[key] = [hash[key], val];
+      }
+    }
+  });
+  return hash;
+}
+
 function getMessage(key){
   return arguments.callee.hash[key] || key;
 }

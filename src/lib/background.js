@@ -210,7 +210,6 @@ var TBRL = {
     }
   },
   Service: {
-    count: 0,
     alertPreference: function(type){
       alert('error.noPoster\n'+type.capitalize().indent(4));
     },
@@ -245,15 +244,6 @@ var TBRL = {
         self.alertError(err, ps.page, ps.pageUrl, ps);
       });
     },
-    open: function(tab, ps){
-      var height = 'height=450';
-      if(ps.type === 'quote' || ps.type === 'regular'){
-        height = 'height=250'
-      }
-      var win = window.open(chrome.extension.getURL('popup.html')+'#quick', 'QuickPost '+(TBRL.Service.count++), height+',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
-      win.tab = tab;
-      win.ps = ps;
-    },
     isEnableSite: function(link){
       return link.indexOf('http') === 0;
     },
@@ -268,9 +258,27 @@ var TBRL = {
     }
   },
   Popup: {
+    count: 0,
+    open: function(tab, ps){
+      var height = 'height=450';
+      if(ps.type === 'quote' || ps.type === 'regular'){
+        height = 'height=250'
+      }
+      var id = 'QuickPost'+(TBRL.Popup.count++);
+      var query = queryString({
+        'quick' : 'true',
+        'id'    : id
+      }, true);
+      TBRL.Popup.data[id] = {
+        'ps': ps,
+        'tab': tab
+      };
+      window.open(chrome.extension.getURL('popup.html')+query, id, height+',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
+    },
     defaultSuggester: 'HatenaBookmark',
     tags : null,
     tabs: [],
+    data: {},
     contents : {},
     suggestionShownDefault: false
   },
@@ -291,7 +299,7 @@ if(TBRL.Config.post['multi_tumblelogs']) Models.getMultiTumblelogs();
 var onRequestsHandlers = {
   quick: function(req, sender, func){
     getSelected().addCallback(function(tab){
-      TBRL.Service.open(tab, req.content);
+      TBRL.Popup.open(tab, req.content);
     });
     func({});
   },
@@ -299,7 +307,7 @@ var onRequestsHandlers = {
     getSelected().addCallback(function(tab){
       var ps = req.content;
       if(req.show){
-        TBRL.Service.open(tab, ps);
+        TBRL.Popup.open(tab, ps);
       } else {
         var posters = Models.getDefaults(ps);
         if(!posters.length){
