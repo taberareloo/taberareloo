@@ -13,8 +13,8 @@ $version = $manifest_data["version"]
 namespace :package do
   desc "crx"
   task :crx do
-    mkdir_p "package" unless File.exist?("package")
-    package = "package/#{$name}.crx"
+    mkdir_p "pkg" unless File.exist?("pkg")
+    package = "pkg/#{$name}.crx"
     rm package if File.exist?(package)
     CrxMake.make(
       :ex_dir => "src",
@@ -22,14 +22,14 @@ namespace :package do
       :crx_output => package,
       :verbose => true,
       :ignorefile => /\.swp$/,
-      :ignoredir => /(?:^\.(?:svn|git)$|^CVS$)/
+      :ignoredir => /^\.(?:svn|git)$|^CVS$/
     )
   end
 
   desc "zip"
   task :zip do
-    mkdir_p "package" unless File.exist?("package")
-    package = "package/#{$name}.zip"
+    mkdir_p "pkg" unless File.exist?("pkg")
+    package = "pkg/#{$name}.zip"
     rm package if File.exist?(package)
     CrxMake.zip(
       :ex_dir => "src",
@@ -37,7 +37,7 @@ namespace :package do
       :zip_output => package,
       :verbose => true,
       :ignorefile => /\.swp$/,
-      :ignoredir => /(?:^\.(?:svn|git)$|^CVS$)/
+      :ignoredir => /^\.(?:svn|git)$|^CVS$/
     )
   end
   directory "package"

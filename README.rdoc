@@ -16,6 +16,7 @@ Services example:
   FriendFeed
   Twitter
   Instapaper
+  Evernote
 
 and
   HatenaBookmark
@@ -27,6 +28,7 @@ and
   Clipp
   Wassr (these are Japanese Service)
 
+and others
 
 == FEATURES/PROBLEMS
 
@@ -34,7 +36,7 @@ and
 
 == VERSION
 
-1.0.2
+1.0.3
 
 == DEPENDENCIES
 
