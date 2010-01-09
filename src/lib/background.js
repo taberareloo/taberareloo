@@ -308,7 +308,8 @@ var TBRL = {
             if(val instanceof Date   ||
                val instanceof RegExp ||
                val instanceof String ||
-               val instanceof Number){
+               val instanceof Number ||
+               val === null){
               target[key] = val;
             } else {
               if(!(target[key]))
