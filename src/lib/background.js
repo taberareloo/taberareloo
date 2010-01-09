@@ -183,8 +183,8 @@ function getSelected(){
 
 var TBRL = {
   // default config
+  VERSION: '1.0.3',
   Config: {
-    "version" : "1.0.2",
     "services": {
     },
     "post"    : {
@@ -285,11 +285,50 @@ var TBRL = {
   configSet: function(config){
     TBRL.Config = config;
     window.localStorage.options = JSON.stringify(config);
+  },
+  configUpdate: function(log){
+    function setter(key, def, target){
+      var val = def[key];
+      var res = typeof(val);
+      if(Array.isArray(val)){
+        if(!(target[key]))
+          target[key] = [];
+        for(var i = 0, l = val.length; i < l; ++i){
+          setter(i, val, target[key]);
+        }
+      } else {
+        switch(res){
+          case 'string':
+          case 'number':
+          case 'function':
+          case 'boolean':
+            target[key] = val;
+            break;
+          default:
+            if(val instanceof Date   ||
+               val instanceof RegExp ||
+               val instanceof String ||
+               val instanceof Number){
+              target[key] = val;
+            } else {
+              if(!(target[key]))
+                target[key] = {};
+              Object.keys(val).forEach(function(k){
+                setter(k, val, target[key]);
+              });
+            }
+        }
+      }
+    }
+    Object.keys(log).forEach(function(k){
+      setter(k, log, TBRL.Config);
+    });
+    TBRL.Config.version = TBRL.VERSION;
   }
 };
 
 if(window.localStorage.options){
-  TBRL.Config = update(TBRL.Config, JSON.parse(window.localStorage.options));
+  TBRL.configUpdate(JSON.parse(window.localStorage.options));
 } else {
   window.localStorage.options = JSON.stringify(TBRL.Config);
 }
