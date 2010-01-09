@@ -527,3 +527,5 @@ function resolveRelativePath(base){
   }
 }
 
+var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
+

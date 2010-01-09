@@ -102,7 +102,7 @@ var Form = function(ps){
   this.savers = {};
   this.toggles = [];
   this.shown = false;
-  this.shortcutkeys = background.TBRL.Popup.shortcutkeys;
+  // this.shortcutkeys = background.TBRL.Popup.shortcutkeys;
 
   this.savers['enabledPosters'] = this.posters = new Posters(ps);
 
@@ -211,13 +211,14 @@ Form.prototype = {
 };
 
 Form.shortcutkeys = {
-  'CTRL + RETURN': function(){
-    form.post();
-  },
   'ESCAPE': function(ev){
     ev.stop();
     window.close();
   }
+};
+
+Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
+  form.post();
 };
 
 Form.resize = function(resizeWidth){
@@ -417,7 +418,8 @@ var Posters = function(ps){
   var df = $DF();
   var config = Config['services'];
   this.buttons = [];
-  this.posters.forEach(function(poster){
+  var registerKeybind = true;
+  this.posters.forEach(function(poster, index){
     var stat = self.models.getConfig(ps, poster);
     if(~ps.enabledPosters.indexOf(poster.name)){
       var res = true;
@@ -425,14 +427,20 @@ var Posters = function(ps){
       var res = stat === 'default';
     }
     var img = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
-    connect(img, 'onclick', self, function(){
+    var change = function(){
       if(!addElementClass(img, 'disabled')){
         removeElementClass(img, 'disabled');
         self.enables[poster.name] = poster;
       } else {
         delete self.enables[poster.name];
       }
-    });
+    }
+    connect(img, 'onclick', self, change);
+    if(registerKeybind){
+      if(index > 8)
+        registerKeybind = false;
+      Form.shortcutkeys[KEY_ACCEL+' + '+(index+1)] = change;
+    }
     if(res){
       self.enables[poster.name] = poster;
     } else {
