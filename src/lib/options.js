@@ -240,7 +240,7 @@ var Provider = function(){
       });
       radio.checked = (self.provider === model.name);
       self.radioboxes.push(radio);
-      var set = $N('div', {
+      var set = $N('label', {
         class: 'tag_provider_set'
       }, [radio, img, label]);
       $('tag_providers').appendChild(set);

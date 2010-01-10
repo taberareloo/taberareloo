@@ -108,7 +108,10 @@ div.button.disabled {
 div.button.default {
   background-image: url("../skin/default.png");
 }
-div.tag_provider_set > * {
+label.tag_provider_set {
+  display: block;
+}
+label.tag_provider_set > * {
   margin: 3px;
 }
 img.tag_provider_icon,
