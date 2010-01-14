@@ -32,11 +32,6 @@ var TBRL = {
       }
     });
 
-    var style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = chrome.extension.getURL('styles/general.css');
-    document.head.appendChild(style);
-
     window.addEventListener('Taberareloo.link', TBRL.link, false);
     window.addEventListener('Taberareloo.quote', TBRL.quote, false);
     window.addEventListener('Taberareloo.general', TBRL.general, false);
@@ -47,8 +42,8 @@ var TBRL = {
     });
   },
   unload : function(){
-    !TBRL.config['post']['keyconfig'] && document.removeEventListener('unload', TBRL.unload, false);
-    document.removeEventListener('keydown', TBRL.handler, false);
+    document.removeEventListener('unload', TBRL.unload, false);
+    !TBRL.config['post']['keyconfig'] && document.removeEventListener('keydown', TBRL.keyhandler, false);
     document.removeEventListener('mousemove', TBRL.mousehandler, false);
     window.removeEventListener('Taberareloo.link', TBRL.link, false);
     window.removeEventListener('Taberareloo.quote', TBRL.quote, false);

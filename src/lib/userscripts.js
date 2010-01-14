@@ -187,7 +187,11 @@ UserScripts.register([
     name  : 'Dashboard + Taberareloo',
     check : function(){
       var key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo'];
-      if(/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) && TBRL.config['post']['dashboard_plus_taberareloo'] && key){
+      if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
+          /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
+          /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href)     ||
+          /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
+         ) && TBRL.config['post']['dashboard_plus_taberareloo'] && key){
         this.key = key;
         return true;
       } else {

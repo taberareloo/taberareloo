@@ -373,3 +373,4 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
   var handler = onRequestsHandlers[req.request];
   handler && handler.apply(this, arguments);
 });
+
