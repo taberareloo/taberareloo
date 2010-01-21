@@ -635,7 +635,8 @@ Models.register({
   getSuggestions : function(url){
     return request(LivedoorClip.POST_URL, {
       queryString : {
-        link : url || 'http://tombloo/'
+        link : url || 'http://tombloo/',
+        cache: Date.now()
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
@@ -662,7 +663,8 @@ Models.register({
       var self = this;
       return request(LivedoorClip.POST_URL, {
         queryString : {
-          link : 'http://tombloo/'
+          link : 'http://tombloo/',
+          cache: Date.now()
         }
       }).addCallback(function(res){
         if(res.responseText.match(/"postkey" value="(.*)"/)){
