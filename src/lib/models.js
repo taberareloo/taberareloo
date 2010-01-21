@@ -622,7 +622,10 @@ Models.register({
       };
       return request(LivedoorClip.POST_URL, {
         //denyRedirection: true,
-        sendContent : content
+        sendContent : content,
+        queryString : {
+          cache: Date.now()
+        }
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
         if($X('id("loginFormbox")', doc)[0]){
