@@ -417,44 +417,70 @@ var Posters = function(ps){
   this.posters = this.models.getEnables(ps);
   var df = $DF();
   var config = Config['services'];
-  this.buttons = [];
-  var registerKeybind = true;
-  this.posters.forEach(function(poster, index){
-    var stat = self.models.getConfig(ps, poster);
-    if(~ps.enabledPosters.indexOf(poster.name)){
-      var res = true;
-    } else {
-      var res = stat === 'default';
-    }
-    var img = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
-    var change = function(){
-      if(!addElementClass(img, 'disabled')){
-        removeElementClass(img, 'disabled');
-        self.enables[poster.name] = poster;
-      } else {
-        delete self.enables[poster.name];
-      }
-    }
-    connect(img, 'onclick', self, change);
-    if(registerKeybind){
-      if(index > 8)
-        registerKeybind = false;
-      Form.shortcutkeys[KEY_ACCEL+' + '+(index+1)] = change;
-    }
-    if(res){
-      self.enables[poster.name] = poster;
-    } else {
-      addElementClass(img, 'disabled');
-    }
-    df.appendChild(img);
-    self.buttons.push(img);
-  });
+  this.posterItems = this.posters.map(function(poster, index){
+    var posterItem = new PosterItem(ps, poster, index, this);
+    df.appendChild(posterItem.element);
+    return posterItem;
+  }, this);
   this.elmPanel.appendChild(df);
 };
 
 Posters.prototype = {
   body: function(){
     return values(this.enables);
+  },
+  allOff: function(){
+    this.posterItems.forEach(methodcaller('off'));
+  },
+  allOn: function(){
+    this.posterItems.forEach(methodcaller('on'));
+  }
+};
+
+var PosterItem = function(ps, poster, index, posters){
+  this.poster = poster;
+  this.posters = posters;
+  this.index = index;
+
+  var res = ~ps.enabledPosters.indexOf(poster.name) || posters.models.getConfig(ps, poster) === 'default';
+  var img  = this.element = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
+
+  connect(img, 'onclick', this, 'toggle');
+  if(index < 9){
+    Form.shortcutkeys[KEY_ACCEL+' + '+(index+1)] = bind(this.toggle, this);
+    Form.shortcutkeys['ALT + '+(index+1)] = bind(this.quick, this);
+  }
+
+  if(res){
+    self.enables[poster.name] = poster;
+  } else {
+    addElementClass(img, 'disabled');
+  }
+};
+
+PosterItem.prototype = {
+  toggle: function(){
+    this.checked()? this.off() : this.on();
+  },
+  quick: function(ev){
+    stop(ev);
+    var posters = this.posters;
+    posters.allOff();
+    this.toggle();
+    setTimeout(function(){
+      form.post();
+    }, 300);
+  },
+  checked: function(){
+    return !hasElementClass(this.element, 'disabled');
+  },
+  off: function(){
+    addElementClass(this.element, 'disabled');
+    delete this.posters.enables[this.poster.name];
+  },
+  on: function(){
+    removeElementClass(this.element, 'disabled');
+    this.posters.enables[this.poster.name] = this.poster;
   }
 };
 
