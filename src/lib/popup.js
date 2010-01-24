@@ -659,28 +659,30 @@ Tags.prototype = {
   // abbreviation scorer
   scoreFor: function(toscore, abb){
     if(!abb) return 0.9;
-    var td = toscore.toLowerCase(), tdLength = toscore.length, abbLength = abb.length;
-    if(tdLength < abbLength) return 0.0;
-    var ad = abb.toLowerCase(), ahead, atail, found, score = null, tail, tail_score, penalty = 0, skipped;
-    for(var pivot = abbLength; 0 < pivot; --pivot){
-      ahead = ad.slice(0, pivot);
-      atail = ad.slice(pivot) || "";
+    var td = toscore.toLowerCase(), tdLength = toscore.length, pivot = abb.length;
+    if(tdLength < pivot) return 0.0;
+    var ad = abb.toLowerCase(), ahead, atail, found, score, tail, tail_score, penalty, skipped;
+    for(; 0 < pivot; --pivot){
+      ahead = ad.substring(0, pivot);
+      atail = ad.substring(pivot) || "";
       found = td.indexOf(ahead);
       if(~found){
-        tail = toscore.slice(found+pivot) || "";
+        tail = toscore.substring(found+pivot) || "";
         tail_score = arguments.callee(tail, atail);
         if(0 < tail_score){
           if(found){
-            skipped = toscore.slice(0, found);
+            skipped = toscore.substring(0, found);
             if(/\s$/.test(skipped)){
               var nws = skipped.replace(/\S/, "").length;
               penalty = nws + (skipped.length - nws)*0.15;
-            } else if(/^[A-Z]/.test(toscore.slice(found))){
+            } else if(/^[A-Z]/.test(toscore.substring(found))){
               var nuc = skipped.replace(/[^A-Z]/, "").length;
               penalty = nuc + (skipped.length - nuc)*0.15;
             } else {
               penalty = skipped.length;
             }
+          } else {
+            penalty = 0;
           }
           score = (found + pivot - penalty + tail_score*tail.length)/tdLength;
         }
@@ -694,8 +696,8 @@ Tags.prototype = {
     notify = (notify===undefined)? terminate : notify;
     var text = this.tags.value;
     var word = this.getCurrentWord();
-    var suffix = text.substr(word.caret);
-    var delimiter = (terminate && suffix.charAt(0) != this.delimiter)? this.delimiter : '';
+    var suffix = text.substring(word.caret);
+    var delimiter = (terminate && suffix[0] !== this.delimiter)? this.delimiter : '';
     this.tags.value = text.substring(0, word.start) + cand + delimiter + suffix;
     var index = word.start + cand.length + delimiter.length;
     setTimeout(function(){
@@ -721,7 +723,7 @@ Tags.prototype = {
     return {
       start : start,
       caret : caret,
-      hint  : text.slice(start, caret)
+      hint  : text.substring(start, caret)
     };
   },
 
@@ -760,7 +762,7 @@ Tags.prototype = {
     }
     var cands = this.getCandidates(hint);
     if(this.autoComplete && !this.deleting && cands.length === 1 && (hint.length >= 2 || cands[0].length === 1)){
-      this.injectCandidates(cands[0].value, false);
+      this.injectCandidates(cands[0].value, true);
       this.popup.hidePopup();
       return;
     }
@@ -775,7 +777,7 @@ Tags.prototype = {
   getCursorLeft: function(pos){
     this.measure.style.visibility = 'visible';
     $D(this.measure);
-    this.measure.appendChild($T(this.tags.value.substr(0, pos)));
+    this.measure.appendChild($T(this.tags.value.substring(0, pos)));
     var x = this.measure.getBoundingClientRect();
     //this.measure.style.visibility = 'collapse';
     return x.width;
@@ -795,7 +797,7 @@ Tags.prototype = {
     }, {});
 
     var tags = (res.tags || []).sort(function(a, b){
-      return (b.frequency != a.frequency)?
+      return (b.frequency !== a.frequency)?
         compare(b.frequency, a.frequency) :
         compare(a.name, b.name);
     }).map(itemgetter('name'));
@@ -986,6 +988,7 @@ Popup.prototype = {
       self.tags.injectCandidates(cand.value, true);
       this.hidePopup();
     });
+    clone.setAttribute('title', cand.value);
     clone.appendChild($T(cand.value));
     return clone;
   },
@@ -1008,9 +1011,9 @@ Popup.prototype = {
     var index = this.selectedIndex + offset;
     index = index >= this.rowCount ? 0:
             index < 0              ? (this.rowCount - 1) : index;
-    this.items[this.selectedIndex].style.backgroundColor = '#ffffff';
+    removeElementClass(this.items[this.selectedIndex], "selected");
     this.selectedIndex = index
-    this.items[this.selectedIndex].style.backgroundColor = '#ccf0ff';
+    addElementClass(this.items[this.selectedIndex], "selected");
   },
 
   removeAll: function(){
@@ -1033,7 +1036,7 @@ Popup.prototype = {
     }, this);
     this.rowCount = cands.length;
     this.selectedIndex = 0;
-    this.items[this.selectedIndex].style.backgroundColor = '#ccf0ff';
+    addElementClass(this.items[this.selectedIndex], "selected");
   },
 
   rowHeight: function(){

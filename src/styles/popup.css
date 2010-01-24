@@ -105,7 +105,14 @@ ol#listbox {
 }
 ol#listbox > li {
   padding: 0px 5px;
+  cursor: pointer;
   background-color: #ffffff;
+}
+ol#listbox > li.selected {
+  background-color: #ccf0ff;
+}
+ol#listbox > li:hover {
+  background-color: #ffe4e1;
 }
 div#suggestions {
   display: none;
