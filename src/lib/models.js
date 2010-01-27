@@ -1277,7 +1277,7 @@ Models.register({
 
   shorten : function(url){
     var self = this;
-    if(/\/\/bit\.ly/.test(url))
+    if(/\/\/(?:bit\.ly|j\.mp)/.test(url))
       return succeed(url);
 
     return this.callMethod('shorten', {
