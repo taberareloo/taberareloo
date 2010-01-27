@@ -120,7 +120,7 @@ var encodedRequest = function(url, opt){
     if(!charset) charset = getEncoding(binary);
     if(!charset) charset = 'utf-8';
     return request(url, update({
-      charset: 'text/html; charset='+charset,
+      charset: 'text/html; charset='+charset
     }, opt));
   });
 };
@@ -159,16 +159,17 @@ var request = function(url, opt){
     req.open(opt.method ? opt.method : (opt.sendContent)? 'POST' : 'GET', url, true);
   }
 
-  if(opt.sendContent){
-    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  } else {
-    req.setRequestHeader('Content-Type', 'application/octet-stream');
-  }
-
   if(opt.charset) req.overrideMimeType(opt.charset);
 
   //req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
   if(opt.headers){
+    if(!opt.headers['Content-Type']){
+      if(opt.sendContent){
+        req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      } else {
+        req.setRequestHeader('Content-Type', 'application/octet-stream');
+      }
+    }
     Object.keys(opt.headers).forEach(function(key){
       req.setRequestHeader(key, opt.headers[key]);
     });
