@@ -99,6 +99,43 @@ var request_v1 = function(url,opt){
   return doXHR(url, opt);
 };
 
+var binaryRequest = function(url, opt){
+  return request(url, update({
+    charset: 'text/plain; charset=x-user-defined'
+  }, opt)).addCallback(function(res){
+    res.responseText = res.responseText.replace(/[\u0100-\uffff]/g, function(c){
+      return String.fromCharCode(c.charCodeAt(0) & 0xff);
+    });
+    return res;
+  });
+};
+
+// 2回requestすることでcharset判別する.
+var encodedRequest = function(url, opt){
+  return binaryRequest(url, opt).addCallback(function(res){
+    var binary  = res.responseText;
+    var charset = null;
+    var header = res.getResponseHeader('Content-Type');
+    if(header) charset = getCharset(header);
+    if(!charset) charset = getEncoding(binary);
+    if(!charset) charset = 'utf-8';
+    return request(url, update({
+      charset: 'text/html; charset='+charset,
+    }, opt));
+  });
+};
+
+function getEncoding(text){
+  var matched = text.match(/<meta.+?http-equiv.+?Content-Type.+?content=(["'])([^\1]+?)\1/i);
+  var res = (matched && !matched[2].match(/UTF-8/i) && matched[2]);
+  return (res)? getCharset(res) : false;
+};
+
+function getCharset(text){
+  var matched = text.match(/charset\s*=\s*(\S+)/);
+  return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
+};
+
 var request = function(url, opt){
   var req = new XMLHttpRequest(), ret = new Deferred();
 
