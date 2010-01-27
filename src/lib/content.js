@@ -54,7 +54,10 @@ var TBRL = {
     });
   },
   link : function(ev){
-    maybeDeferred(Extractors.Link.extract(TBRL.createContext()))
+    var ctx = TBRL.createContext(document.documentElement);
+    maybeDeferred(Extractors.check(ctx).filter(function(m){
+      return /^Link/.test(m.name);
+    })[0].extract(ctx))
     .addCallback(function(ps){
       TBRL.openQuickPostForm(ps);
     });
@@ -155,13 +158,13 @@ var TBRL = {
       }
     }
   },
-  createContext: function(){
+  createContext: function(target){
     var ctx = update({
       document :document,
       window : window,
       title : document.title,
       selection : window.getSelection().toString(),
-      target : TBRL.target || document
+      target : target || TBRL.target || document.documentElement
     }, window.location);
     if(ctx.target){
       ctx.link    = $X('./ancestor-or-self::a', ctx.target)[0];

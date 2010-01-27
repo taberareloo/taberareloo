@@ -677,6 +677,26 @@ Extractors.register([
   },
 
   {
+    name : 'Link - link',
+    ICON : skin+'link.png',
+    check: function(ctx){
+      return ctx.onLink;
+    },
+    extract: function(ctx){
+      var title = ctx.target.textContent;
+      if(!title || title === ctx.target.href)
+        title = ctx.title;
+
+      return {
+        type: 'link',
+        item: title,
+        itemUrl: ctx.link.href
+      }
+    }
+  },
+
+
+  {
     name : 'Link',
     ICON : skin+'link.png',
     check : function(ctx){

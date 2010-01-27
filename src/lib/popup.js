@@ -187,7 +187,9 @@ Form.prototype = {
   },
   save: function(){
     Object.keys(this.savers).forEach(function(key){
-      this.ps[key] = this.savers[key].body();
+      var body = this.savers[key].body();
+      if(this.ps[key] !== body)
+        this.ps[key] = body;
     }, this);
     background.TBRL.Popup.contents[this.ps.itemUrl] = this.ps;
   },

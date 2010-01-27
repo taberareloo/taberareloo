@@ -304,7 +304,7 @@ Models.register(Tumblr);
 
 Models.register({
   name : '4u',
-  ICON : 'http://4u.straightline.jp/favicon.ico',
+  ICON : chrome.extension.getURL('skin/4u.ico'),
 
   URL : 'http://4u.straightline.jp/',
 
@@ -1090,7 +1090,7 @@ Models.register({
 
 Models.register({
   name: 'Clipp',
-  ICON: 'http://clipp.in/favicon.ico',
+  ICON : chrome.extension.getURL('skin/item.ico'),
   CLIPP_URL: 'http://clipp.in/',
 
   check: function(ps) {
