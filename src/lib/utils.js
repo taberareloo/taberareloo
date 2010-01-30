@@ -327,7 +327,7 @@ function keyString(e){
   })(e);
 }
 
-function stop(ev){
+var cancel = function stop(ev){
   ev.preventDefault();
   ev.stopPropagation();
 }
@@ -477,6 +477,12 @@ var $N = function(name, attr, childs){
     }
   }
   return ret;
+};
+
+function setStyle(element, attrs){
+  Object.keys(attrs).forEach(function(key){
+    element.style[key] = attrs[key];
+  });
 };
 
 var $T = function(mes){

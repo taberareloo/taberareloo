@@ -84,7 +84,7 @@ var post_handler = function(item, con){
   win.Models = Models
 };
 
-var request_v1 = function(url,opt){
+function request_v1(url,opt){
   opt = update({
     method: 'GET'
   }, opt || {});
@@ -99,7 +99,7 @@ var request_v1 = function(url,opt){
   return doXHR(url, opt);
 };
 
-var binaryRequest = function(url, opt){
+function binaryRequest(url, opt){
   return request(url, update({
     charset: 'text/plain; charset=x-user-defined'
   }, opt)).addCallback(function(res){
@@ -111,7 +111,7 @@ var binaryRequest = function(url, opt){
 };
 
 // 2回requestすることでcharset判別する.
-var encodedRequest = function(url, opt){
+function encodedRequest(url, opt){
   return binaryRequest(url, opt).addCallback(function(res){
     var binary  = res.responseText;
     var charset = null;
@@ -125,6 +125,23 @@ var encodedRequest = function(url, opt){
   });
 };
 
+// canvas request
+function canvasRequest(url){
+  var canvas = document.createElement('canvas'),
+      ret    = new Deferred(),
+      img    = new Image();
+  img.addEventListener('load', function(res){
+    img.removeEventListener('load', arguments.callee, false);
+    canvas.width  = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    ret.callback(canvas.toDataURL("image/png", ""));
+  }, false);
+  img.src = url;
+  return ret;
+};
+
 function getEncoding(text){
   var matched = text.match(/<meta.+?http-equiv.+?Content-Type.+?content=(["'])([^\1]+?)\1/i);
   var res = (matched && !matched[2].match(/UTF-8/i) && matched[2]);
@@ -136,7 +153,7 @@ function getCharset(text){
   return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
 };
 
-var request = function(url, opt){
+function request(url, opt){
   var req = new XMLHttpRequest(), ret = new Deferred();
 
   opt = update({
@@ -162,17 +179,22 @@ var request = function(url, opt){
   if(opt.charset) req.overrideMimeType(opt.charset);
 
   //req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+  var setHeader = true;
   if(opt.headers){
-    if(!opt.headers['Content-Type']){
-      if(opt.sendContent){
-        req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      } else {
-        req.setRequestHeader('Content-Type', 'application/octet-stream');
-      }
+    if(opt.headers['Content-Type']){
+      setHeader = false;
     }
     Object.keys(opt.headers).forEach(function(key){
       req.setRequestHeader(key, opt.headers[key]);
     });
+  }
+  if(setHeader){
+    if(opt.sendContent){
+      req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    } else {
+      req.setRequestHeader('Content-Type', 'application/octet-stream');
+    }
   }
 
   var position = -1;
@@ -380,6 +402,13 @@ var onRequestsHandlers = {
       TBRL.Popup.open(tab, req.content);
     });
     func({});
+  },
+  capture: function(req, sender, func){
+    callLater(1, function(){
+      chrome.tabs.captureVisibleTab(sender.tab.windowId, function(data){
+        func(data);
+      });
+    });
   },
   share: function(req, sender, func){
     getSelected().addCallback(function(tab){
