@@ -533,5 +533,121 @@ function resolveRelativePath(base){
   }
 }
 
+function convertToHTMLString(src, safe){
+
+  var doc  = src.ownerDocument || src.focusNode.ownerDocument;
+
+  if(src.focusNode){
+    // common parent node search
+    var current,
+        anchorOffset = src.anchorOffset,
+        focusOffset = src.focusOffset;
+    var anchorAnc = [src.anchorNode];
+    current = src.anchorNode;
+    console.log(src.anchorOffset, src.focusOffset);
+    while(document !== (current = current.parentNode) && current)
+      anchorAnc.push(current);
+    var focusAnc = [src.focusNode];
+    current = src.focusNode;
+    while(document !== (current = current.parentNode) && current)
+      focusAnc.push(current);
+    var common, aindex, findex;
+    anchorAnc.some(function(item, index){
+      if(~(findex = focusAnc.indexOf(item))){
+        aindex = index;
+        common = item;
+        return true;
+      } else {
+        return false;
+      }
+    });
+    // common配下nodeまで切捨て
+    anchorAnc.length = aindex;
+    focusAnc.length = findex;
+    // commonから見た順番に変更
+    focusAnc.reverse();
+    anchorAnc.reverse();
+
+    // indexに変換する => cloneNodeでcloneするので, 位置関係を保存する
+    current = common;
+    for(var i = 0, len = focusAnc.length; i < len; ++i){
+      var node = focusAnc[i];
+      focusAnc[i] = $A(current.childNodes).indexOf(node)
+      current = node;
+    }
+    current = common;
+    for(var i = 0, len = anchorAnc.length; i < len; ++i){
+      var node = anchorAnc[i];
+      anchorAnc[i] = $A(current.childNodes).indexOf(node)
+      current = node;
+    }
+    // common配下のindexを見て, focus と anchorがどちらが前方かを調べる
+    // commonは最小の共通nodeであるので, すぐ下からindexが異なる
+    if(focusAnc[0] < anchorAnc[0]){
+      var t = focusAnc;
+      focusAnc = anchorAnc;
+      anchorAnc = t;
+      t = focusOffset;
+      focusOffset = anchorOffset;
+      anchorOffset = t;
+    }
+    // clone
+    common = common.cloneNode(true);
+
+    // focusに沿って後方をremove
+    // 後方から削る => index調整不要
+    current = common;
+    focusAnc.forEach(function(obj){
+      var children = $A(current.childNodes);
+      for(var i = obj+1, len = children.length; i < len; i++){
+        current.removeChild(children[i]);
+      }
+      current = children[obj];
+    });
+    if(current.nodeType === Node.TEXT_NODE){
+      var val = current.textContent;
+      if(val.length !== focusOffset){
+        current.parentNode.replaceChild($T(val.substring(0, focusOffset)), current);
+      }
+    }
+    // anchorに沿って前方をremove
+    current = common;
+    anchorAnc.forEach(function(obj){
+      var children = $A(current.childNodes);
+      for(var i = 0, len = obj; i < len; i++){
+        current.removeChild(children[i]);
+      }
+      current = children[obj];
+    });
+    if(current.nodeType === Node.TEXT_NODE && anchorOffset){
+      current.parentNode.replaceChild($T(current.textContent.substring(anchorOffset)), current);
+    }
+  } else {
+    var common = src;
+  }
+
+  var html = (new XMLSerializer).serializeToString(common);
+  if(!safe)
+    return html;
+
+  // DOMツリーに戻し不要な要素を除去する
+  var root = doc.createElement('span');
+  root.innerHTML = html;
+
+  $X('.//*[contains(",' + convertToHTMLString.UNSAFE_ELEMENTS + ',", concat(",", local-name(.), ","))]', root).forEach(removeElement);
+  $X('.//@*[not(contains(",' + convertToHTMLString.SAFE_ATTRIBUTES + ',", concat(",", local-name(.), ",")))]', root).forEach(function(attr){
+    if(attr && attr.ownerElement) attr.ownerElement.removeAttribute(attr.name);
+  });
+  src = appendChildNodes($DF(), root.childNodes);
+
+  // 再度HTML文字列へ変換する
+  return convertToHTMLString(src);
+}
+
+update(convertToHTMLString , {
+	UNSAFE_ELEMENTS : 'frame,script,style,frame,iframe',
+	SAFE_ATTRIBUTES : 'action,cellpadding,cellspacing,checked,cite,clear,cols,colspan,content,coords,enctype,face,for,href,label,method,name,nohref,nowrap,rel,rows,rowspan,shape,span,src,style,target,type,usemap,value'
+});
+
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 
