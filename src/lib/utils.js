@@ -546,7 +546,6 @@ function convertToHTMLString(src, safe){
         focusOffset = src.focusOffset;
     var anchorAnc = [src.anchorNode];
     current = src.anchorNode;
-    console.log(src.anchorOffset, src.focusOffset);
     while(document !== (current = current.parentNode) && current)
       anchorAnc.push(current);
     var focusAnc = [src.focusNode];
