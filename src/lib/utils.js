@@ -538,6 +538,8 @@ function convertToHTMLString(src, safe){
   var doc  = src.ownerDocument || src.focusNode.ownerDocument;
 
   if(src.focusNode){
+    // selection
+
     // common parent node search
     var current,
         anchorOffset = src.anchorOffset,
@@ -581,46 +583,60 @@ function convertToHTMLString(src, safe){
       anchorAnc[i] = $A(current.childNodes).indexOf(node)
       current = node;
     }
-    // common配下のindexを見て, focus と anchorがどちらが前方かを調べる
-    // commonは最小の共通nodeであるので, すぐ下からindexが異なる
-    if(focusAnc[0] < anchorAnc[0]){
-      var t = focusAnc;
-      focusAnc = anchorAnc;
-      anchorAnc = t;
-      t = focusOffset;
-      focusOffset = anchorOffset;
-      anchorOffset = t;
-    }
     // clone
     common = common.cloneNode(true);
 
-    // focusに沿って後方をremove
-    // 後方から削る => index調整不要
-    current = common;
-    focusAnc.forEach(function(obj){
-      var children = $A(current.childNodes);
-      for(var i = obj+1, len = children.length; i < len; i++){
-        current.removeChild(children[i]);
+    if(focusAnc[0] !== undefined){
+      // common配下のindexを見て, focus と anchorがどちらが前方かを調べる
+      // commonは最小の共通nodeであるので, すぐ下からindexが異なる
+      if(focusAnc[0] < anchorAnc[0]){
+        var t = focusAnc;
+        focusAnc = anchorAnc;
+        anchorAnc = t;
+        t = focusOffset;
+        focusOffset = anchorOffset;
+        anchorOffset = t;
       }
-      current = children[obj];
-    });
-    if(current.nodeType === Node.TEXT_NODE){
-      var val = current.textContent;
-      if(val.length !== focusOffset){
-        current.parentNode.replaceChild($T(val.substring(0, focusOffset)), current);
+
+      // focusに沿って後方をremove
+      // 後方から削る => index調整不要
+      current = common;
+      focusAnc.forEach(function(obj){
+        var children = $A(current.childNodes);
+        for(var i = obj+1, len = children.length; i < len; i++){
+          current.removeChild(children[i]);
+        }
+        current = children[obj];
+      });
+      if(current.nodeType === Node.TEXT_NODE){
+        var val = current.textContent;
+        if(val.length !== focusOffset){
+          current.parentNode.replaceChild($T(val.substring(0, focusOffset)), current);
+        }
       }
-    }
-    // anchorに沿って前方をremove
-    current = common;
-    anchorAnc.forEach(function(obj){
-      var children = $A(current.childNodes);
-      for(var i = 0, len = obj; i < len; i++){
-        current.removeChild(children[i]);
+      // anchorに沿って前方をremove
+      current = common;
+      anchorAnc.forEach(function(obj){
+        var children = $A(current.childNodes);
+        for(var i = 0, len = obj; i < len; i++){
+          current.removeChild(children[i]);
+        }
+        current = children[obj];
+      });
+      if(current.nodeType === Node.TEXT_NODE && anchorOffset){
+        current.parentNode.replaceChild($T(current.textContent.substring(anchorOffset)), current);
       }
-      current = children[obj];
-    });
-    if(current.nodeType === Node.TEXT_NODE && anchorOffset){
-      current.parentNode.replaceChild($T(current.textContent.substring(anchorOffset)), current);
+    } else {
+      if(common.nodeType === Node.TEXT_NODE){
+        // TextNode配下にnodeが来ることはないという仮定のもと成立
+        // TextNode only
+        if(focusOffset < anchorOffset){
+          var t = focusOffset;
+          focusOffset = anchorOffset;
+          anchorOffset = t;
+        }
+        common = $T(common.textContent.substring(anchorOffset, focusOffset));
+      }
     }
   } else {
     var common = src;
