@@ -15,7 +15,7 @@ var log = function(){
 }
 
 var TBRL = {
-  target : null,
+  target : {x:0, y:0},
   config : null,
   id     : chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   ldr_plus_taberareloo : false,
@@ -167,7 +167,7 @@ var TBRL = {
       window : window,
       title : document.title,
       selection : (!!sel.raw)? sel : null,
-      target : target || TBRL.target || document.documentElement
+      target : target || TBRL.getTarget() || document.documentElement
     }, window.location);
     if(ctx.target){
       ctx.link    = $X('./ancestor-or-self::a', ctx.target)[0];
@@ -178,7 +178,11 @@ var TBRL = {
   },
   mousehandler : function(ev){
     // 監視
-    TBRL.target = ev.target;
+    TBRL.target.x = ev.clientX;
+    TBRL.target.y = ev.clientY;
+  },
+  getTarget : function(){
+    return document.elementFromPoint(TBRL.target.x, TBRL.target.y);
   },
   openQuickPostForm : function(ps){
     chrome.extension.sendRequest(TBRL.id, {
@@ -310,7 +314,7 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
         window : window,
         title : title,
         selection : (!!sel.raw)? sel : null,
-        target : TBRL.target || document
+        target : TBRL.getTarget() || document
       }, window.location);
       if(Extractors.Quote.check(ctx)){
         var d = Extractors.Quote.extract(ctx);
