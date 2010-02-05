@@ -261,7 +261,7 @@ Extractors.register([
         item     : $X('//span[@class="title"]/text()')[0],
         itemUrl  : ctx.href,
         body     : createFlavoredString((ctx.selection)?
-          ctx.window.getSelection() : $X('//blockquote[contains(@class, "text")]/p')[0]),
+          ctx.window.getSelection() : $X('//blockquote[contains(@class, "text")]/p')[0])
       };
     }
   },
@@ -427,6 +427,37 @@ Extractors.register([
   },
 
   {
+    name : 'Photo - Google Book Search',
+    ICON : 'http://www.google.com/favicon.ico',
+    check : function(ctx){
+      if(!(/^books\.google\./).test(ctx.host))
+        return;
+
+      return !!this.getImage(ctx);
+    },
+    extract : function(ctx){
+      ctx.target = this.getImage(ctx);
+
+      return Tombloo.Service.extractors['Photo - Upload from Cache'].extract(ctx);
+    },
+    getImage : function(ctx){
+      // 標準モード
+      var img = $X('./ancestor::div[@class="pageImageDisplay"]//img[contains(@src, "//books.google.")]', ctx.target)[0];
+      if(img)
+        return img;
+
+      // HTMLモード
+      var div = $X('./ancestor::div[@class="html_page_image"]', ctx.target)[0];
+      if(div){
+        var img = new Image();
+        img.src = getStyle(div, 'background-image').replace(/url\((.*)\)/, '$1');
+
+        return img;
+      }
+    }
+  },
+
+  {
     name : 'Photo - 4u',
     ICON : 'http://4u.straightline.jp/favicon.ico',
     check : function(ctx){
@@ -462,7 +493,7 @@ Extractors.register([
         return {
           type    : 'photo',
           item    : ctx.title,
-          itemUrl : $X('//img[1]', createHTML(res.responseText))[0].src,
+          itemUrl : $X('//img[1]', createHTML(res.responseText))[0].src
         }
       });
     }
@@ -487,10 +518,10 @@ Extractors.register([
         return {
           type    : 'photo',
           item    : ctx.title,
-          itemUrl : itemUrl,
+          itemUrl : itemUrl
         }
       });
-    },
+    }
   },
 
   {
@@ -704,7 +735,7 @@ Extractors.register([
         type    : 'quote',
         item    : ctx.title,
         itemUrl : ctx.href,
-        body    : createFlavoredString(ctx.window.getSelection()),
+        body    : createFlavoredString(ctx.window.getSelection())
       }
     }
   },
