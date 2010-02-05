@@ -232,7 +232,7 @@ Tumblr.Regular = {
     return {
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
-      'post[two]'  : joinText([getFlavor(ps.body, 'html'), ps.description], '\n\n'),
+      'post[two]'  : joinText([getFlavor(ps.body, 'html'), ps.description], '\n\n')
     };
   }
 };
@@ -277,7 +277,7 @@ Tumblr.Link = {
       'post[type]'  : ps.type,
       'post[one]'   : ps.item,
       'post[two]'   : ps.itemUrl,
-      'post[three]' : joinText([thumb, getFlavor(ps.body, 'html'), ps.description], '\n\n'),
+      'post[three]' : joinText([thumb, getFlavor(ps.body, 'html'), ps.description], '\n\n')
     };
   }
 };
@@ -287,7 +287,7 @@ Tumblr.Conversation = {
     return {
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
-      'post[two]'  : joinText([getFlavor(ps.body, 'html'), ps.description], '\n\n'),
+      'post[two]'  : joinText([getFlavor(ps.body, 'html'), ps.description], '\n\n')
     };
   }
 };
@@ -798,8 +798,8 @@ Models.register({
           comment  : ps.description,
           body     : getFlavor(ps.body, 'html'),
           tags     : joinText(ps.tags, ','),
-          fullPage : (ps.body)? 'true' : 'false',
-        }),
+          fullPage : (ps.body)? 'true' : 'false'
+        })
       });
     });
   },
@@ -1336,7 +1336,7 @@ Models.register(update({}, Models['bit.ly'], {
 }));
 
 function shortenUrls(text, model){
-  var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+/g;
+  var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
     return;
 
