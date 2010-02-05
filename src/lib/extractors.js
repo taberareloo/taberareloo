@@ -459,8 +459,11 @@ Extractors.register([
     },
     extract : function(ctx){
       ctx.target = this.getImage(ctx);
-
-      return Tombloo.Service.extractors['Photo - Upload from Cache'].extract(ctx);
+      return {
+        type    : 'photo',
+        item    : ctx.title,
+        itemUrl : ctx.target.src
+      };
     },
     getImage : function(ctx){
       // 標準モード
