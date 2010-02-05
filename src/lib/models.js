@@ -401,6 +401,9 @@ Models.register({
       return request(HatenaBookmark.JSON_URL).addCallback(function(res){
         var data = JSON.parse(res.responseText);
         if(!data["login"]){
+          delete self['token'];
+          delete self['user'];
+          delete self['tags'];
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
         self.token = data['rks'];
@@ -436,35 +439,61 @@ Models.register({
    */
   getSuggestions : function(url){
     var self = this;
-    return succeed().addCallback(function(){
-      return request(self.POST_URL, {
-        queryString : {
-          mode : 'confirm',
-          url  : url
-        }
-      })
-    }).addCallback(function(res){
-      try{
-        var tags = JSON.parse('(' + res.responseText.extract(/var tags =(.*);$/m) + ')') || {};
-      }catch(e){
+    return this.getToken().addCallback(function(){
+      return DeferredHash({
+        tags: self.getUserTags(),
+        recommended: self.getRecommendedTags(url)
+      });
+    }).addCallback(function(resses){
+      if(!resses['tags'][0] || !resses['recommended'][0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-
-
       return {
-        duplicated : (/bookmarked-confirm/).test(res.responseText),
-        recommended : $X(
-          'id("recommend-tags")/span[@class="tag"]/text()',
-          createHTML(res.responseText)
-          ),
-        tags : map(function(pair){
-          var tag = pair[0], info = pair[1];
-          return {
-            name      : tag,
-            frequency : info.count
-          }
-        }, items(tags))
+        //duplicated : (/bookmarked-confirm/).test(res.responseText),
+        recommended : resses['recommended'][1],
+        tags : resses['tags'][1]
       }
+    });
+  },
+
+  getUserTags: function(){
+    var self = this;
+    return this.getToken().addCallback(function(){
+      var user = self.user;
+      var tags = self.tags;
+      if(user && tags){
+        return succeed(tags);
+      } else {
+        return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function(res){
+          try{
+            tags = JSON.parse(res.responseText)['tags'];
+          } catch(e) {
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          }
+          return self.tags = items(tags).map(function(pair){
+            return {
+              name      : pair[0],
+              frequency : pair[1].count
+            }
+          });
+        });
+      }
+    });
+  },
+
+  getRecommendedTags: function(url){
+    var self = this;
+    return request('http://b.hatena.ne.jp/my.entry', {
+      queryString : {
+        url  : url
+      }
+    }).addCallback(function(res){
+      try{
+        var rec = JSON.parse(res.responseText)['recommend_tags'];
+      } catch(e) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+      return rec;
     });
   }
 });
