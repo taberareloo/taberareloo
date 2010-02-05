@@ -567,6 +567,7 @@ Extractors.register([
     },
     extract : function(ctx){
       var author = $X('id("watch-channel-stats")/a')[0];
+      ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',
         item      : ctx.title.extract(/\s- (.*)/),
@@ -605,13 +606,13 @@ Extractors.register([
 
       return {
         type    : 'video',
-        item    : tag.extract(/>(.+?)<\/a>/),
+        item    : tag.extract(/<a.+?>(.+?)<\/a>/),
         itemUrl : ctx.href,
         body    : tag.extract(/(<object.+object>)/)
       };
     },
     getTag : function(ctx){
-      return $X('id("links_video_code")/@value', ctx.document)[0];
+      return $X('id("tv_embedcode_embed_text")/@value', ctx.document)[0];
     }
   },
 
@@ -623,20 +624,17 @@ Extractors.register([
     },
     extract : function(ctx){
       var tag = this.getTag(ctx);
-      var author = tag.extract(/Uploaded by (<a.+?a>)/);
       ctx.href = tag.extract(/href="(.+?)"/);
 
       return {
         type      : 'video',
-        item      : ctx.title.extract(/Dailymotion - (.*?), a video from/),
+        item      : ctx.title.extract(/Dailymotion - (.*?) - /),
         itemUrl   : ctx.href,
-        author    : author.extract(/>([^><]+?)</),
-        authorUrl : author.extract(/href="(.+?)"/),
         body      : tag.extract(/(<object.+object>)/)
       };
     },
     getTag : function(ctx){
-      return $X('id("video_player_embed_code_text")/text()', ctx.document)[0];
+      return $X('id("video_player_embed_code_text")/@value', ctx.document)[0];
     }
   },
 
