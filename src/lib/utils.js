@@ -579,16 +579,15 @@ function getSelectionContents(sel){
 }
 
 function createFlavoredString(src){
-	var res = src.textContent || src.toString();
-	res.flavors = {
-		html : convertToHTMLString(src, true),
-	};
-	return res;
+  return {
+    raw  : src.textContent || src.toString(),
+    html : convertToHTMLString(src, true)
+  };
 }
 
-function getFlavor(src, name){
-	return (!src || !src.flavors)? src :
-		src.flavors[name] || src;
+function getFlavor(ps, name){
+  return (!ps.body || !ps.flavors)? ps.body :
+    ps.flavors[name] || ps.body;
 }
 
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';

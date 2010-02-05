@@ -235,17 +235,28 @@ Extractors.register([
       return ctx.href.match(/\/\/twitter\.com\/.*?\/(?:status|statuses)\/\d+/);
     },
     extract: function(ctx){
-      return {
+      var res = {
         type     : 'quote',
         item     : ctx.title.substring(0, ctx.title.indexOf(': ')),
         itemUrl  : ctx.href,
-        body     : createFlavoredString((ctx.selection)?
-          ctx.window.getSelection() : $X('(//span[@class="entry-content"])[1]')[0]),
         favorite : {
           name : 'Twitter',
           id   : ctx.href.match(/(status|statuses)\/(\d+)/)[2]
         }
       }
+      if(ctx.selection){
+        res.body = ctx.selection.raw;
+        res.flavors = {
+          html : ctx.selection.html
+        };
+      } else {
+        var sel = createFlavoredString($X('(//span[@class="entry-content"])[1]')[0]);
+        res.body = sel.raw;
+        res.flavors = {
+          html : sel.html
+        };
+      }
+      return res;
     }
   },
 
@@ -256,13 +267,24 @@ Extractors.register([
       return ctx.href.match(/\/\/inyo\.jp\/quote\/[a-f\d]+/);
     },
     extract: function(ctx){
-      return {
+      var res = {
         type     : 'quote',
         item     : $X('//span[@class="title"]/text()')[0],
         itemUrl  : ctx.href,
-        body     : createFlavoredString((ctx.selection)?
-          ctx.window.getSelection() : $X('//blockquote[contains(@class, "text")]/p')[0])
       };
+      if(ctx.selection){
+        res.body = ctx.selection.raw;
+        res.flavors = {
+          html : ctx.selection.html
+        };
+      } else {
+        var sel = createFlavoredString($X('//blockquote[contains(@class, "text")]/p')[0]);
+        res.body = sel.raw;
+        res.flavors = {
+          html : sel.html
+        };
+      }
+      return res;
     }
   },
 
@@ -735,8 +757,11 @@ Extractors.register([
         type    : 'quote',
         item    : ctx.title,
         itemUrl : ctx.href,
-        body    : createFlavoredString(ctx.window.getSelection())
-      }
+        body    : ctx.selection.raw,
+        flavors : {
+          html    : ctx.selection.html
+        }
+      };
     }
   },
 

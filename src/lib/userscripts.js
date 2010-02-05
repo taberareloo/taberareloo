@@ -155,7 +155,7 @@ UserScripts.register([
       var ctx = update({
           document  : document,
           window    : window,
-          selection : window.getSelection(),
+          selection : createFlavoredString(window.getSelection()),
           target    : target,
           event     : {},
           title     : null,
@@ -270,7 +270,7 @@ UserScripts.register([
           var ctx = update({
               document  : document,
               window    : window,
-              selection : window.getSelection(),
+              selection : createFlavoredString(window.getSelection()),
               target    : current,
               event     : {},
               title     : null,
@@ -329,7 +329,7 @@ UserScripts.register([
       var ctx = update({
         document  : document,
         window    : window,
-        selection : window.getSelection(),
+        selection : createFlavoredString(window.getSelection()),
         target    : item.target,
         event     : {},
         title     : null,

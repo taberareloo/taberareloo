@@ -163,7 +163,7 @@ var TBRL = {
       document :document,
       window : window,
       title : document.title,
-      selection : window.getSelection(),
+      selection : createFlavoredString(window.getSelection()),
       target : target || TBRL.target || document.documentElement
     }, window.location);
     if(ctx.target){
@@ -305,7 +305,7 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
         document :document,
         window : window,
         title : title,
-        selection : window.getSelection(),
+        selection : createFlavoredString(window.getSelection()),
         target : TBRL.target || document
       }, window.location);
       if(Extractors.Quote.check(ctx)){
