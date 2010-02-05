@@ -777,7 +777,7 @@ Models.register({
     var self = this;
     ps = update({}, ps);
     var d = succeed();
-    if(ps.type==='link' && !ps.body && TBRL.Config['entry']['evernote_clip_fullpage']){
+    if(ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']){
       d = encodedRequest(ps.itemUrl).addCallback(function(res){
         var doc = createHTML(res.responseText);
         ps.body = convertToHTMLString(doc.documentElement, true);

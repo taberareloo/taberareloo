@@ -45,6 +45,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var queue_check = new Check('post_with_queue', !!Config.post['post_with_queue']);
   // Shorten URL
   var shorten_check = new Check('always_shorten_url', !!Config.post['always_shorten_url']);
+  // Evernote - Clip Full Page
+  var clip_fullpage = new Check('evernote_clip_fullpage', !!Config.post['evernote_clip_fullpage']);
   // multiple tumblelogs
   var tumble_check = new Check('multi_tumblelogs', !!Config.post["multi_tumblelogs"]);
   var tumble_list = new TumbleList();
@@ -79,6 +81,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "shortcutkey_dashboard_plus_taberareloo"  : dashboard_short.body(),
           "shortcutkey_googlereader_plus_taberareloo"  : gr_short.body(),
           'keyconfig' : keyconfig_check.body(),
+          "evernote_clip_fullpage": clip_fullpage.body(),
           'shortcutkey_linkquickpost': lk,
           "shortcutkey_quotequickpost" : qk,
           "shortcutkey_quickpost" : k,

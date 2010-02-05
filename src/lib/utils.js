@@ -535,7 +535,6 @@ function resolveRelativePath(base){
 
 // (c) id:nanto_vi
 // http://nanto.asablo.jp/blog/2010/02/05/4858761
-
 function convertToHTMLString(source, safe) {
   if (!source || (source.getRangeAt && source.isCollapsed)) return '';
   var range = source.getRangeAt ? source.getRangeAt(0) : null;

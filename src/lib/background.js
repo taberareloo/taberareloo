@@ -260,12 +260,12 @@ var TBRL = {
       "shortcutkey_linkquickpost"  : "",
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",
+      "evernote_clip_fullpage": true,
       "always_shorten_url"    : false,
       "multi_tumblelogs"      : false,
       "post_with_queue"       : false
     },
     "entry"   : {
-      "evernote_clip_fullpage"  : true,
       "trim_reblog_info"  : false,
       "thumbnail_template": ""
     }
