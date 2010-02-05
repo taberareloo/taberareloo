@@ -24,6 +24,38 @@ connect(document, 'onDOMContentLoaded', document, function(){
     });
   });
 
+  // i18n
+  $('label_services').appendChild($T(chrome.i18n.getMessage('label_postConfig')));
+  $('label_post').appendChild($T(chrome.i18n.getMessage('label_post')));
+  $('label_entry').appendChild($T(chrome.i18n.getMessage('label_entry')));
+  $('label_about').appendChild($T(chrome.i18n.getMessage('label_about')));
+  $('label_changes').appendChild($T(chrome.i18n.getMessage('label_changes')));
+  $('label_tagprovider').appendChild($T(chrome.i18n.getMessage('label_tagprovider')));
+  $('label_keyconfig').appendChild($T(chrome.i18n.getMessage('label_keyconfig')));
+
+  $('label_shortcutkey_linkquickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Link')));
+  $('label_shortcutkey_quotequickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Quote')));
+  $('label_shortcutkey_quickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey_general')));
+  $('shortcutkey_quickpost_clear').value
+  = $('shortcutkey_linkquickpost_clear').value
+  = $('shortcutkey_quotequickpost_clear').value
+  = $('shortcutkey_ldr_plus_taberareloo_clear').value
+  = $('shortcutkey_dashboard_plus_taberareloo_clear').value
+  = $('shortcutkey_googlereader_plus_taberareloo_clear').value
+  = chrome.i18n.getMessage('label_clear');
+  $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
+  $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
+  $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
+  $('label_clipFullPage').appendChild($T(chrome.i18n.getMessage('label_clipFullPage')));
+  $('label_userscripts').appendChild($T(chrome.i18n.getMessage('label_userscripts')));
+  $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
+  $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
+  $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
+  $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
+  $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
+  $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
+  $('save').value = chrome.i18n.getMessage('label_save');
+
   // services
   var services = new Services();
   // tag provider
@@ -99,7 +131,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
       }
       this.close();
     } else {
-      alert('Key Definition Conflict \n  Please set different keys each other');
+      alert(chrome.i18n.getMessage('error_keyConfliction'));
     }
   });
 });

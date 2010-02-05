@@ -1,0 +1,120 @@
+{
+  "label_postConfig": {
+    "message": "Services",
+    "description": "services tab"
+  },
+  "label_post": {
+    "message": "Post",
+    "description": "post setting tab"
+  },
+  "label_entry": {
+    "message": "Entry Contents / etc.",
+    "description": "entry setting tab"
+  },
+  "label_about": {
+    "message": "About",
+    "description": "about tab"
+  },
+  "label_changes": {
+    "message": "Changes",
+    "description": "changes tab"
+  },
+  "label_tagprovider": {
+    "message": "Tag Provider"
+  },
+  "label_keyconfig": {
+    "message": "use ChromeKeyConfig instead"
+  },
+  "label_shortcutkey": {
+    "message": "Shortcutkey - $1 Quick Post"
+  },
+  "label_shortcutkey_general": {
+    "message": "Shortcutkey - Quick Post (General Use)"
+  },
+  "label_clear": {
+    "message": "clear"
+  },
+  "label_tagAutoComplete": {
+    "message": "Tag Auto Complete"
+  },
+  "label_postWithQueue": {
+    "message": "Tumblr - Post with Queue"
+  },
+  "label_alwaysShortenURL": {
+    "message": "Twitter - Always Shorten URL"
+  },
+  "label_clipFullPage": {
+    "message": "Evernote - Clip Full Page"
+  },
+  "label_userscripts": {
+    "message": "UserScripts"
+  },
+  "label_multipleTumblelog": {
+    "message": "Multiple Tumblelog"
+  },
+  "label_enable": {
+    "message": "enabled"
+  },
+  "label_get": {
+    "message": "get"
+  },
+  "label_example": {
+    "message": "e.g. "
+  },
+  "label_save": {
+    "message": "Save"
+  },
+  "label_thumbnailTemplate": {
+    "message": "Link thumbnail template"
+  },
+  "label_trimReblogInfo": {
+    "message": "Trim reblog info"
+  },
+  "error_post": {
+    "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",
+    "description": "when post failed",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      },
+      "title": {
+        "content": "$2"
+      },
+      "url": {
+        "content": "$3"
+      }
+    }
+  },
+  "error_noPoster": {
+    "message": "No selected service for $1 type post.",
+    "description": "when default poster service not found"
+  },
+  "error_notLoggedin": {
+    "message": "Not loggedin $1.",
+    "description": "when not logged in the service"
+  },
+  "error_keyConfliction": {
+    "message": "Conflict key settings.",
+    "description": "when key settings is conflicted"
+  },
+  "error_reopen": {
+    "message": "will you reopen?",
+    "description": "when confirm reopen"
+  },
+  "error_http404": {
+    "message": "Forbidden",
+    "description": "when response status is 403"
+  },
+  "error_http404": {
+    "message": "Not Found",
+    "description": "when response status is 404"
+  },
+  "error_http500": {
+    "message": "Internal Server Error",
+    "description": "when response status is 500"
+  },
+  "error_http503": {
+    "message": "Service Unavailable",
+    "description": "when response status is 503"
+  }
+}

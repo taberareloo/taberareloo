@@ -18,6 +18,7 @@
      "32": "skin/fork32.png",
      "16": "skin/fork16.png"
    },
+   "default_locale": "en_US",
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs" ],

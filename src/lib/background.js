@@ -222,6 +222,7 @@ function request(url, opt){
         if(req.status >= 200 && req.status < 300){
           ret.callback(req);
         } else {
+          req.message = chrome.i18n.getMessage('error_http' + req.status);
           ret.errback(req);
         }
       }
@@ -271,9 +272,6 @@ var TBRL = {
     }
   },
   Service: {
-    alertPreference: function(type){
-      alert('error.noPoster\n'+type.capitalize().indent(4));
-    },
     post: function(ps, posters){
       var self = this;
       var ds   = {};
@@ -296,20 +294,19 @@ var TBRL = {
           }
         }
         if(errs.length){
-          errs.push('', 'will you reopen?');
-          self.alertError(errs.join('\n'), ps.page, ps.pageUrl, ps);
+          self.alertError(chrome.i18n.getMessage('error_post', [errs.join('\n').indent(2), ps.page, ps.pageUrl]), ps.pageUrl);
         } else {
           delete TBRL.Popup.contents[ps.itemUrl];
         }
       }).addErrback(function(err){
-        self.alertError(err, ps.page, ps.pageUrl, ps);
+        self.alertError(err, ps.pageUrl);
       });
     },
     isEnableSite: function(link){
       return link.indexOf('http') === 0;
     },
-    alertError: function(error, page, url, ps){
-      var res = confirm(error);
+    alertError: function(error, url){
+      var res = confirm(error + '\n\n' + chrome.i18n.getMessage('error_reopen'));
       if(res){
         chrome.tabs.create({
           url: url,
@@ -419,7 +416,7 @@ var onRequestsHandlers = {
       } else {
         var posters = Models.getDefaults(ps);
         if(!posters.length){
-          TBRL.Service.alertPreference(ps.type);
+          alert(chrome.i18n.getMessage('error_noPoster', ps.type.capitalize()));
         } else {
           TBRL.Service.post(ps, posters);
         }

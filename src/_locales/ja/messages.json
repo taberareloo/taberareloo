@@ -1,0 +1,120 @@
+{
+  "label_postConfig": {
+    "message": "デフォルトのポスト先",
+    "description": "サービス設定タブ"
+  },
+  "label_post": {
+    "message": "ポスト関連",
+    "description": "ポスト関連設定タブ"
+  },
+  "label_entry": {
+    "message": "エントリ内容/他",
+    "description": "エントリ設定タブ"
+  },
+  "label_about": {
+    "message": "Taberarelooについて",
+    "description": "Taberarelooについてのタブ"
+  },
+  "label_changes": {
+    "message": "変更履歴",
+    "description": "変更履歴タブ"
+  },
+  "label_tagprovider": {
+    "message": "クイックポストで使うタグの取得元"
+  },
+  "label_keyconfig": {
+    "message": "ChromeKeyConfig を使う"
+  },
+  "label_shortcutkey": {
+    "message": "ショートカット - $1クイックポスト"
+  },
+  "label_shortcutkey_general": {
+    "message": "ショートカット - クイックポスト"
+  },
+  "label_clear": {
+    "message": "クリア"
+  },
+  "label_tagAutoComplete": {
+    "message": "タグの自動決定"
+  },
+  "label_postWithQueue": {
+    "message": "Tumblr - キューに入れてポストする"
+  },
+  "label_alwaysShortenURL": {
+    "message": "Twitter - 常にURLを短縮する"
+  },
+  "label_clipFullPage": {
+    "message": "Evernote - ページ全体をクリップする"
+  },
+  "label_userscripts": {
+    "message": "ユーザースクリプト"
+  },
+  "label_multipleTumblelog": {
+    "message": "複数タンブルログ"
+  },
+  "label_enable": {
+    "message": "有効"
+  },
+  "label_get": {
+    "message": "取得"
+  },
+  "label_example": {
+    "message": "例: "
+  },
+  "label_save": {
+    "message": "保存"
+  },
+  "label_thumbnailTemplate": {
+    "message": "Linkポストのサムネイルテンプレート"
+  },
+  "label_trimReblogInfo": {
+    "message": "reblog情報を除去する"
+  },
+  "error_post": {
+    "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
+    "description": "ポストに失敗した",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      },
+      "title": {
+        "content": "$2"
+      },
+      "url": {
+        "content": "$3"
+      }
+    }
+  },
+  "error_noPoster": {
+    "message": "$1 タイプのポスト先が一つも指定されていません。",
+    "description": "デフォルトのポスト先が見つからない"
+  },
+  "error_notLoggedin": {
+    "message": "$1 にログインしていません。",
+    "description": "サービスにログインしていない"
+  },
+  "error_keyConfliction": {
+    "message": "キー設定が重複しています。",
+    "description": "キーが重複して設定されている"
+  },
+  "error_reopen": {
+    "message": "ページを開きなおしますか?",
+    "description": "ページの再オープンを確認する"
+  },
+  "error_http403": {
+    "message": "指定されたURLにアクセスできません。",
+    "description": "レスポンスのステータスコードが403"
+  },
+  "error_http404": {
+    "message": "指定されたURLは見つかりません。",
+    "description": "レスポンスのステータスコードが404"
+  },
+  "error_http500": {
+    "message": "サーバーでエラーが発生しました。",
+    "description": "レスポンスのステータスコードが500"
+  },
+  "error_http503": {
+    "message": "指定されたサービスは現在利用できません。",
+    "description": "レスポンスのステータスコードが503"
+  }
+}

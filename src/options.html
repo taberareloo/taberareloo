@@ -15,11 +15,11 @@
 </head>
 <body>
 <ul id="tabs">
-  <li class="tab"><p class="services">Services</p></li>
-  <li class="tab"><p class="post">Post</p></li>
-  <li class="tab"><p class="entry">Entry Contents / etc.</p></li>
-  <li class="tab"><p class="about">About</p></li>
-  <li class="tab"><p class="changes">Changes</p></li>
+  <li class="tab"><p id="label_services" class="services"></p></li>
+  <li class="tab"><p id="label_post"     class="post"></p></li>
+  <li class="tab"><p id="label_entry"    class="entry"></p></li>
+  <li class="tab"><p id="label_about"    class="about"></p></li>
+  <li class="tab"><p id="label_changes"  class="changes"></p></li>
 </ul>
 <div id="container">
   <div id="inner">
@@ -45,41 +45,41 @@
     </div>
     <div id="post" class="slide">
       <div class="option">
-        <p>Tag Provider</p>
+        <p id="label_tagprovider"></p>
         <div id="tag_providers" class="buttongroup"></div>
       </div>
       <div class="option">
-        <p>use <a href="https://chrome.google.com/extensions/detail/okneonigbfnolfkmfgjmaeniipdjkgkl" target="_blank">Chrome KeyConfig</a> instead</p><input id="keyconfig_checkbox" type="checkbox" name="keyconfig_checkbox">
-        <p>Shortcutkey - Quick Post (General Use)</p>
+        <p id="label_keyconfig"></p><input id="keyconfig_checkbox" type="checkbox" name="keyconfig_checkbox">
+        <p id="label_shortcutkey_quickpost"></p>
         <div>
           <input id="shortcutkey_quickpost" type="text">
-          <input id="shortcutkey_quickpost_clear" type="button" value="clear">
+          <input id="shortcutkey_quickpost_clear" type="button">
         </div>
-        <p>Shortcutkey - Link Quick Post</p>
+        <p id="label_shortcutkey_linkquickpost"></p>
         <div>
           <input id="shortcutkey_linkquickpost" type="text">
-          <input id="shortcutkey_linkquickpost_clear" type="button" value="clear">
+          <input id="shortcutkey_linkquickpost_clear" type="button">
         </div>
-        <p>Shortcutkey - Quote Quick Post</p>
+        <p id="label_shortcutkey_quotequickpost"></p>
         <div>
           <input id="shortcutkey_quotequickpost" type="text">
-          <input id="shortcutkey_quotequickpost_clear" type="button" value="clear">
+          <input id="shortcutkey_quotequickpost_clear" type="button">
         </div>
       </div>
       <div class="option">
-        <p>Tag Auto Complete</p><input id="tag_auto_complete_checkbox" type="checkbox" name="tag_auto_complete">
+        <p id="label_tagAutoComplete"></p><input id="tag_auto_complete_checkbox" type="checkbox" name="tag_auto_complete">
       </div>
       <div class="option">
-        <p>Tumblr - Post with Queue</p><input id="post_with_queue_checkbox" type="checkbox" name="post_with_queue">
+        <p id="label_postWithQueue"></p><input id="post_with_queue_checkbox" type="checkbox" name="post_with_queue">
       </div>
       <div class="option">
-        <p>Twitter - Always Shorten URL</p><input id="always_shorten_url_checkbox" type="checkbox" name="always_shorten_url">
+        <p id="label_alwaysShortenURL"></p><input id="always_shorten_url_checkbox" type="checkbox" name="always_shorten_url">
       </div>
       <div class="option">
-        <p>Evernote - Clip Full Page</p><input id="evernote_clip_fullpage_checkbox" type="checkbox" name="evernote_clip_fullpage">
+        <p id="label_clipFullPage"></p><input id="evernote_clip_fullpage_checkbox" type="checkbox" name="evernote_clip_fullpage">
       </div>
       <div class="option">
-        <h2>UserScripts</h2>
+        <h2 id="label_userscripts"></h2>
         <div class="item">
           <div class="option_line">
             <p class="userscript_title">LDR + Taberareloo</p><input id="ldr_plus_taberareloo_checkbox" type="checkbox" name="ldr_plus_taberareloo_checkbox">
@@ -103,8 +103,8 @@
         </div>
       </div>
       <div class="option">
-        <h2>Multiple Tumblelog</h2>
-        <div class="option_line"><p>enable?</p><input id="multi_tumblelogs_checkbox" type="checkbox" name="multi_tumblelogs_checkbox"><input id="multi_tumblelogs_button" type="button" value="get">
+        <h2 id="label_multipleTumblelog"></h2>
+        <div class="option_line"><p id="label_enableMultipleTumblelog"></p><input id="multi_tumblelogs_checkbox" type="checkbox" name="multi_tumblelogs_checkbox"><input id="multi_tumblelogs_button" type="button" value="get">
         </div>
         <div class="item" id="multi_tumble_field">
         </div>
@@ -112,11 +112,12 @@
     </div>
     <div id="entry" class="slide">
       <div class="option">
-      <p>Link thumbnail template</p>
-      <input type="text" class="text_input" id="thumbnail_template" placeholder="e.g. <img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; />">
+      <p id="label_thumbnailTemplate"></p>
+      <input type="text" class="text_input" id="thumbnail_template" placeholder="<img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; />">
+      <div class="option_line"><p id="label_example"></p><p>&lt;img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; /&gt;</p></div>
       </div>
       <div class="option">
-      <p>Trim reblog info</p><input id="trim_reblog_info_checkbox" type="checkbox" name="trim_reblog_info">
+      <p id="label_trimReblogInfo"></p><input id="trim_reblog_info_checkbox" type="checkbox" name="trim_reblog_info">
       </div>
     </div>
     <div id="about" class="slide">
@@ -174,6 +175,7 @@
         <ul>
           <li>support flavers system</li>
           <li>add models and extractors</li>
+          <li>support i18n</li>
         </ul>
       </div>
       <div class="item">

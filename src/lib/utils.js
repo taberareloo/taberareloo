@@ -422,14 +422,6 @@ function queryHash(query){
   return hash;
 }
 
-function getMessage(key){
-  return arguments.callee.hash[key] || key;
-}
-
-getMessage.hash = {
-  'error.notLoggedin' : 'Not loggedin.'
-};
-
 // others
 function $A(arr){
   return Array.prototype.slice.call(arr);

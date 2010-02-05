@@ -106,7 +106,7 @@ var Tumblr = {
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0])
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       var form = formContents($X('id("edit_post")', doc)[0]);
       delete form.preview_post;
       form.redirect_to = Tumblr.TUMBLR_URL+'dashboard';
@@ -181,7 +181,7 @@ var Tumblr = {
     return succeed().addCallback(fn).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0]){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       } else if($X('id("posts")', doc)[0]){
         return null;
       } else {
@@ -206,16 +206,17 @@ var Tumblr = {
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0])
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return self.token = $X('id("form_key")/@value', doc)[0];
     });
   },
 
   getTumblelogs : function(){
+    var self = this;
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0])
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return $X('id("channel_id")//option[@value!=0]', doc).map(function(opt){
         return {
           id : opt.value,
@@ -315,6 +316,7 @@ Models.register({
   },
 
   post : function(ps){
+    var self = this;
     return request(this.URL + 'power/manage/register', {
       referrer : ps.pageUrl,
       queryString : {
@@ -326,7 +328,7 @@ Models.register({
       }
     }).addCallback(function(res){
       if(/login/.test(res.responseText)){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
   },
@@ -336,6 +338,7 @@ Models.register({
   },
 
   iLoveHer : function(id){
+    var self = this;
     return request(this.URL + 'user/manage/do_register', {
       redirectionLimit : 0,
       referrer : this.URL,
@@ -345,7 +348,7 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('//form[@action="http://4u.straightline.jp/admin/login"]', doc)[0]){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
   }
@@ -398,7 +401,7 @@ Models.register({
       return request(HatenaBookmark.JSON_URL).addCallback(function(res){
         var data = JSON.parse(res.responseText);
         if(!data["login"]){
-          throw new Error(getMessage('error.notLoggedin'));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
         self.token = data['rks'];
         self.user  = data['name'];
@@ -444,7 +447,7 @@ Models.register({
       try{
         var tags = JSON.parse('(' + res.responseText.extract(/var tags =(.*);$/m) + ')') || {};
       }catch(e){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
 
 
@@ -516,7 +519,7 @@ Models.register({
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
         if(!doc.getElementById('title'))
-          throw new Error(getMessage('error.notLoggedin'));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
         function getTags(part){
           return $X('id("save-' + part + '-tags")//a[contains(@class, "tag-list-tag")]/text()', doc);
@@ -552,12 +555,12 @@ Models.register({
   },
 
   getCurrentUser : function(defaultUser){
-    var self = this;
     if(defaultUser){
       return succeed(defaultUser);
     } else if(this.currentUser){
       return succeed(this.currentUser);
     } else {
+      var self = this;
       return request("http://delicious.com/save").addCallback(function(res){
         var doc = createHTML(res.responseText);
         var match = res.responseText.match(/Delicious\.Config\.set\('LoggedInUsername', '([^']+)'\);/);
@@ -566,7 +569,7 @@ Models.register({
           self.currentUser = user;
           return user;
         } else {
-          throw new Error(getMessage('error.notLoggedin'));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
       });
     }
@@ -577,6 +580,7 @@ Models.register({
   },
 
   post : function(ps){
+    var self = this;
     return request('http://delicious.com/post/', {
       queryString :  {
         title : ps.item,
@@ -586,7 +590,7 @@ Models.register({
       var doc = createHTML(res.responseText);
       var elmForm = doc.getElementById('saveitem');
       if(!elmForm)
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return request('http://delicious.com' + $X('id("saveitem")/@action', doc)[0], {
         //denyRedirection: true,
@@ -612,6 +616,7 @@ Models.register({
   },
 
   post : function(ps){
+    var self = this;
     return LivedoorClip.getToken().addCallback(function(token){
       var content = {
         rate    : ps.rate? ps.rate : '',
@@ -631,13 +636,14 @@ Models.register({
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
         if($X('id("loginFormbox")', doc)[0]){
-          throw new Error(getMessage('error.notLoggedin'));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
       });
     });
   },
 
   getSuggestions : function(url){
+    var self = this;
     return request(LivedoorClip.POST_URL, {
       queryString : {
         link : url || 'http://tombloo/',
@@ -646,7 +652,7 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("loginFormbox")', doc)[0]){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       } else {
         return {
           duplicated : !!$X('//form[@name="delete_form"]', doc)[0],
@@ -676,7 +682,7 @@ Models.register({
           self.token = RegExp.$1;
           return self.token;
         } else {
-          throw new Error(getMessage('error.notLoggedin'));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
       });
     }
@@ -740,6 +746,7 @@ Models.register({
   },
 
   post : function(ps){
+    var self = this;
     return request('http://www.google.com/bookmarks/mark', {
       queryString :  {
         op : 'add'
@@ -747,7 +754,7 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(doc.getElementById('gaia_loginform'))
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
       var fs = formContents(form);
@@ -805,6 +812,7 @@ Models.register({
   },
 
   getToken : function(){
+    var self = this;
     return request(this.POST_URL, {
       sendContent: {
         format    : 'microclip',
@@ -813,7 +821,7 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("login_form")', doc)[0])
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return {
         _sourcePage   : $X('//input[@name="_sourcePage"]/@value', doc)[0],
@@ -832,11 +840,12 @@ Models.register({
   },
 
   getToken : function(){
+    var self = this;
     return request('http://friendfeed.com/share/bookmarklet/frame')
     .addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       return $X('descendant::input[contains(concat(" ",normalize-space(@name)," ")," at ")]/@value', doc)[0];
     });
@@ -897,10 +906,11 @@ Models.register({
   },
 
   getToken : function(){
+    var self = this;
     return request(this.URL + '/account/settings').addCallback(function(res){
       var html = res.responseText;
       if(~html.indexOf('login'))
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return {
         authenticity_token : html.extract(/authenticity_token.+value="(.+?)"/),
@@ -951,10 +961,11 @@ Models.register({
   },
   post : function(ps){
     var url = this.POST_URL;
+    var self = this;
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(!$X('id("userpanel")/a[contains(concat(" ",normalize-space(@href)," "), " /user/logout ")]', doc)[0]){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       return $X('//input[@id="form_key"]/@value', doc)[0];
     }).addCallback(function(token){
@@ -1012,9 +1023,10 @@ Models.register({
   },
 
   post : function(ps){
+    var self = this;
     return request('http://bookmarks.yahoo.co.jp/action/post').addCallback(function(res){
       if(res.responseText.indexOf('login_form')!=-1)
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       var doc = createHTML(res.responseText);
       return formContents($X('id("addbookmark")/descendant::div[contains(concat(" ",normalize-space(@class)," ")," bd ")]', doc)[0]);
@@ -1041,6 +1053,7 @@ Models.register({
    * @return {Object}
    */
   getSuggestions : function(url){
+    var self = this;
     return request('http://bookmarks.yahoo.co.jp/bookmarklet/showpopup', {
       queryString : {
         u : url
@@ -1048,7 +1061,7 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(!$X('id("bmtsave")', doc)[0])
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       function getTags(part){
         try{
@@ -1085,10 +1098,11 @@ Models.register({
   },
 
   addMessage : function(message){
+    var self = this;
     return request('http://wassr.jp/my/').addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("LoginForm")', doc)[0])
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return request('http://wassr.jp/my/status/add', {
         //redirectionLimit : 0,
@@ -1136,11 +1150,12 @@ Models.register({
     });
   },
   getForm: function(url) {
+    var self = this;
     return request(url).addCallback(function(res) {
       var doc = createHTML(res.responseText);
       var form = $X('//form', doc)[0];
       if(form.action === '/bookmarklet/account/login'){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       } else {
         return formContents(form);
       }
@@ -1171,6 +1186,7 @@ Models.register({
   },
   postForm: function(fn) {
     var CLIPP_URL = this.CLIPP_URL;
+    var self = this;
     var d = succeed();
     d.addCallback(fn);
     d.addCallback(function(res) {
@@ -1178,7 +1194,7 @@ Models.register({
       if($X('descendant::ul[contains(concat(" ",normalize-space(@class)," ")," error ")]', doc)[0]){
         throw new Error('Error posting entry.');
       } else if($X('//form[@action="/bookmarklet/account/login"]', doc)[0]){
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
     return d;
