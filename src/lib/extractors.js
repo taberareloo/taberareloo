@@ -452,6 +452,48 @@ Extractors.register([
   },
 
   {
+    name : 'Photo - Google',
+    ICON : 'http://www.google.com/favicon.ico',
+    check : function(ctx){
+      return (ctx.onLink && ctx.link.href.match('http://lh..(google.ca|ggpht.com)/.*(png|gif|jpe?g)$'));
+    },
+    extract : function(ctx){
+      return request(ctx.link.href).addCallback(function(res){
+        return {
+          type    : 'photo',
+          item    : ctx.title,
+          itemUrl : $X('//img[1]', createHTML(res.responseText))[0].src,
+        }
+      });
+    }
+  },
+
+  {
+    name : 'Photo - Google Image Search',
+    ICON : 'http://www.google.com/favicon.ico',
+    check : function(ctx){
+      return ctx.host === 'images.google.co.jp' && ctx.onImage && ctx.onLink;
+    },
+    extract : function(ctx){
+      var link  = $X('parent::a/@href', ctx.target)[0];
+      var itemUrl = decodeURIComponent(link.match(/imgurl=([^&]+)/)[1]);
+      ctx.href = decodeURIComponent(link.match(/imgrefurl=([^&]+)/)[1]);
+
+      return request(ctx.href).addCallback(function(res){
+        ctx.title =
+          res.responseText.extract(/<title.*?>([\s\S]*?)<\/title>/im).replace(/[\n\r]/g, '').trim() ||
+          createURI(itemUrl).fileName;
+
+        return {
+          type    : 'photo',
+          item    : ctx.title,
+          itemUrl : itemUrl,
+        }
+      });
+    },
+  },
+
+  {
     name : 'Photo - area element',
     ICON : skin+'photo.png',
     check: function(ctx){
@@ -662,7 +704,7 @@ Extractors.register([
         type    : 'quote',
         item    : ctx.title,
         itemUrl : ctx.href,
-				body    : createFlavoredString(ctx.window.getSelection()),
+        body    : createFlavoredString(ctx.window.getSelection()),
       }
     }
   },
