@@ -156,7 +156,7 @@ UserScripts.register([
       var ctx = update({
           document  : document,
           window    : window,
-          selection : (!!sel.raw) sel : null,
+          selection : (!!sel.raw)? sel : null,
           target    : target,
           event     : {},
           title     : null,
@@ -272,7 +272,7 @@ UserScripts.register([
           var ctx = update({
               document  : document,
               window    : window,
-              selection : (!!sel.raw) sel : null,
+              selection : (!!sel.raw)? sel : null,
               target    : current,
               event     : {},
               title     : null,
@@ -332,7 +332,7 @@ UserScripts.register([
       var ctx = update({
         document  : document,
         window    : window,
-        selection : (!!sel.raw) sel : null,
+        selection : (!!sel.raw)? sel : null,
         target    : item.target,
         event     : {},
         title     : null,
