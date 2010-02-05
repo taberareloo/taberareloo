@@ -120,7 +120,7 @@ function $X (exp, context) {
 // Public License
 function joinText(txts, delm, trimTag){
   if(!txts) return '';
-  if(delm===null) delm = ',';
+  if(!delm) delm = ',';
   txts = [].concat(txts).filter(operator.truth).flatten();
   return (trimTag? txts.map(methodcaller('trimTag')) : txts).join(delm);
 }
