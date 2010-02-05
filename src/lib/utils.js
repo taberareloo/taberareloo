@@ -570,5 +570,26 @@ update(convertToHTMLString, {
   },
 });
 
+function getSelectionContents(sel){
+  if(!sel)
+    return;
+  sel = (sel.getSelection)? sel.getSelection() : sel;
+  if(sel.rangeCount && !sel.isCollapsed)
+    return sel.getRangeAt(0).cloneContents();
+}
+
+function createFlavoredString(src){
+	var res = src.textContent || src.toString();
+	res.flavors = {
+		html : convertToHTMLString(src, true),
+	};
+	return res;
+}
+
+function getFlavor(src, name){
+	return (!src || !src.flavors)? src :
+		src.flavors[name] || src;
+}
+
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 

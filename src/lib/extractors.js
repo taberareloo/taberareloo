@@ -235,25 +235,17 @@ Extractors.register([
       return ctx.href.match(/\/\/twitter\.com\/.*?\/(?:status|statuses)\/\d+/);
     },
     extract: function(ctx){
-      var body = ctx.selection;
-      if(!body){
-        var content = $X('(descendant::span[@class="entry-content"])[1]', ctx.document)[0];
-        // path resolve
-        $X('./descendant::a', content).forEach(function(l){
-          l.href = l.href;
-        });
-        body = content.innerHTML.replace(/ (?:rel|target)=".+?"/g, '');
-      }
       return {
-        type : 'quote',
-        item : ctx.title.substring(0, ctx.title.indexOf(': ')),
-        itemUrl: ctx.href,
-        body : body.trim(),
+        type     : 'quote',
+        item     : ctx.title.substring(0, ctx.title.indexOf(': ')),
+        itemUrl  : ctx.href,
+        body     : createFlavoredString((ctx.selection)?
+          ctx.window.getSelection() : $X('(//span[@class="entry-content"])[1]')[0]),
         favorite : {
           name : 'Twitter',
-          id   : ctx.href.match(/(?:status|statuses)\/(\d+)/)[1]
+          id   : ctx.href.match(/(status|statuses)\/(\d+)/)[2]
         }
-      };
+      }
     }
   },
 
@@ -265,10 +257,11 @@ Extractors.register([
     },
     extract: function(ctx){
       return {
-        type : 'quote',
-        item : $X('//span[@class="title"]/text()', ctx.document)[0],
-        itemUrl: ctx.href,
-        body : escapeHTML((ctx.selection || $X('//blockquote[contains(@class, "text")]/p/text()', ctx.document)[0]).trim())
+        type     : 'quote',
+        item     : $X('//span[@class="title"]/text()')[0],
+        itemUrl  : ctx.href,
+        body     : createFlavoredString((ctx.selection)?
+          ctx.window.getSelection() : $X('//blockquote[contains(@class, "text")]/p')[0]),
       };
     }
   },
@@ -669,7 +662,7 @@ Extractors.register([
         type    : 'quote',
         item    : ctx.title,
         itemUrl : ctx.href,
-        body    : escapeHTML(ctx.selection.trim())
+				body    : createFlavoredString(ctx.window.getSelection()),
       }
     }
   },

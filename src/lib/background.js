@@ -265,6 +265,7 @@ var TBRL = {
       "post_with_queue"       : false
     },
     "entry"   : {
+      "evernote_clip_fullpage"  : true,
       "trim_reblog_info"  : false,
       "thumbnail_template": ""
     }

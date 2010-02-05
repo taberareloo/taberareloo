@@ -187,8 +187,10 @@ var Tumblr = {
       } else {
         if(res.responseText.match('more tomorrow'))
           throw new Error('You\'ve exceeded your daily post limit.');
-        else
-          throw new Error("Error posting entry.");
+        else {
+          var doc = createHTML(res.responseText);
+          throw new Error(doc.getElementById('errors').textContent.trim());
+        }
       }
     });
   },
@@ -230,7 +232,7 @@ Tumblr.Regular = {
     return {
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
-      'post[two]'  : joinText([ps.body, ps.description], '\n\n')
+      'post[two]'  : joinText([getFlavor(ps.body, 'html'), ps.description], '\n\n'),
     };
   }
 };
@@ -256,7 +258,7 @@ Tumblr.Video = {
   convertToForm : function(ps){
     return {
       'post[type]' : ps.type,
-      'post[one]'  : ps.body || ps.itemUrl,
+      'post[one]'  : getFlavor(ps.body, 'html') || ps.itemUrl,
       'post[two]'  : joinText([
         (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
         ps.description], '\n\n')
@@ -269,13 +271,13 @@ Tumblr.Link = {
     if(ps.pageUrl){
       var thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
     } else {
-      var thumb = null;
+      var thumb = '';
     }
     return {
       'post[type]'  : ps.type,
       'post[one]'   : ps.item,
       'post[two]'   : ps.itemUrl,
-      'post[three]' : joinText([thumb, ps.body, ps.description], '\n\n')
+      'post[three]' : joinText([thumb, getFlavor(ps.body, 'html'), ps.description], '\n\n'),
     };
   }
 };
@@ -285,7 +287,7 @@ Tumblr.Conversation = {
     return {
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
-      'post[two]'  : joinText([ps.body, ps.description], '\n\n')
+      'post[two]'  : joinText([getFlavor(ps.body, 'html'), ps.description], '\n\n'),
     };
   }
 };
@@ -294,7 +296,7 @@ Tumblr.Quote = {
   convertToForm : function(ps){
     return {
       'post[type]' : ps.type,
-      'post[one]'  : ps.body,
+      'post[one]'  : getFlavor(ps.body, 'html'),
       'post[two]'  : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n')
     };
   }
@@ -773,8 +775,18 @@ Models.register({
 
   post : function(ps){
     var self = this;
+    ps = update({}, ps);
+    var d = succeed();
+    if(ps.type==='link' && !ps.body && TBRL.Config['entry']['evernote_clip_fullpage']){
+      d = encodedRequest(ps.itemUrl).addCallback(function(res){
+        var doc = createHTML(res.responseText);
+        ps.body = convertToHTMLString(doc.documentElement, true);
+      });
+    }
 
-    return this.getToken().addCallback(function(token){
+    return d.addCallback(function(){
+      return self.getToken();// login checkも走る
+    }).addCallback(function(token){
       return request(self.POST_URL, {
         redirectionLimit : 0,
         sendContent : update(token, {
@@ -784,10 +796,10 @@ Models.register({
           url      : ps.itemUrl || 'no url',
           title    : ps.item || 'no title',
           comment  : ps.description,
-          body     : ps.body,
-          tags     : (ps.tags)? ps.tags.join(',') : '',
-          fullPage : (ps.body)? 'true' : 'false'
-        })
+          body     : getFlavor(ps.body, 'html'),
+          tags     : joinText(ps.tags, ','),
+          fullPage : (ps.body)? 'true' : 'false',
+        }),
       });
     });
   },
