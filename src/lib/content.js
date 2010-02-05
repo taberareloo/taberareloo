@@ -63,7 +63,9 @@ var TBRL = {
     });
   },
   quote: function(ev){
-    maybeDeferred(Extractors.Quote.extract(TBRL.createContext()))
+    var ctx = TBRL.createContext();
+    var ext = (Extractors.Quote.check(ctx))? Extractors.Quote : Extractors.Text;
+    maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
       TBRL.openQuickPostForm(ps);
     });
