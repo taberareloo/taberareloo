@@ -552,6 +552,12 @@ function convertToHTMLString(source, safe) {
        convertToHTMLString.SAFE_ATTRIBUTES +
        ',", concat(",", local-name(.), ",")))]',
        root).forEach(convertToHTMLString.removeAttributeNode);
+
+    // resolve relative path
+    $X("descendant-or-self::a", root).forEach(convertToHTMLString.resetter.href);
+    $X('descendant-or-self::*[contains(" img embed ", concat(" ", local-name(.), " "))]', root).forEach(convertToHTMLString.resetter.src);
+    $X("descendant-or-self::object", root).forEach(convertToHTMLString.resetter.data);
+
     node = appendChildNodes($DF(), root.childNodes);
   }
   return new XMLSerializer().serializeToString(node);
@@ -567,6 +573,17 @@ update(convertToHTMLString, {
     if (attr.ownerElement)
       attr.ownerElement.removeAttributeNode(attr);
   },
+  resetter: {
+    href : function(elm){
+      if(elm.getAttribute("href")) elm.href = elm.href;
+    },
+    data : function(elm){
+      if(elm.getAttribute("data")) elm.data = elm.data;
+    },
+    src  : function(elm){
+      if(elm.getAttribute("src")) elm.src = elm.src;
+    }
+  }
 });
 
 function getSelectionContents(sel){
