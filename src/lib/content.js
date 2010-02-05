@@ -159,11 +159,12 @@ var TBRL = {
     }
   },
   createContext: function(target){
+    var sel = createFlavoredString(window.getSelection());
     var ctx = update({
       document :document,
       window : window,
       title : document.title,
-      selection : createFlavoredString(window.getSelection()),
+      selection : (!!sel.raw)? sel : null,
       target : target || TBRL.target || document.documentElement
     }, window.location);
     if(ctx.target){
@@ -301,11 +302,12 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
   if(req.request === 'popup'){
     var content = req.content;
     (content.title ? succeed(content.title):getTitle()).addCallback(function(title){
+      var sel = createFlavoredString(window.getSelection());
       var ctx = update({
         document :document,
         window : window,
         title : title,
-        selection : createFlavoredString(window.getSelection()),
+        selection : (!!sel.raw)? sel : null,
         target : TBRL.target || document
       }, window.location);
       if(Extractors.Quote.check(ctx)){

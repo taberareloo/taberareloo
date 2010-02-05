@@ -152,10 +152,11 @@ UserScripts.register([
       addElementClass($X('ancestor::div[starts-with(@id, "item_count")]/parent::div', target)[0], 'TBRL_posted');
       var data = JSON.parse(ev.data);
       var body = $X('ancestor::div[starts-with(@id, "item_count")]/parent::div//div[@class="item_body"]', target)[0];
+      var sel = createFlavoredString(window.getSelection());
       var ctx = update({
           document  : document,
           window    : window,
-          selection : createFlavoredString(window.getSelection()),
+          selection : (!!sel.raw) sel : null,
           target    : target,
           event     : {},
           title     : null,
@@ -267,10 +268,11 @@ UserScripts.register([
         var current = this.getCurrentItem();
         if(current){
           this.notify(current);
+          var sel = createFlavoredString(window.getSelection());
           var ctx = update({
               document  : document,
               window    : window,
-              selection : createFlavoredString(window.getSelection()),
+              selection : (!!sel.raw) sel : null,
               target    : current,
               event     : {},
               title     : null,
@@ -326,10 +328,11 @@ UserScripts.register([
       stop(ev);
       var item = this.getCurrentItem();
       if(!item) return null;
+      var sel = createFlavoredString(window.getSelection());
       var ctx = update({
         document  : document,
         window    : window,
-        selection : createFlavoredString(window.getSelection()),
+        selection : (!!sel.raw) sel : null,
         target    : item.target,
         event     : {},
         title     : null,
