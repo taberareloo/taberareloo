@@ -455,7 +455,7 @@ var PosterItem = function(ps, poster, index, posters){
   }
 
   if(res){
-    self.enables[poster.name] = poster;
+    posters.enables[poster.name] = poster;
   } else {
     addElementClass(img, 'disabled');
   }
