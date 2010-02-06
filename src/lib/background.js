@@ -244,7 +244,7 @@ function getSelected(){
 
 var TBRL = {
   // default config
-  VERSION: '1.1.0',
+  VERSION: '1.1.1',
   Config: {
     "services": {
     },
