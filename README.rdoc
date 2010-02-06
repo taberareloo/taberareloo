@@ -7,7 +7,7 @@ http://github.com/Constellation/taberareloo
 == DESCRIPTION
 
 Yet Another Tombloo on Chromium
-Tombloo and Taberareloo are the Cross Post Support Tool for SBM and other services.
+Tombloo and Taberareloo are the Cross Post Support Tool for social bookmarks and other services.
 
 Services example:
   Tumblr
@@ -21,7 +21,7 @@ Services example:
 and
   HatenaBookmark
   LivedoorClip
-  YahooBookmark (these are Japanese Popular SBM)
+  YahooBookmark (these are Japanese popular social bookmarking services)
 
 and
   4u
