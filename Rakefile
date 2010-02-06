@@ -10,7 +10,7 @@ $manifest_data = File.open($manifest, 'rb'){|f| JSON.parse(f.read) }
 $version = $manifest_data["version"]
 
 # package task
-namespace :package do
+namespace :pkg do
   desc "crx"
   task :crx do
     mkdir_p "pkg" unless File.exist?("pkg")

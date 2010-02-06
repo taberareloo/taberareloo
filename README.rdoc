@@ -30,13 +30,17 @@ and
 
 and others
 
+== USAGE
+
+see http://wiki.github.com/Constellation/taberareloo/
+
 == FEATURES/PROBLEMS
 
 * post to a lot of services
 
 == VERSION
 
-1.0.3
+1.1.0
 
 == DEPENDENCIES
 
