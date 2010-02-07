@@ -55,20 +55,15 @@ var TBRL = {
   },
   link : function(ev){
     var ctx = TBRL.createContext(document.documentElement);
-    maybeDeferred(Extractors.check(ctx).filter(function(m){
+    var ext = Extractors.check(ctx).filter(function(m){
       return /^Link/.test(m.name);
-    })[0].extract(ctx))
-    .addCallback(function(ps){
-      TBRL.openQuickPostForm(ps);
-    });
+    })[0];
+    return TBRL.share(ctx, ext, true);
   },
   quote: function(ev){
     var ctx = TBRL.createContext();
     var ext = (Extractors.Quote.check(ctx))? Extractors.Quote : Extractors.Text;
-    maybeDeferred(ext.extract(ctx))
-    .addCallback(function(ps){
-      TBRL.openQuickPostForm(ps);
-    });
+    return TBRL.share(ctx, ext, true);
   },
   general: function(ev){
     // fix stack overflow => reset stack
@@ -115,17 +110,13 @@ var TBRL = {
     if(button){
       var index = TBRL.buttons.indexOf(button);
       var ext = TBRL.exts[index];
-      log(ext.name);
-      try{
-        maybeDeferred(ext.extract(TBRL.ctx))
-        .addCallback(function(ps){
-          TBRL.openQuickPostForm(ps);
-        }).addErrback(function(e){
-          console.log(e);
-        });
-      }catch(e){}
+      var ctx = TBRL.ctx;
+      TBRL.field_delete();
+      return TBRL.share(ctx, ext, true);
+    } else {
+      TBRL.field_delete();
+      return succeed();
     }
-    TBRL.field_delete();
   },
   field_delete: function(){
     if(TBRL.field_shown){
@@ -184,25 +175,15 @@ var TBRL = {
   getTarget : function(){
     return document.elementFromPoint(TBRL.target.x, TBRL.target.y);
   },
-  openQuickPostForm : function(ps){
-    chrome.extension.sendRequest(TBRL.id, {
-      request: "quick",
-      content: update({
-        page    : document.title,
-        pageUrl : location.href
-      }, ps)
-    }, function(res){
-    });
-  },
   share: function(ctx, ext, show){
-    maybeDeferred(ext.extract(ctx))
+    return maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
       chrome.extension.sendRequest(TBRL.id, {
         request: "share",
         show   : show,
         content: update({
-          page    : document.title,
-          pageUrl : location.href
+          page    : ctx.title,
+          pageUrl : ctx.href
         }, ps)
       }, function(res){ });
     });

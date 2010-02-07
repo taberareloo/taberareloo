@@ -395,12 +395,6 @@ if(window.localStorage.options){
 if(TBRL.Config.post['multi_tumblelogs']) Models.getMultiTumblelogs();
 
 var onRequestsHandlers = {
-  quick: function(req, sender, func){
-    getSelected().addCallback(function(tab){
-      TBRL.Popup.open(tab, req.content);
-    });
-    func({});
-  },
   capture: function(req, sender, func){
     callLater(1, function(){
       chrome.tabs.captureVisibleTab(sender.tab.windowId, function(data){
