@@ -703,9 +703,7 @@ Tags.prototype = {
     var delimiter = (terminate && suffix[0] !== this.delimiter)? this.delimiter : '';
     this.tags.value = text.substring(0, word.start) + cand + delimiter + suffix;
     var index = word.start + cand.length + delimiter.length;
-    setTimeout(function(){
-      this.tags.selectionStart = this.tags.selectionEnd = index;
-    }, 0);
+    this.tags.setSelectionRange(index, index);
     this.deleting = false;
     if(terminate){
       //this.ensureCursorIsVisible();
