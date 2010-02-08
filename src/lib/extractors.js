@@ -270,7 +270,7 @@ Extractors.register([
       var res = {
         type     : 'quote',
         item     : $X('//span[@class="title"]/text()')[0],
-        itemUrl  : ctx.href,
+        itemUrl  : ctx.href
       };
       if(ctx.selection){
         res.body = ctx.selection.raw;
@@ -841,6 +841,308 @@ Extractors.register([
         item    : ctx.title,
         itemUrl : ctx.bgImageURL
       }
+    }
+  },
+
+  {
+    // Region Capture のみ対応
+    name : 'Photo - Capture',
+    ICON : skin+'photo.png',
+    TARGET_BACKGROUND: "#888",
+    check : function(ctx){
+      return true;
+    },
+    extract : function(ctx){
+      var self = this;
+      // ショートカットキーからポストするためcaptureTypeを追加
+      // var type = ctx.captureType || input({'Capture Type' : ['Region', 'Element', 'View', 'Page']});
+      var type = ctx.captureType || 'Region';
+      if(!type)
+        return;
+
+      var win = ctx.window;
+      self.makeOpaqueFlash(ctx.document);
+
+      return succeed().addCallback(function(){
+        switch (type){
+        case 'Region':
+          return self.selectRegion(ctx).addCallback(function(region){
+            return self.capture(win, region.position, region.dimensions);
+          });
+
+        case 'Element':
+          return self.selectElement(ctx).addCallback(function(elm){
+            var rect = elm.getBoundingClientRect();
+            return self.capture(win, {x: Math.round(rect.left), y: Math.round(rect.top)}, getElementDimensions(elm));
+          });
+
+        case 'View':
+          return self.capture(win, getViewportPosition(), getViewDimensions());
+
+        case 'Page':
+          return self.capture(win, {x:0, y:0}, getPageDimensions());
+        }
+        return null;
+      }).addCallback(function(image){
+        console.log(image);
+        return {
+          type : 'photo',
+          item : ctx.title,
+          file : {
+            contentType: 'image/png',
+            base64: true,
+            binary: image
+          }
+        };
+      });
+    },
+    capture: function(win, pos, dim, scale){
+      // Google Chrome doesn't support CanvasRenderingContext2D#drawWindow
+      var ret = new Deferred();
+      chrome.extension.sendRequest(TBRL.id, {
+        request: "capture"
+      }, function(res){
+        var img = new Image();
+        img.addEventListener('load', function(ev){
+          img.removeEventListener('load', arguments.callee, false);
+          var canvas = document.createElement('canvas');
+          var size = {w: 0, h: 0};
+          if(scale){
+            scale  = scale.w? scale.w/dim.w :
+              scale.h? scale.h/dim.h : scale;
+            canvas.width  = size.w = dim.w * scale;
+            canvas.height = size.h = dim.h * scale;
+            ctx.scale(scale, scale);
+          } else {
+            canvas.width  = size.w = dim.w;
+            canvas.height = size.h = dim.h;
+          }
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, pos.x, pos.y, dim.w, dim.h, 0, 0, size.w, size.h);
+          ret.callback(canvas.toDataURL('image/png', ''));
+        }, false);
+        img.src = res;
+      });
+      return ret;
+    },
+    makeOpaqueFlash: function(doc){
+      doc = doc || document;
+
+      $X('//*[self::object or self::embed][contains(@type, "flash")][boolean(@wmode)=false or (@wmode!="opaque" and @wmode!="transparent")]', doc).forEach(function(flash){
+        flash.setAttribute('wmode', 'opaque');
+        flash = swapDOM(flash, flash.cloneNode(false));
+        flash.offsetWidth;
+      });
+    },
+    selectElement: function(ctx){
+      var deferred = new Deferred();
+      var self = this;
+      var doc = ctx ? ctx.document : document;
+
+      var target;
+      function onMouseOver(e){
+        target = e.target;
+        target.originalBackground = target.style.background;
+        target.style.background = self.TARGET_BACKGROUND;
+      }
+      function onMouseOut(e){
+        unpoint(e.target);
+      }
+      function onClick(e){
+        cancel(e);
+
+        finalize();
+        deferred.callback(target);
+      }
+      function onKeyDown(e){
+        cancel(e);
+
+        switch(keyString(e)){
+        case 'ESCAPE':
+          finalize();
+          deferred.cancel();
+          return;
+        }
+      }
+      function unpoint(elm){
+        if(elm.originalBackground!=null){
+          elm.style.background = elm.originalBackground;
+          elm.originalBackground = null;
+        }
+      }
+      function finalize(){
+        doc.removeEventListener('mouseover', onMouseOver, true);
+        doc.removeEventListener('mouseout', onMouseOut, true);
+        doc.removeEventListener('click', onClick, true);
+        doc.removeEventListener('keydown', onKeyDown, true);
+
+        unpoint(target);
+      }
+
+      doc.addEventListener('mouseover', onMouseOver, true);
+      doc.addEventListener('mouseout', onMouseOut, true);
+      doc.addEventListener('click', onClick, true);
+      doc.addEventListener('keydown', onKeyDown, true);
+
+      return deferred;
+    },
+    selectRegion: function(ctx){
+      var deferred = new Deferred();
+      var doc = ctx ? ctx.document : document;
+
+      var win = doc.defaultView;
+
+      doc.documentElement.style.cursor = 'crosshair';
+
+      var style = doc.createElement('style');
+      style.innerHTML =
+        "* {\n" +
+        "  cursor: crosshair !important;\n" +
+        "  -webkit-user-select: none;\n" +
+        "}\n" +
+        "div.taberareloo_capture_size {\n" +
+        "  padding: 5px !important;\n" +
+        "  -webkit-border-radius: 5px !important;\n" +
+        "  opacity: 0.7 !important;\n" +
+        "  position: fixed !important;\n" +
+        "  z-index: 999999999 !important;\n" +
+        "  background-color: gray !important;\n" +
+        "  color: white !important;\n" +
+        "}\n";
+      doc.body.appendChild(style);
+
+
+      var region, p, d, moving, square, size;
+      function mouse(e){
+        return {
+          x: e.clientX,
+          y: e.clientY
+        };
+      }
+
+      function onMouseMove(e){
+        var to = mouse(e);
+
+        if(moving){
+          p = {
+            x: Math.max(to.x - d.w, 0),
+            y: Math.max(to.y - d.h, 0)
+          };
+          setElementPosition(region, p);
+        }
+
+        d = {
+          w: to.x - p.x,
+          h: to.y - p.y
+        };
+        if(square){
+          var s = Math.min(d.w, d.h);
+          d = {w: s, h: s};
+        }
+        setElementDimensions(region, d);
+        setStyle(size, {
+          'top'  : to.y+10+'px',
+          'left' : to.x+10+'px'
+        })
+        $D(size);
+        size.appendChild($T(d.w + ' × ' + d.h));
+        // size.appendChild($T('× / _ / ×'));
+      }
+
+      function onMouseDown(e){
+        cancel(e);
+
+        p = mouse(e);
+        region = doc.createElement('div');
+        setStyle(region, {
+          'background': '#888',
+          'opacity'   : '0.5',
+          'position'  : 'fixed',
+          'zIndex'    : '999999999',
+          'top'       : p.y+'px',
+          'left'      : p.x+'px'
+        });
+        doc.body.appendChild(region);
+        size = $N('div', {
+          'class' : 'taberareloo_capture_size'
+        });
+        doc.body.appendChild(size);
+
+        doc.addEventListener('mousemove', onMouseMove, true);
+        doc.addEventListener('mouseup', onMouseUp, true);
+        win.addEventListener('keydown', onKeyDown, true);
+        win.addEventListener('keyup', onKeyUp, true);
+      }
+
+      function onKeyDown(e){
+        cancel(e);
+
+        switch(keyString(e)){
+        case 'SHIFT': square = true; return;
+        case 'SPACE': moving = true; return;
+        case 'ESCAPE':
+          finalize();
+          deferred.cancel();
+          return;
+        }
+      }
+
+      function onKeyUp(e){
+        cancel(e);
+
+        switch(keyString(e)){
+        case 'SHIFT': square = false; return;
+        case 'SPACE': moving = false; return;
+        }
+      }
+
+      function onMouseUp(e){
+        cancel(e);
+
+        // p = getElementPosition(region);
+        var rect = region.getBoundingClientRect();
+        p = {x: Math.round(rect.left), y: Math.round(rect.top)};
+        finalize();
+
+        // FIXME: 暫定/左上方向への選択不可/クリックとのダブルインターフェース未実装
+        if(!d || d.w<0 || d.h<0){
+          deferred.cancel();
+          return;
+        }
+
+        deferred.callback({
+          position: p,
+          dimensions: d
+        });
+      }
+
+      function onClick(e){
+        // リンククリックによる遷移を抑止する
+        cancel(e);
+
+        // mouseupよりも後にイベントが発生するため、ここで取り除く
+        doc.removeEventListener('click', onClick, true);
+      }
+
+      function finalize(){
+        doc.removeEventListener('mousedown', onMouseDown, true);
+        doc.removeEventListener('mousemove', onMouseMove, true);
+        doc.removeEventListener('mouseup', onMouseUp, true);
+        win.removeEventListener('keydown', onKeyDown, true);
+        win.removeEventListener('keyup', onKeyUp, true);
+
+        doc.documentElement.style.cursor = '';
+
+        removeElement(region);
+        removeElement(size);
+        removeElement(style);
+      }
+
+      doc.addEventListener('mousedown', onMouseDown, true);
+      doc.addEventListener('click', onClick, true);
+      doc.defaultView.focus();
+
+      return deferred;
     }
   },
 

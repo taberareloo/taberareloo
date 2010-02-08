@@ -310,9 +310,9 @@ Link.prototype = {
 var Pic = function(ps, toggle){
   var self = this;
   this.pic = $('pic');
-  this.url = ps.itemUrl;
+  this.url = ps.itemUrl || '';
   this.pic.appendChild(this.image = $N('img', {
-    'src': ps.itemUrl,
+    'src': ps.itemUrl || ps.file.binary,
     'alt': ps.item,
     'title': ps.item,
     'class': 'photo_image',
