@@ -525,6 +525,41 @@ Extractors.register([
   },
 
   {
+    name : 'Photo - Picasa',
+    ICON : 'http://picasaweb.google.com/favicon.ico',
+    check : function(ctx){
+      return (/picasaweb\.google\./).test(ctx.host) && ctx.onImage;
+    },
+    extract : function(ctx){
+      var item = $X('//span[@class="gphoto-context-current"]/text()', ctx.document)[0] || $X('//div[@class="lhcl_albumtitle"]/text()', ctx.document)[0] || '';
+      return {
+        type      : 'photo',
+        item      : item.trim(),
+        itemUrl   : ctx.target.src.replace(/\?.*/, ''),
+        author    : $X('id("lhid_user_nickname")/text()', ctx.document)[0].trim(),
+        authorUrl : $X('id("lhid_portraitlink")/@href', ctx.document)[0]
+      }
+    }
+  },
+
+  {
+    name : 'Photo - Blogger',
+    ICON : 'https://www.blogger.com/favicon.ico',
+    check : function(ctx){
+      return ctx.onLink &&
+        (''+ctx.link).match(/(png|gif|jpe?g)$/i) &&
+        (''+ctx.link).match(/(blogger|blogspot)\.com\/.*\/s\d{2,}-h\//);
+    },
+    extract : function(ctx){
+      return {
+        type    : 'photo',
+        item    : ctx.title,
+        itemUrl : (''+ctx.link).replace(/\/(s\d{2,})-h\//, '/$1/')
+      }
+    }
+  },
+
+  {
     name : 'Photo - Google Image Search',
     ICON : 'http://www.google.com/favicon.ico',
     check : function(ctx){
@@ -546,6 +581,29 @@ Extractors.register([
           itemUrl : itemUrl
         }
       });
+    }
+  },
+
+  {
+    name : 'Photo - covered',
+    ICON : 'chrome://tombloo/skin/photo.png',
+    check : function(ctx){
+      if(!ctx.document.elementFromPoint || !ctx.onImage)
+        return;
+
+      // 1px四方の画像の上でクリックされたか?
+      // FIXME: naturalHeight利用
+      var img = $N('img', {
+        src : ctx.target.src
+      });
+      return (img.width===1 && img.height===1);
+    },
+    extract : function(ctx){
+      removeElement(ctx.target);
+
+      return Extractors[ctx.bgImageURL?
+        'Photo - background image' :
+        'Photo - area element'].extract(ctx);
     }
   },
 
@@ -581,8 +639,6 @@ Extractors.register([
       return Extractors.Photo.extract(ctx);
     }
   },
-
-  // Photo Data URI
 
   {
     name : 'Photo',
@@ -639,10 +695,10 @@ Extractors.register([
       return ctx.host.match(/vimeo\.com/);
     },
     extract : function(ctx){
-      var author = $X('//div[@class="byline"]/a')[0];
+      var author = $X('//div[@class="byline"]/a', ctx.document)[0];
       return {
         type      : 'video',
-        item      : $X('//div[@class="title"]/text()')[0].trim(),
+        item      : $X('//div[@class="title"]/text()', ctx.document)[0].trim(),
         itemUrl   : ctx.href,
         author    : author.textContent,
         authorUrl : author.href
@@ -657,7 +713,7 @@ Extractors.register([
       return ctx.host.match(/youtube\.com/);
     },
     extract : function(ctx){
-      var author = $X('id("watch-channel-stats")/a')[0];
+      var author = $X('id("watch-channel-stats")/a', ctx.document)[0];
       ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',
@@ -786,7 +842,6 @@ Extractors.register([
       }
     }
   },
-
 
   {
     name : 'Link',
