@@ -402,7 +402,7 @@ if(TBRL.Config.post['multi_tumblelogs']) Models.getMultiTumblelogs();
 
 var onRequestsHandlers = {
   capture: function(req, sender, func){
-    callLater(1, function(){
+    callLater(0.5, function(){
       chrome.tabs.captureVisibleTab(sender.tab.windowId, function(data){
         func(data);
       });
