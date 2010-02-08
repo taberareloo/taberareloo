@@ -516,10 +516,12 @@ Models.register({
       }).addCallback(function(res){
         var tags = JSON.parse(res.responseText);
         return Object.keys(tags).reduce(function(memo, tag){
-          memo.push({
-            name      : tag,
-            frequency : tags[tag]
-          });
+          if(tag){
+            memo.push({
+              name      : tag,
+              frequency : tags[tag]
+            });
+          }
           return memo;
         }, []);
       });
@@ -665,6 +667,7 @@ Models.register({
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
         if($X('id("loginFormbox")', doc)[0]){
+          delete self['token'];
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
       });
@@ -681,6 +684,7 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("loginFormbox")', doc)[0]){
+        delete self['token'];
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       } else {
         return {
@@ -691,7 +695,7 @@ Models.register({
               frequency : -1
             };
           })
-        }
+        };
       }
     });
   },
@@ -711,6 +715,7 @@ Models.register({
           self.token = RegExp.$1;
           return self.token;
         } else {
+          delete self['token'];
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
       });

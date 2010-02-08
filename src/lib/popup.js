@@ -746,7 +746,7 @@ Tags.prototype = {
     return cands.sort(function(a, b){
       return b.score - a.score;
     }).reduce(function(memo, pair){
-      if(!~values.indexOf(pair.cand.value)){
+      if(pair && !~values.indexOf(pair.cand.value)){
         memo.push(pair.cand);
       }
       return memo;
@@ -793,7 +793,7 @@ Tags.prototype = {
 
     var recos = res.recommended || [];
     var recoTable = recos.reduce(function(memo, i){
-      memo[i.toLowerCase()] = i;
+      if(i) memo[i.toLowerCase()] = i;
       return memo;
     }, {});
 
@@ -803,7 +803,7 @@ Tags.prototype = {
         compare(a.name, b.name);
     }).map(itemgetter('name'));
     var tagsTable = tags.reduce(function(memo, i){
-      memo[i.toLowerCase()] = i;
+      if(i) memo[i.toLowerCase()] = i;
       return memo;
     }, {});
 
@@ -897,7 +897,7 @@ Tags.prototype = {
   setSuggestions: function(res){
     var self = this;
     var memo = res.tags.reduce(function(memo, tag){
-      memo[tag.toUpperCase()] = tag;
+      if(tag) memo[tag.toUpperCase()] = tag;
       return memo;
     }, {});
     var sg = $('suggestions');
