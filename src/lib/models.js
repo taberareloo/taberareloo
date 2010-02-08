@@ -889,6 +889,52 @@ Models.register({
 });
 
 Models.register({
+  name     : 'ChromeBookmark',
+  ICON     : chrome.extension.getURL('skin/chromium.ico'),
+  check : function(ps){
+    return ps.type === 'link';
+  },
+  post : function(ps){
+    return this.getExFolder().addCallback(function(ex){
+      var ret = new Deferred();
+      chrome.bookmarks.create({
+        parentId: ex.id,
+        title   : ps.item,
+        url     : ps.itemUrl
+      }, function(){
+        ret.callback();
+      });
+      return ret;
+    });
+  },
+  getExFolder: function(){
+    var ret = new Deferred();
+    chrome.bookmarks.getTree(function(tree){
+      var top = tree[0].children[1];
+      var ex;
+      if(top.children.some(function(obj){
+        if(obj.title === 'TBRL'){
+          ex = obj;
+          return true;
+        } else {
+          return false;
+        }
+      })){
+        ret.callback(ex);
+      } else {
+        chrome.bookmarks.create({
+          parentId: top.id,
+          title   : 'TBRL'
+        }, function(obj){
+          ret.callback(obj);
+        });
+      }
+    });
+    return ret;
+  }
+});
+
+Models.register({
   name     : 'Evernote',
   ICON     : 'http://www.evernote.com/favicon.ico',
   POST_URL : 'http://www.evernote.com/clip.action',
