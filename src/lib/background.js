@@ -136,7 +136,13 @@ function canvasRequest(url){
     canvas.height = img.naturalHeight;
     var ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
-    ret.callback(canvas.toDataURL("image/png", ""));
+    ret.callback({
+      contentType: 'image/png',
+      base64: true,
+      height: img.naturalHeight,
+      width : img.naturalWidth,
+      binary: canvas.toDataURL('image/png', '')
+    })
   }, false);
   img.src = url;
   return ret;

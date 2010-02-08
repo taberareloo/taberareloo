@@ -71,7 +71,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type);
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   /**
@@ -357,15 +357,21 @@ Models.register({
 Models.register({
   name : 'Hatena',
   ICON : 'http://www.hatena.ne.jp/favicon.ico',
+  JSON : 'http://b.hatena.ne.jp/my.name',
 
   getToken : function(){
-    if(this.token){
-      return succeed(this.token);
+    if(this.data){
+      return succeed(this.data);
     } else {
       var self = this;
-      return request('http://d.hatena.ne.jp/edit').addCallback(function(res){
-        if(res.responseText.match(/\srkm\s*:\s*['"](.+?)['"]/))
-          return self.token = RegExp.$1;
+      return request(Hatena.JSON).addCallback(function(res){
+        var data = JSON.parse(res.responseText);
+        if(!data["login"]){
+          delete self['data'];
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
+        self.data  = data;
+        return self.data;
       });
     }
   },
@@ -374,6 +380,69 @@ Models.register({
     return tags ? tags.map(function(t){
       return '[' + t + ']';
     }).join('') : '' ;
+  }
+});
+
+// 唯一base64 fileを受け付けます.
+// thx id: secondlife & Hatena.inc
+Models.register({
+  name : 'HatenaFotolife',
+  ICON : 'http://f.hatena.ne.jp/favicon.ico',
+
+  check : function(ps){
+    return ps.type === 'photo';
+  },
+
+  getToken : function(){
+    var self = this;
+    return Hatena.getToken().addErrback(function(e){
+      throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+    });
+  },
+
+  post : function(ps){
+    // 拡張子を指定しないとアップロードに失敗する(エラーは起きない)
+    var self = this;
+    return (ps.file? succeed(ps.file) : canvasRequest(ps.itemUrl)).addCallback(function(file){
+      return self.uploadWithBase64(file);
+    });
+  },
+
+  // image1 - image5
+  // fototitle1 - fototitle5 (optional)
+  upload : function(ps){
+    return this.getToken().addCallback(function(set){
+      ps.rkm = set['rkm'];
+      return request('http://f.hatena.ne.jp/'+set['name']+'/up', {
+        sendContent : update({
+          mode : 'enter'
+        }, ps)
+      });
+    });
+  },
+
+  uploadWithBase64 : function(file){
+    var self = this;
+    return this.getToken().addCallback(function(set){
+      var name = set['name'];
+      var rkm  = set['rkm'];
+      return request('http://f.hatena.ne.jp/'+name+'/haiku', {
+        method: 'POST',
+        sendContent: {
+          name : name,
+          rkm  : rkm,
+          ext  : 'png',
+          model: 'capture',
+          image: self.cutBase64(file.binary),
+          fotosize: Math.max(file.height, file.width),
+          folder  : ''
+      }
+      });
+    });
+  },
+
+  cutBase64 : function(data){
+    return data.replace(/^.*?,/, '');
   }
 });
 
@@ -394,32 +463,20 @@ Models.register({
   },
 
   getToken : function(){
-    if(this.token && this.user){
-      return succeed(this.token);
-    } else {
-      var self = this;
-      return request(HatenaBookmark.JSON_URL).addCallback(function(res){
-        var data = JSON.parse(res.responseText);
-        if(!data["login"]){
-          delete self['token'];
-          delete self['user'];
-          delete self['tags'];
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-        }
-        self.token = data['rks'];
-        self.user  = data['name'];
-        return self.token;
-      });
-    }
+    var self = this;
+    return Hatena.getToken().addErrback(function(e){
+      delete self['tags'];
+      throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+    });
   },
 
   addBookmark : function(url, title, tags, description){
-    return this.getToken().addCallback(function(token){
+    return this.getToken().addCallback(function(data){
       return request('http://b.hatena.ne.jp/bookmarklet.edit', {
         //denyRedirection: true,
         method: 'POST',
         sendContent : {
-          rks     : token,
+          rks     : data['rks'],
           url     : url.replace(/%[0-9a-f]{2}/g, function(s){
             return s.toUpperCase();
           }),
@@ -439,9 +496,9 @@ Models.register({
    */
   getSuggestions : function(url){
     var self = this;
-    return this.getToken().addCallback(function(){
+    return this.getToken().addCallback(function(set){
       return DeferredHash({
-        tags: self.getUserTags(),
+        tags: self.getUserTags(set['name']),
         data: self.getURLData(url)
       });
     }).addCallback(function(resses){
@@ -449,7 +506,6 @@ Models.register({
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       var data = resses['data'][1];
-      console.log('duplicated', !!data['bookmarked_data']);
       return {
         duplicated : !!data['bookmarked_data'],
         recommended : data['recommend_tags'],
@@ -458,29 +514,26 @@ Models.register({
     });
   },
 
-  getUserTags: function(){
+  getUserTags: function(user){
     var self = this;
-    return this.getToken().addCallback(function(){
-      var user = self.user;
-      var tags = self.tags;
-      if(user && tags){
-        return succeed(tags);
-      } else {
-        return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function(res){
-          try{
-            tags = JSON.parse(res.responseText)['tags'];
-          } catch(e) {
-            throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+    var tags = self.tags;
+    if(tags){
+      return succeed(tags);
+    } else {
+      return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function(res){
+        try{
+          tags = JSON.parse(res.responseText)['tags'];
+        } catch(e) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
+        return self.tags = items(tags).map(function(pair){
+          return {
+            name      : pair[0],
+            frequency : pair[1].count
           }
-          return self.tags = items(tags).map(function(pair){
-            return {
-              name      : pair[0],
-              frequency : pair[1].count
-            }
-          });
         });
-      }
-    });
+      });
+    }
   },
 
   getURLData: function(url){

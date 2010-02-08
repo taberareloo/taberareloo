@@ -883,16 +883,11 @@ Extractors.register([
           return self.capture(win, {x:0, y:0}, getPageDimensions());
         }
         return null;
-      }).addCallback(function(image){
-        console.log(image);
+      }).addCallback(function(file){
         return {
           type : 'photo',
           item : ctx.title,
-          file : {
-            contentType: 'image/png',
-            base64: true,
-            binary: image
-          }
+          file : file
         };
       });
     },
@@ -919,7 +914,13 @@ Extractors.register([
           }
           var ctx = canvas.getContext('2d');
           ctx.drawImage(img, pos.x, pos.y, dim.w, dim.h, 0, 0, size.w, size.h);
-          ret.callback(canvas.toDataURL('image/png', ''));
+          ret.callback({
+            contentType: 'image/png',
+            base64: true,
+            height: size.h,
+            width : size.w,
+            binary: canvas.toDataURL('image/png', '')
+          });
         }, false);
         img.src = res;
       });
