@@ -442,15 +442,17 @@ Models.register({
     return this.getToken().addCallback(function(){
       return DeferredHash({
         tags: self.getUserTags(),
-        recommended: self.getRecommendedTags(url)
+        data: self.getURLData(url)
       });
     }).addCallback(function(resses){
-      if(!resses['tags'][0] || !resses['recommended'][0]){
+      if(!resses['tags'][0] || !resses['data'][0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
+      var data = resses['data'][1];
+      console.log('duplicated', !!data['bookmarked_data']);
       return {
-        //duplicated : (/bookmarked-confirm/).test(res.responseText),
-        recommended : resses['recommended'][1],
+        duplicated : !!data['bookmarked_data'],
+        recommended : data['recommend_tags'],
         tags : resses['tags'][1]
       }
     });
@@ -481,7 +483,7 @@ Models.register({
     });
   },
 
-  getRecommendedTags: function(url){
+  getURLData: function(url){
     var self = this;
     return request('http://b.hatena.ne.jp/my.entry', {
       queryString : {
@@ -489,11 +491,11 @@ Models.register({
       }
     }).addCallback(function(res){
       try{
-        var rec = JSON.parse(res.responseText)['recommend_tags'];
+        var json = JSON.parse(res.responseText);
       } catch(e) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-      return rec;
+      return json;
     });
   }
 });
