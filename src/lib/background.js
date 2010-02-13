@@ -198,8 +198,6 @@ function request(url, opt){
   if(setHeader){
     if(opt.sendContent){
       req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    } else {
-      req.setRequestHeader('Content-Type', 'application/octet-stream');
     }
   }
 

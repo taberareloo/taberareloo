@@ -1495,7 +1495,7 @@ Models.register({
         apiKey  : this.API_KEY
       }, ps)
     }).addCallback(function(res){
-      res = JSON.parse('(' + res.responseText + ')');
+      res = JSON.parse(res.responseText);
       if(res.errorCode){
         var error = new Error([res.statusCode, res.errorCode, res.errorMessage].join(': '))
         error.detail = res;
