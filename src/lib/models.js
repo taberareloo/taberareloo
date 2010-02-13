@@ -1047,8 +1047,7 @@ Models.register({
 
   update : function(status){
     var self = this;
-    return maybeDeferred((status.length < 140 && !TBRL.Config['post']['always_shorten_url'])?
-      status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
+    return maybeDeferred((status.length < 140 && !TBRL.Config['post']['always_shorten_url'])? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
     ).addCallback(function(status){
       return Twitter.getToken().addCallback(function(token){
         // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
@@ -1517,7 +1516,7 @@ Models.register(update({}, Models['bit.ly'], {
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
-    return;
+    return text;
 
   var urls = text.match(reUrl);
   return gatherResults(urls.map(function(url){
