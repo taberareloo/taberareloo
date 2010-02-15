@@ -1080,29 +1080,101 @@ Extractors.register([
         var to = mouse(e);
 
         if(moving){
-          p = {
-            x: Math.max(to.x - d.w, 0),
-            y: Math.max(to.y - d.h, 0)
-          };
-          setElementPosition(region, p);
+          var px = to.x - d.w, py = to.y - d.h;
+          if(px > window.innerWidth)
+            px = window.innerWidth;
+          if(py > window.innerHeight)
+            py = window.innerHeight;
+          p.x = Math.max(px, 0);
+          p.y = Math.max(py, 0);
         }
 
         d = {
           w: to.x - p.x,
           h: to.y - p.y
         };
+
+        var minusW = (d.w < 0), minusH = (d.h < 0);
+
         if(square){
-          var s = Math.min(d.w, d.h);
-          d = {w: s, h: s};
+          var s = Math.min(Math.abs(d.w), Math.abs(d.h));
+          d.w = (minusW)? -(s) : s;
+          d.h = (minusH)? -(s) : s;
+
         }
-        setElementDimensions(region, d);
+        var d2 = update({}, d), p2 = update({}, p);
+
+        if(minusW || minusH){
+          // 反転モード
+          if(d2.w < 0){
+            p2.x = p.x + d2.w;
+            d2.w = -d2.w;
+            if(p2.x < 0){
+              d2.w += p2.x;
+              p2.x = 0;
+            }
+          }
+          if(d2.h < 0){
+            p2.y = p.y + d2.h;
+            d2.h = -d2.h;
+            if(p2.y < 0){
+              d2.h += p2.y;
+              p2.y = 0;
+            }
+          }
+          d.w = (minusW)? -(d2.w) : d2.w;
+          d.h = (minusH)? -(d2.h) : d2.h;
+        }
+
+        var rx = p2.x + d2.w;
+        var ry = p2.y + d2.h;
+
+        if(ry > window.innerHeight || rx > window.innerWidth){
+          if(rx > window.innerWidth){
+            rx = (rx - window.innerWidth);
+            d.w -= rx;
+            d2.w -= rx;
+          }
+          if(ry > window.innerHeight){
+            ry = (ry - window.innerHeight);
+            d.h -= ry;
+            d2.h -= ry;
+          }
+        }
+
+        if(square){
+          if(d2.w < d2.h){
+            var s = d2.w;
+            if(minusH){
+              p2.y += d2.h - s
+              d.h = -(s);
+            } else {
+              d.h = s;
+            }
+            d2.h  = s
+          } else {
+            var s = d2.h;
+            if(minusW){
+              p2.x += d2.w - s
+              d.w = -(s);
+            } else {
+              d.w = s;
+            }
+            d2.w  = s
+          }
+        }
+
+        setElementPosition(region, p2);
+        setElementDimensions(region, d2);
+        $D(size);
+        size.appendChild($T(d2.w + ' × ' + d2.h));
+        // Sketch Switch
+        // size.appendChild($T('× / _ / ×'));
+
         setStyle(size, {
           'top'  : to.y+10+'px',
           'left' : to.x+10+'px'
-        })
-        $D(size);
-        size.appendChild($T(d.w + ' × ' + d.h));
-        // size.appendChild($T('× / _ / ×'));
+        });
       }
 
       function onMouseDown(e){
@@ -1155,16 +1227,16 @@ Extractors.register([
       function onMouseUp(e){
         cancel(e);
 
-        // p = getElementPosition(region);
         var rect = region.getBoundingClientRect();
         p = {x: Math.round(rect.left), y: Math.round(rect.top)};
         finalize();
 
         // FIXME: 暫定/左上方向への選択不可/クリックとのダブルインターフェース未実装
-        if(!d || d.w<0 || d.h<0){
+        if(!d){
           deferred.cancel();
           return;
         }
+        d.w = Math.abs(d.w), d.h = Math.abs(d.h);
 
         deferred.callback({
           position: p,
