@@ -47,6 +47,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
   $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
   $('label_clipFullPage').appendChild($T(chrome.i18n.getMessage('label_clipFullPage')));
+  $('label_removeHatenaKeyword').appendChild($T(chrome.i18n.getMessage('label_removeHatenaKeyword')));
+  $('label_tumblrDefaultQuote').appendChild($T(chrome.i18n.getMessage('label_tumblrDefaultQuote')));
   $('label_userscripts').appendChild($T(chrome.i18n.getMessage('label_userscripts')));
   $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
   $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
@@ -79,6 +81,10 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var shorten_check = new Check('always_shorten_url', !!Config.post['always_shorten_url']);
   // Evernote - Clip Full Page
   var clip_fullpage = new Check('evernote_clip_fullpage', !!Config.post['evernote_clip_fullpage']);
+  // Quote - Remove Hatena Keywords
+  var remove_hatena_keyword = new Check('remove_hatena_keyword', !!Config.post['remove_hatena_keyword']);
+  // Evernote - Quote - Post Tumblr with Plain Text
+  var tumblr_default_quote = new Check('tumblr_default_quote', !!Config.post['tumblr_default_quote']);
   // multiple tumblelogs
   var tumble_check = new Check('multi_tumblelogs', !!Config.post["multi_tumblelogs"]);
   var tumble_list = new TumbleList();
@@ -114,6 +120,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "shortcutkey_googlereader_plus_taberareloo"  : gr_short.body(),
           'keyconfig' : keyconfig_check.body(),
           "evernote_clip_fullpage": clip_fullpage.body(),
+          "remove_hatena_keyword" : remove_hatena_keyword.body(),
+          "tumblr_default_quote"  : tumblr_default_quote.body(),
           'shortcutkey_linkquickpost': lk,
           "shortcutkey_quotequickpost" : qk,
           "shortcutkey_quickpost" : k,

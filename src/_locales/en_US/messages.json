@@ -46,6 +46,12 @@
   "label_clipFullPage": {
     "message": "Evernote - Clip Full Page"
   },
+  "label_removeHatenaKeyword": {
+    "message": "Quote - Remove Hatena Keywords"
+  },
+  "label_tumblrDefaultQuote": {
+    "message": "Quote - Post Tumblr with Plain Text"
+  },
   "label_userscripts": {
     "message": "UserScripts"
   },

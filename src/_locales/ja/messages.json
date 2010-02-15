@@ -46,6 +46,12 @@
   "label_clipFullPage": {
     "message": "Evernote - ページ全体をクリップする"
   },
+  "label_removeHatenaKeyword": {
+    "message": "Quote - はてなキーワードを除去する"
+  },
+  "label_tumblrDefaultQuote": {
+    "message": "Quote - Tumblrにプレーンテキストでポストする"
+  },
   "label_userscripts": {
     "message": "ユーザースクリプト"
   },

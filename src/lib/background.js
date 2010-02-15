@@ -266,6 +266,8 @@ var TBRL = {
       "shortcutkey_quotequickpost" : "",
       "shortcutkey_quickpost" : "",
       "evernote_clip_fullpage": true,
+      "remove_hatena_keyword" : false,
+      "tumblr_default_quote"  : false,
       "always_shorten_url"    : false,
       "multi_tumblelogs"      : false,
       "post_with_queue"       : false
