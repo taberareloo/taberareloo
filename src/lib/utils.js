@@ -527,7 +527,7 @@ function resolveRelativePath(base){
 
 // (c) id:nanto_vi
 // http://nanto.asablo.jp/blog/2010/02/05/4858761
-function convertToHTMLString(source, safe) {
+function convertToHTMLString(source, safe, hatena) {
   if (!source || (source.getRangeAt && source.isCollapsed)) return '';
   var range = source.getRangeAt ? source.getRangeAt(0) : null;
   var node = range ? range.cloneContents() : source.cloneNode(true);
@@ -549,6 +549,16 @@ function convertToHTMLString(source, safe) {
     $X("descendant-or-self::a", root).forEach(convertToHTMLString.resetter.href);
     $X('descendant-or-self::*[contains(" img embed ", concat(" ", local-name(.), " "))]', root).forEach(convertToHTMLString.resetter.src);
     $X("descendant-or-self::object", root).forEach(convertToHTMLString.resetter.data);
+
+    if(hatena){
+      var keyword = node.ownerDocument.createElement('span');
+      keyword.setAttribute('class', 'keyword');
+      $X('descendant-or-self::a[(@class="keyword") or (@class="okeyword")]', root).forEach(function(key){
+        var r = keyword.cloneNode(false);
+        $A(key.childNodes).forEach(function(child){ r.appendChild(child.cloneNode(true)) });
+        key.parentNode.replaceChild(r, key);
+      });
+    }
 
     node = appendChildNodes($DF(), root.childNodes);
   }
@@ -589,7 +599,7 @@ function getSelectionContents(sel){
 function createFlavoredString(src){
   return {
     raw  : src.textContent || src.toString(),
-    html : convertToHTMLString(src, true)
+    html : convertToHTMLString(src, true, !!TBRL.config['post']['remove_hatena_keyword'])
   };
 }
 
