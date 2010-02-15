@@ -82,6 +82,11 @@ var Tumblr = {
    */
   post : function(ps){
     var self = this;
+    if(TBRL.Config.post['tumblr_default_quote']){
+      ps = update({}, ps);
+      ps.flavors = update({}, ps.flavors);
+      delete ps['flavors']['html'];
+    }
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
       return self.getForm(endpoint).addCallback(function(form){
