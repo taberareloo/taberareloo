@@ -1127,19 +1127,16 @@ Extractors.register([
         }
 
         var rx = p2.x + d2.w;
+        if(rx > window.innerWidth){
+          rx = (rx - window.innerWidth);
+          d.w -= rx;
+          d2.w -= rx;
+        }
         var ry = p2.y + d2.h;
-
-        if(ry > window.innerHeight || rx > window.innerWidth){
-          if(rx > window.innerWidth){
-            rx = (rx - window.innerWidth);
-            d.w -= rx;
-            d2.w -= rx;
-          }
-          if(ry > window.innerHeight){
-            ry = (ry - window.innerHeight);
-            d.h -= ry;
-            d2.h -= ry;
-          }
+        if(ry > window.innerHeight){
+          ry = (ry - window.innerHeight);
+          d.h -= ry;
+          d2.h -= ry;
         }
 
         if(square){
