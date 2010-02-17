@@ -17,6 +17,77 @@ var log = function(){
 var TBRL = {
   target : {x:0, y:0},
   config : null,
+  styles : {
+    'div': [
+      'display: block;',
+      'position: fixed;',
+      'background-color: rgba(0, 0, 0, 0.8);',
+      'z-index: 10000;',
+      'top: 0px;',
+      'left: 0px;',
+      'width: 100%;',
+      'height: 100%;'
+    ].join(''),
+    'ol' : [
+      'display: block;',
+      'margin: 1__qem 0 1em 0;',
+      '-webkit-padding-start: 40px',
+      'z-index: 100000;',
+      'padding: 20px;',
+      'top: 10px;',
+      'left: 10px;',
+      'background-color: white;',
+      'list-style-type: none;',
+      '-webkit-border-radius: 4px;',
+      'border: solid 1px silver;',
+      'opacity: 0.6;',
+      'position: fixed;'
+    ].join(''),
+    'li' : [
+      'display: block;',
+      'width: 100%;',
+      'margin: 0px;',
+      'padding: 0px;',
+      'border: none;',
+      'z-index: 1000000;',
+      'text-align: left;'
+    ].join(''),
+    'button'  : [
+      '-webkit-appearance: button;',
+      'margin: 0__qem;',
+      'font: -webkit-small-control;',
+      'color: initial;',
+      'letter-spacing: normal;',
+      'word-spacing: normal;',
+      'line-height: normal;',
+      'text-transform: none;',
+      'text-indent: 0;',
+      'text-shadow: none;',
+      'height: 30px;',
+      'padding: 5px;',
+      'margin: 5px 0px;',
+      'width: 100%;',
+      'min-width: 70px;',
+      'text-align: left;',
+      'border: solid 1px silver;',
+      '-webkit-border-radius: 3px;',
+      'display: block;',
+      'background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(204, 204, 204)), color-stop(1, rgb(102, 102, 102)));',
+      'cursor: pointer;'
+    ].join(''),
+    'img' : [
+      'margin-right: 10px;',
+      'width: 16px;',
+      'height: 16px;'
+    ].join(''),
+    'span': [
+      'margin-right: 10px;',
+      'color: white;',
+      'font-family: arial, sans-serif;',
+      'font-style: normal;',
+      'font-size: 11pt;'
+    ].join('')
+  },
   id     : chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   ldr_plus_taberareloo : false,
   init : function(config){
@@ -73,10 +144,12 @@ var TBRL = {
       } else {
         if(!TBRL.field){
           TBRL.field = $N('div', {
-            id: 'taberareloo_background'
+            id: 'taberareloo_background',
+            style: TBRL.styles.div
           });
           TBRL.ol = $N('ol', {
-            id: 'taberareloo_list'
+            id: 'taberareloo_list',
+            style: TBRL.styles.ol
           });
           TBRL.field.appendChild(TBRL.ol);
         }
@@ -90,12 +163,17 @@ var TBRL = {
         TBRL.buttons = exts.map(function(ext, index){
           var button = $N('button', {
             'type' : 'button',
-            'class': 'taberareloo_button'
+            'class': 'taberareloo_button',
+            'style': TBRL.styles.button
           }, [$N('img', {
-            src: ext.ICON
-          }), $N('span', null, ext.name)]);
+            src: ext.ICON,
+            'style': TBRL.styles.img
+          }), $N('span', {
+            'style': TBRL.styles.span
+          }, ext.name)]);
           var li = $N('li', {
-            'class': 'taberareloo_item'
+            'class': 'taberareloo_item',
+            'style': TBRL.styles.li
           }, button);
           TBRL.ol.appendChild(li);
           return button;
