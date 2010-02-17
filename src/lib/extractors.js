@@ -710,7 +710,7 @@ Extractors.register([
     name : 'Video - YouTube',
     ICON : 'http://youtube.com/favicon.ico',
     check : function(ctx){
-      return ctx.host.match(/youtube\.com/);
+      return ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\?v=.*/);
     },
     extract : function(ctx){
       var author = $X('id("watch-channel-stats")/a', ctx.document)[0];
