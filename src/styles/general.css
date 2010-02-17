@@ -1,4 +1,8 @@
+div#taberareloo_background *:focus {
+  outline: auto 5px -webkit-focus-ring-color
+}
 div#taberareloo_background {
+  display: block;
   position: fixed;
   background-color: rgba(0, 0, 0, 0.8);
   z-index: 10000;
@@ -8,6 +12,9 @@ div#taberareloo_background {
   height: 100%;
 }
 ol#taberareloo_list {
+  display: block;
+  margin: 1__qem 0 1em 0;
+  -webkit-padding-start: 40px
   z-index: 100000;
   padding: 20px;
   top: 10px;
@@ -29,6 +36,16 @@ li.taberareloo_item {
   text-align: left;
 }
 button.taberareloo_button {
+  -webkit-appearance: button;
+  margin: 0__qem;
+  font: -webkit-small-control;
+  color: initial;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0;
+  text-shadow: none;
   height: 30px;
   padding: 5px;
   margin: 5px 0px;
