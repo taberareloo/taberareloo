@@ -225,10 +225,16 @@ Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
 };
 
 Form.resize = function(resizeWidth){
-  var root = document.documentElement;
-  var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
-  var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
-  window.resizeBy((resizeWidth)? width : 0, height);
+  if(!Form.nowResizing){
+    Form.nowResizing = true;
+    var root = document.documentElement;
+    var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
+    var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
+    window.resizeBy((resizeWidth)? width : 0, height);
+    Form.nowResizing = false;
+  } else {
+    callLater(0.5, partial(arguments.callee, resizeWidth));
+  }
 };
 
 var Title = function(ps, toggle){
