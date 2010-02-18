@@ -186,6 +186,7 @@ UserScripts.register([
 
   {
     name  : 'Dashboard + Taberareloo',
+    count : 0,
     check : function(){
       var key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo'];
       if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
@@ -263,32 +264,96 @@ UserScripts.register([
     unload: function(){
       document.removeEventListener('keydown', this.wrap, false);
     },
-    fire  : function(ev){
-      if(keyString(ev) === this.key){
-        var current = this.getCurrentItem();
-        if(current){
-          this.notify(current);
-          var sel = createFlavoredString(window.getSelection());
-          var ctx = update({
-              document  : document,
-              window    : window,
-              selection : (!!sel.raw)? sel : null,
-              target    : current,
-              event     : {},
-              title     : null,
-              mouse     : null,
-              menu      : null
-          }, window.location);
-          var ext = Extractors['ReBlog - Dashboard'];
-          if(ext.check(ctx)){
-            TBRL.share(ctx, ext, false);
-          }
+    getStatus: function(){
+      var ret = new Deferred();
+      var ev_name = 'LDRize.status.Taberareloo'+(++this.count);
+      document.addEventListener(ev_name, function(e){
+        document.removeEventListener(ev_name, arguments.callee, false);
+        var data = JSON.parse(e.data);
+        ret.callback(data);
+      }, false);
+      var message = JSON.stringify({type: ev_name });
+      var ev = document.createEvent('MessageEvent');
+      ev.initMessageEvent('LDRize.getStatus', true, false, message, location.protocol + '//' + location.host, '', window);
+      document.dispatchEvent(ev);
+      return ret;
+    },
+    reblogPins : function(len){
+      var ret = new Deferred();
+      var self = this;
+      var ev_name = 'LDRize.strokePins.Taberareloo'+(++this.count);
+      var results = [];
+      var returned = 0;
+      document.addEventListener(ev_name, function(e){
+        setTimeout(function(){
+          self.reblog(e.target, true);
+        }, 0);
+        if(++returned === len){
+          document.removeEventListener(ev_name, arguments.callee, false);
+          setTimeout(function(){
+            self.FlashMessage.showFlashMessageWindow('ReBlog '+len+' items', 600);
+            ret.callback();
+          }, 0);
         }
+      }, false);
+      var message = JSON.stringify({type: ev_name });
+      var ev = document.createEvent('MessageEvent');
+      ev.initMessageEvent('LDRize.strokePins', true, false, message, location.protocol + '//' + location.host, '', window);
+      document.dispatchEvent(ev);
+      return ret;
+    },
+    clearPins: function(){
+      var ret = new Deferred();
+      var self = this;
+      var ev_name = 'LDRize.clearPins.Taberareloo'+(++this.count);
+      document.addEventListener(ev_name, function(e){
+        document.removeEventListener(ev_name, arguments.callee, false);
+        ret.callback();
+      }, false);
+      var message = JSON.stringify({type: ev_name });
+      var ev = document.createEvent('MessageEvent');
+      ev.initMessageEvent('LDRize.clearPins', true, false, message, location.protocol + '//' + location.host, '', window);
+      document.dispatchEvent(ev);
+      return ret;
+    },
+    fire  : function(ev){
+      var self = this;
+      if(keyString(ev) === this.key){
+        this.getStatus().addCallback(function(data){
+          var pins_count = data.pins_count;
+          if(pins_count > 0){
+            return self.reblogPins(pins_count).addCallback(function(){
+              return self.clearPins();
+            });
+          } else {
+            var current = self.getCurrentItem();
+            if(current)
+              return self.reblog(current);
+          }
+        });
       }
     },
-    notify: function(elm){
+    reblog: function(node, hide){
+      this.notify(node, hide);
+      var sel = createFlavoredString(window.getSelection());
+      var ctx = update({
+          document  : document,
+          window    : window,
+          selection : (!!sel.raw)? sel : null,
+          target    : node,
+          event     : {},
+          title     : null,
+          mouse     : null,
+          menu      : null
+      }, window.location);
+      var ext = Extractors['ReBlog - Dashboard'];
+      if(ext.check(ctx)){
+        return TBRL.share(ctx, ext, false);
+      }
+    },
+    notify: function(elm, hide){
       var duration = 600;
-      this.FlashMessage.showFlashMessageWindow('ReBlog', duration);
+      if(!hide) this.FlashMessage.showFlashMessageWindow('ReBlog', duration);
       elm.style.webkitTransition = '';
       elm.style.backgroundColor = 'salmon';
       setTimeout(function(){
