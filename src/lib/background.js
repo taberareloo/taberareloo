@@ -42,6 +42,10 @@ window.addEventListener('load', function(){
   });
   var CHROME_GESTURES = 'jpkfjicglakibpenojifdiepckckakgk';
   var CHROME_KEYCONFIG = 'okneonigbfnolfkmfgjmaeniipdjkgkl';
+  var REGISTER = {
+    'CHROME_GESTURES' : false,
+    'CHROME_KEYCONFIG': false
+  };
   var action = {
     group:'Taberareloo',
     actions:[
@@ -50,8 +54,25 @@ window.addEventListener('load', function(){
       {name:'Taberareloo.general'}
     ]
   };
-  chrome.extension.sendRequest(CHROME_GESTURES, action);
-  chrome.extension.sendRequest(CHROME_KEYCONFIG, action);
+  chrome.extension.sendRequest(CHROME_GESTURES, action, function(res){
+    REGISTER['CHROME_GESTURES'] = true;
+  });
+  chrome.extension.sendRequest(CHROME_KEYCONFIG, action, function(res){
+    REGISTER['CHROME_KEYCONFIG'] = true;
+  });
+  setTimeout(function(){
+    // ダメ押しのもう一回
+    if(!REGISTER['CHROME_GESTURES']){
+      chrome.extension.sendRequest(CHROME_GESTURES, action, function(res){
+        REGISTER['CHROME_GESTURES'] = true;
+      });
+    }
+    if(!REGISTER['CHROME_KEYCONFIG']){
+      chrome.extension.sendRequest(CHROME_KEYCONFIG, action, function(res){
+        REGISTER['CHROME_KEYCONFIG'] = true;
+      });
+    }
+  }, 1000*10);
 }, false);
 
 var request_handler = function(item, con){
