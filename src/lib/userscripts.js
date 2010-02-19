@@ -319,18 +319,21 @@ UserScripts.register([
     fire  : function(ev){
       var self = this;
       if(keyString(ev) === this.key){
-        this.getStatus().addCallback(function(data){
-          var pins_count = data.pins_count;
-          if(pins_count > 0){
-            return self.reblogPins(pins_count).addCallback(function(){
-              return self.clearPins();
-            });
-          } else {
-            var current = self.getCurrentItem();
-            if(current)
-              return self.reblog(current);
-          }
-        });
+        if(!('selectionStart' in ev.target && ev.target.disabled !== true)){
+          stop(ev);
+          this.getStatus().addCallback(function(data){
+            var pins_count = data.pins_count;
+            if(pins_count > 0){
+              return self.reblogPins(pins_count).addCallback(function(){
+                return self.clearPins();
+              });
+            } else {
+              var current = self.getCurrentItem();
+              if(current)
+                return self.reblog(current);
+            }
+          });
+        }
       }
     },
     reblog: function(node, hide){
@@ -390,36 +393,38 @@ UserScripts.register([
     fire  : function(ev){
       var key = keyString(ev);
       if(key !== this.key) return null;
-      stop(ev);
-      var item = this.getCurrentItem();
-      if(!item) return null;
-      var sel = createFlavoredString(window.getSelection());
-      var ctx = update({
-        document  : document,
-        window    : window,
-        selection : (!!sel.raw)? sel : null,
-        target    : item.target,
-        event     : {},
-        title     : null,
-        mouse     : null,
-        menu      : null
-      }, window.location);
-      if([
-        'flickr.com/',
-        'http://ffffound.com',
-        'http://www.bighappyfunhouse.com',
-        'http://f.hatena.ne.jp',
-        'http://lpcoverlover.com',
-        'http://www.chicksnbreasts.com',
-        '1eb46a2f1f83c340eee10cd49c144625'].some(function(pattern){
-          return item.feed.channel.link.indexOf(pattern) != -1;
-      })){
-        ctx.onImage = true;
-        ctx.target = $X('./descendant::img[0]', item.body)[0];
+      if(!('selectionStart' in ev.target && ev.target.disabled !== true)){
+        var item = this.getCurrentItem();
+        if(!item) return null;
+        stop(ev);
+        var sel = createFlavoredString(window.getSelection());
+        var ctx = update({
+          document  : document,
+          window    : window,
+          selection : (!!sel.raw)? sel : null,
+          target    : item.target,
+          event     : {},
+          title     : null,
+          mouse     : null,
+          menu      : null
+        }, window.location);
+        if([
+          'flickr.com/',
+          'http://ffffound.com',
+          'http://www.bighappyfunhouse.com',
+          'http://f.hatena.ne.jp',
+          'http://lpcoverlover.com',
+          'http://www.chicksnbreasts.com',
+          '1eb46a2f1f83c340eee10cd49c144625'].some(function(pattern){
+            return item.feed.channel.link.indexOf(pattern) != -1;
+        })){
+          ctx.onImage = true;
+          ctx.target = $X('./descendant::img[0]', item.body)[0];
+        }
+        addElementClass(item.parent, 'TBRL_posted');
+        var ext = Extractors.check(ctx)[0];
+        return TBRL.share(ctx, ext, ext.name.match(/^Link /));
       }
-      addElementClass(item.parent, 'TBRL_posted');
-      var ext = Extractors.check(ctx)[0];
-      return TBRL.share(ctx, ext, ext.name.match(/^Link /));
     },
     getCurrentItem: function(){
       var item = {
