@@ -191,6 +191,7 @@ UserScripts.register([
       var key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo'];
       if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
           /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
+          /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
           /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href)     ||
           /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
          ) && TBRL.config['post']['dashboard_plus_taberareloo'] && key){
@@ -459,3 +460,107 @@ UserScripts.register([
 
 ]);
 
+UserScripts.register({
+  name : 'Play on Tumblr',
+  dash : UserScripts['Dashboard + Taberareloo'],
+  keys : {},
+  check: function(ctx){
+    var play_s = TBRL.config['post']['shortcutkey_play_on_tumblr_play'];
+    var like_s = TBRL.config['post']['shortcutkey_play_on_tumblr_like'];
+    var count_s = TBRL.config['post']['shortcutkey_play_on_tumblr_count'];
+    if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
+        /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
+        /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
+        /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href)     ||
+        /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
+       ) && ((TBRL.config['post']['play_on_tumblr_play']  && play_s )||
+             (TBRL.config['post']['play_on_tumblr_like']  && like_s )||
+             (TBRL.config['post']['play_on_tumblr_count'] && count_s))){
+      if(TBRL.config.post['play_on_tumblr_play'] && play_s){
+        this.keys[play_s] = this.play;
+      }
+      if(TBRL.config.post['play_on_tumblr_like'] && like_s){
+        this.keys[like_s] = this.like;
+      }
+      if(TBRL.config.post['play_on_tumblr_count'] && count_s){
+        this.keys[count_s] = this.reblogCount;
+      }
+      return true;
+    } else {
+      return false;
+    }
+  },
+  exec : function(){
+    // id:os0x
+    // TODO: タイミングの点. 及び複数回実行の点
+    //       次で, 単体UserScript(optionなし)に分離します.
+    location.href="javascript:window.key_commands_are_suspended = true;void 0;";
+    document.addEventListener('keydown', this.wrap, false);
+  },
+  fire : function(ev){
+    if(!('selectionStart' in ev.target && ev.target.disabled !== true)){
+      var key = keyString(ev);
+      if(key in this.keys){
+        var current = this.dash.getCurrentItem();
+        if(!current) return;
+        stop(ev);
+        this.keys[key].call(this, current);
+      }
+    }
+  },
+  play : function(current){
+    var self = this;
+    var small = !!$X('.//img[contains(@class, "image_thumbnail")]', current)[0];
+    if(small){
+      var img = $X('.//div[starts-with(@id, "highres_photo")]', current)[0];
+      if(img){
+        if(img.style.display !== 'none'){
+          this.click($X('./a', img)[0]);
+        } else {
+          this.click($X('./preceding-sibling::a[1]', img)[0]);
+        }
+        return;
+      }
+    }
+    if($X('.//div[contains(@id, "watch_") and .//a]', current).some(function(mov){
+      if(mov.style.display !== 'none'){
+        self.click($X('.//a', mov)[0]);
+        return true;
+      }
+      return false;
+    })){
+      return;
+    }
+    if(small){
+      $X('.//img[contains(@src, "media.tumblr.com/tumblr_")]', current).forEach(function(timg, index){
+        self.click(timg);
+      });
+    }
+  },
+  like : function(current){
+    var self = this;
+    $X('.//input[contains(concat(" ", @class, " "), " like_button ")]', current).some(function(like){
+      if(!like.clientWidth){
+        return false;
+      }
+      self.click(like);
+      return true;
+    });
+  },
+  reblogCount: function(current){
+    var count = $X('.//a[contains(concat(" ",@class," "), " reblog_count ")]', current)[0];
+    if(count)
+      this.click(count);
+  },
+  click : function(elm){
+    var ev = document.createEvent('MouseEvents');
+    ev.initMouseEvent('click', true, true, window, 1, 10, 50, 10, 50, 0, 0, 0, 0, 1, elm);
+    elm.dispatchEvent(ev);
+  },
+  unload: function(){
+    document.removeEventListener('keydown', this.wrap, false);
+  },
+  wrap  : function(ev){
+    return UserScripts['Play on Tumblr'].fire(ev);
+  }
+});

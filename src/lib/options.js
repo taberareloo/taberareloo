@@ -42,6 +42,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
   = $('shortcutkey_ldr_plus_taberareloo_clear').value
   = $('shortcutkey_dashboard_plus_taberareloo_clear').value
   = $('shortcutkey_googlereader_plus_taberareloo_clear').value
+  = $('shortcutkey_play_on_tumblr_play_clear').value
+  = $('shortcutkey_play_on_tumblr_like_clear').value
+  = $('shortcutkey_play_on_tumblr_count_clear').value
   = chrome.i18n.getMessage('label_clear');
   $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
   $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
@@ -75,6 +78,19 @@ connect(document, 'onDOMContentLoaded', document, function(){
   // GoogleReader + Taberareloo
   var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post["googlereader_plus_taberareloo"]);
   var gr_short = new Shortcutkey("shortcutkey_googlereader_plus_taberareloo", true);
+
+  // Play on Tumblr - Play
+  var play_play_check = new Check('play_on_tumblr_play', !!Config.post["play_on_tumblr_play"]);
+  var play_play_short = new Shortcutkey("shortcutkey_play_on_tumblr_play", true);
+
+  // Play on Tumblr - Like
+  var play_like_check = new Check('play_on_tumblr_like', !!Config.post["play_on_tumblr_like"]);
+  var play_like_short = new Shortcutkey("shortcutkey_play_on_tumblr_like", true);
+
+  // Play on Tumblr - Count
+  var play_count_check = new Check('play_on_tumblr_count', !!Config.post["play_on_tumblr_count"]);
+  var play_count_short = new Shortcutkey("shortcutkey_play_on_tumblr_count", true);
+
   // Post with Queue
   var queue_check = new Check('post_with_queue', !!Config.post['post_with_queue']);
   // Shorten URL
@@ -115,9 +131,15 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'ldr_plus_taberareloo': ldr_check.body(),
           'dashboard_plus_taberareloo': dashboard_check.body(),
           'googlereader_plus_taberareloo': gr_check.body(),
+          'play_on_tumblr_play': play_play_check.body(),
+          'play_on_tumblr_like': play_like_check.body(),
+          'play_on_tumblr_count': play_count_check.body(),
           "shortcutkey_ldr_plus_taberareloo"  : ldr_short.body(),
           "shortcutkey_dashboard_plus_taberareloo"  : dashboard_short.body(),
           "shortcutkey_googlereader_plus_taberareloo"  : gr_short.body(),
+          "shortcutkey_play_on_tumblr_play"  : play_play_short.body(),
+          "shortcutkey_play_on_tumblr_like"  : play_like_short.body(),
+          "shortcutkey_play_on_tumblr_count" : play_count_short.body(),
           'keyconfig' : keyconfig_check.body(),
           "evernote_clip_fullpage": clip_fullpage.body(),
           "remove_hatena_keyword" : remove_hatena_keyword.body(),
