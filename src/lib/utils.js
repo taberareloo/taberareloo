@@ -327,10 +327,11 @@ function keyString(e){
   })(e);
 }
 
-var cancel = function stop(ev){
+function stop(ev){
   ev.preventDefault();
   ev.stopPropagation();
 }
+var cancel = stop;
 
 function unescapeHTML(s){
   return s.replace(/&amp;/g, '&')
