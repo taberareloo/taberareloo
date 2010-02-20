@@ -76,6 +76,9 @@
   "label_trimReblogInfo": {
     "message": "reblog情報を除去する"
   },
+  "label_reconvertText": {
+    "message": "変換されたLinkポストをTextポストに再変換する"
+  },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
     "description": "ポストに失敗した",

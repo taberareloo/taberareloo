@@ -301,6 +301,7 @@ var TBRL = {
     },
     "entry"   : {
       "trim_reblog_info"  : false,
+      "reconvert_text"    : false,
       "thumbnail_template": ""
     }
   },

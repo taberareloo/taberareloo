@@ -326,7 +326,31 @@ Extractors.register([
           if(form['post[type]']==='photo')
             form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
         }
-        return form;
+        if(TBRL.config.entry['reconvert_text'] && form['post[type]']==='link'){
+          // LinkがTextの省略である可能性を考慮する
+          // LinkにconvertされたTextの特徴
+          // 1. as Textとした際, Titleに文字が入っていたらText確定
+          //    このとき, もともとTitleがないText Postは判別できない.
+          //    しかし, 入っていたら少なくとも確実にconveted Text Post
+          // 2. LinkのurlがtumblrのurlであればTextからのconvertの可能性が高い
+          return request(url+'/text').addCallback(function(res){
+            var textDoc = createHTML(res.responseText);
+            var textForm = formContents($X('//form', textDoc)[1]);
+            if(textForm['post[one]'].trim()){
+              // converted Text Post
+              delete textForm.preview_post;
+              textForm.redirect_to = self.TUMBLR_URL+'dashboard';
+              return textForm;
+            }
+            if(/^http:\/\/[^.]+\.tumblr\.com\/post\/\d+/.test(form['post[two]'])){
+              return textForm;
+              // maybe converted Text Post
+            }
+            return form;
+          });
+        } else {
+          return form;
+        }
       });
     },
     extractByPage : function(ctx, doc){
