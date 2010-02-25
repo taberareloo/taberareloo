@@ -786,8 +786,16 @@ Tags.prototype = {
 
   getCandidates: function(hint){
     var cands = [];
+    var scoreFor = this.scoreFor;
+    var func = function(reading){
+      return scoreFor(reading, hint);
+    }
     this.candidates.forEach(function(cand){
-      var score = this.scoreFor(cand.reading, hint);
+      if(cand.reading){
+        var score = scoreFor(cand.reading, hint);
+      } else {
+        var score = Math.max.apply(Math, cand.readings.map(func));
+      }
       if(score > this.score)
         cands.push({
           score: score,
@@ -919,23 +927,18 @@ Tags.prototype = {
 
   convertToCandidates: function(tags){
     var source = tags.join(' [');
-    var d;
     if(source.includesFullwidth()){
-      d = background.Models.Yahoo.getRomaReadings(source).addCallback(function(result){
-        return result.join('').toLowerCase().split(' [');
-      });
+      return background.Models.Yahoo.getSparseTags(tags, source, ' [');
     } else {
-      d = succeed(tags);
-    }
-    d.addCallback(function(readings){
-      return zip(readings, tags).map(function(pair){
-        return {
-          reading : pair[0],
-          value   : pair[1]
-        };
+      return succeed().addCallback(function(){
+        return tags.map(function(tag){
+          return {
+            reading : tag,
+            value   : tag
+          };
+        });
       });
-    });
-    return d;
+    }
   },
 
   notify: function(){

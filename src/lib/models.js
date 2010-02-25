@@ -1154,6 +1154,58 @@ Models.register({
 Models.register({
   name : 'Yahoo',
   APP_ID : 'KaZybVOxg67G6sNQLuSMqenqXLGGIbfVJGCWgHrPWGMlQS5BGWIgAVcueAxAByQBatwmBYewBgEs3.3y',
+  // 冗長な表記を許すcode map
+  // 配列の許容 配列は優先度が高いものを先頭に
+  katakana: {
+    'ウァ':'wha','ウィ':'wi','ウェ':'we','ウォ':'who',
+    'キャ':'kya','キィ':'kyi','キュ':'kyu','キェ':'kye','キョ':'kyo',
+    'クャ':'qya','クュ':'qyu',
+    'クァ':'qwa','クィ':'qwi','クゥ':'qwu','クェ':'qwe','クォ':'qwo',
+    'ギャ':'gya','ギィ':'gyi','ギュ':'gyu','ギェ':'gye','ギョ':'gyo',
+    'グァ':'gwa','グィ':'gwi','グゥ':'gwu','グェ':'gwe','グォ':'gwo',
+    'シャ':['sha','sha','sya'],'シィ':'syi','シュ':['shu','syu'],'シェ':['sye','she'],'ショ':['sho','sho'],
+    'スァ':'swa','スィ':'swi','スゥ':'swu','スェ':'swe','スォ':'swo',
+    'ジャ':['ja','zya'],'ジィ':['jyi','zyi'],'ジュ':['ju','zyu'],'ジェ':['je','zye','jye'],'ジョ':['zyo','jo'],
+    'チャ':'cha','チィ':'tyi','チュ':'chu','チェ':'tye','チョ':'cho',
+    'ツァ':'tsa','ツィ':'tsi','ツェ':'tse','ツォ':'tso',
+    'テャ':'tha','ティ':'thi','テュ':'thu','テェ':'the','テョ':'tho',
+    'トァ':'twa','トィ':'twi','トゥ':'twu','トェ':'twe','トォ':'two',
+    'ヂャ':'dya','ヂィ':'dyi','ヂュ':'dyu','ヂェ':'dye','ヂョ':'dyo',
+    'デャ':'dha','ディ':'dhi','デュ':'dhu','デェ':'dhe','デョ':'dho',
+    'ドァ':'dwa','ドィ':'dwi','ドゥ':'dwu','ドェ':'dwe','ドォ':'dwo',
+    'ニャ':'nya','ニィ':'nyi','ニュ':'nyu','ニェ':'nye','ニョ':'nyo',
+    'ヒャ':'hya','ヒィ':'hyi','ヒュ':'hyu','ヒェ':'hye','ヒョ':'hyo',
+    'フャ':'fya','フュ':'fyu','フョ':'fyo',
+    'ファ':'fa','フィ':'fi','フゥ':'fwu','フェ':'fe','フォ':'fo',
+    'ビャ':'bya','ビィ':'byi','ビュ':'byu','ビェ':'bye','ビョ':'byo',
+    'ヴァ':'va','ヴィ':'vi','ヴ':'vu','ヴェ':'ve','ヴォ':'vo',
+    'ヴャ':'vya','ヴュ':'vyu','ヴョ':'vyo',
+    'ピャ':'pya','ピィ':'pyi','ピュ':'pyu','ピェ':'pye','ピョ':'pyo',
+    'ミャ':'mya','ミィ':'myi','ミュ':'myu','ミェ':'mye','ミョ':'myo',
+    'リャ':'rya','リィ':'ryi','リュ':'ryu','リェ':'rye','リョ':'ryo',
+
+    'ア':'a','イ':'i','ウ':'u','エ':'e','オ':'o',
+    'カ':'ka','キ':'ki','ク':'ku','ケ':'ke','コ':'ko',
+    'サ':'sa','シ':['shi','si'],'ス':'su','セ':'se','ソ':'so',
+    'タ':'ta','チ':['chi','ti'],'ツ':['tsu','tu'],'テ':'te','ト':'to',
+    'ナ':'na','ニ':'ni','ヌ':'nu','ネ':'ne','ノ':'no',
+    'ハ':'ha','ヒ':'hi','フ':'fu','ヘ':'he','ホ':'ho',
+    'マ':'ma','ミ':'mi','ム':'mu','メ':'me','モ':'mo',
+    'ヤ':'ya','ユ':'yu','ヨ':'yo',
+    'ラ':'ra','リ':'ri','ル':'ru','レ':'re','ロ':'ro',
+    'ワ':'wa','ヲ':'wo','ン':'nn',
+    'ガ':'ga','ギ':'gi','グ':'gu','ゲ':'ge','ゴ':'go',
+    'ザ':'za','ジ':['ji','zi'],'ズ':'zu','ゼ':'ze','ゾ':'zo',
+    'ダ':'da','ヂ':'di','ヅ':'du','デ':'de','ド':'do',
+    'バ':'ba','ビ':'bi','ブ':'bu','ベ':'be','ボ':'bo',
+    'パ':'pa','ピ':'pi','プ':'pu','ペ':'pe','ポ':'po',
+
+    'ァ':'la','ィ':'li','ゥ':'lu','ェ':'le','ォ':'lo',
+    'ヵ':'lka','ヶ':'lke','ッ':'ltu',
+    'ャ':'lya','ュ':'lyu','ョ':'lyo','ヮ':'lwa',
+    '。':".",'、':",",'ー':"-"
+  },
+  lengthMap: {},
 
   parse : function(ps){
     ps.appid = this.APP_ID;
@@ -1178,7 +1230,122 @@ Models.register({
     return this.getKanaReadings(str).addCallback(function(rs){
       return rs.join('\u0000').toRoma().split('\u0000');
     });
+  },
+
+  // experimental
+  // tag取得専用なのでstrで返却しません
+  // 同一の読み仮名に対して複数のpatternを許容する
+  // 重たくなるかも? なる、なの :おまひま
+  getSparseTags : function(tags, str, delimiter){
+    if(!delimiter) delimiter = ' [';
+    var self = this;
+    return this.getKanaReadings(str).addCallback(function(rs){
+      var katakana = rs.join('').split(' [').join('\u0000').toKatakana();
+      var katakanas = katakana.split('\u0000');
+      return zip(self.toSparseRomaReadings(katakana), tags).map(function(pair, index){
+        var reading = pair[0], tag = pair[1];
+        // 再計算flagがたっているか. 分岐考慮型計算は時間食うのでできるだけしない.
+        if(~reading.indexOf('\u0001')){
+          var res = {
+            readings: self.duplicateRomaReadings(katakanas[index]),
+            value: tag
+          };
+          return res;
+        } else {
+          return {
+            value: tag,
+            reading: reading
+          };
+        }
+      });
+    });
+  },
+
+  duplicateRomaReadings:function(s){
+    // 分岐件数依存で一定数(この場合20)以上になるようであれば打ち切る(Tombloo標準の優先文字を使う)
+    // 分岐件数が「ジェジェジェジェジェジェジェジェジェジェジェ」などになると天文学的になるのに対する対応
+    // abbreviation scorerが後になるほど評価対象として低いので, 結果に影響が出ない
+    var stack = [];
+    var count = 1;
+    for(var i = 0, roma, kana, table = this.katakana ; i < s.length ; i += kana.length){
+      kana = s.substring(i, i+2);
+      roma = table[kana];
+
+      if(!roma){
+        kana = s.substring(i, i+1);
+        roma = table[kana] || kana;
+      }
+
+      var len = this.lengthMap[kana];
+      if(len){
+        var r = count * len;
+        if(r > 20){
+          stack.push(roma[0]);
+        } else {
+          count=r;
+          stack.push(roma);
+        }
+      } else {
+        stack.push(roma);
+      }
+    }
+    return this.stackWalker(stack).map(function(l){ return l.join('') });
+  },
+
+  stackWalker: function(stack){
+    var res = [];
+    var last_num = stack.length;
+    function walker(current, current_num){
+      var next = current_num + 1;
+      var elements = stack[current_num];
+      var returnee = res[current_num];
+      if(Array.isArray(elements)){
+        for(var i = 0, len = elements.length; i < len; ++i){
+          var element = elements[i];
+          var d = $A(current);
+          d.push(element);
+          returnee.push(d);
+          if(next !== last_num)
+            walker(d, next)
+        }
+      } else {
+        // 一つしかないときはcloneする必要がない
+        current.push(elements);
+        returnee.push(current);
+        if(next !== last_num)
+          walker(current, next)
+      }
+    }
+    for(var i = 0; i < last_num; ++i) res[i] = [];
+    walker([], 0);
+    return res[last_num-1];
+  },
+
+  toSparseRomaReadings: function(s){
+    var res = [];
+    for(var i = 0, roma, kana, table = this.katakana ; i < s.length ; i += kana.length){
+      kana = s.substring(i, i+2);
+      roma = table[kana];
+
+      if(!roma){
+        kana = s.substring(i, i+1);
+        roma = table[kana] || kana;
+      }
+
+      if(kana in this.lengthMap){
+        roma = '\u0001';// contains flag
+      }
+
+      res.push(roma);
+    }
+    return res.join('').replace(/ltu(.)/g, '$1$1').split('\u0000');
   }
+
+});
+items(Models.Yahoo.katakana).forEach(function(pair){
+  var val = pair[1];
+  if(Array.isArray(val))
+    Models.Yahoo.lengthMap[pair[0]] = val.length;
 });
 
 Models.register({
