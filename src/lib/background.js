@@ -260,16 +260,14 @@ function request(url, opt){
 function getSelected(){
   var d = new Deferred();
   chrome.tabs.getSelected(null, function(tab){
-    if(TBRL.Service.isEnableSite(tab.url)){
-      d.callback(tab);
-    }
+    d.callback(tab);
   });
   return d;
 };
 
 var TBRL = {
   // default config
-  VERSION: '1.1.9',
+  VERSION: '1.1.10',
   Config: {
     "services": {
     },

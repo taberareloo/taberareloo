@@ -14,18 +14,15 @@ function getSelected(){
   var d = new Deferred();
   var query = queryHash(location.search);
   if(query['quick']){
+    // quick post formならgetSelectedする必要がない
     var id = query['id'];
     var data = background.TBRL.Popup.data[id];
     tab = data['tab'];
     ps = data['ps'];
     delete background.TBRL.Popup.data[id];
-    if(background.TBRL.Service.isEnableSite(tab.url)){
-      setTimeout(function(){
-        d.callback(tab);
-      }, 0);
-    } else {
-      window.close();
-    }
+    setTimeout(function(){
+      d.callback(tab);
+    }, 0);
   } else {
     isPopup = true;
     chrome.tabs.getSelected(null, function(tab){
