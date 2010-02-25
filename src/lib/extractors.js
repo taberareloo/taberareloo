@@ -343,8 +343,10 @@ Extractors.register([
               return textForm;
             }
             if(/^http:\/\/[^.]+\.tumblr\.com\/post\/\d+/.test(form['post[two]'])){
-              return textForm;
               // maybe converted Text Post
+              delete textForm.preview_post;
+              textForm.redirect_to = self.TUMBLR_URL+'dashboard';
+              return textForm;
             }
             return form;
           });
