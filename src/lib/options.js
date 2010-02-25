@@ -41,6 +41,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   = $('shortcutkey_quotequickpost_clear').value
   = $('shortcutkey_ldr_plus_taberareloo_clear').value
   = $('shortcutkey_dashboard_plus_taberareloo_clear').value
+  = $('shortcutkey_dashboard_plus_taberareloo_manually_clear').value
   = $('shortcutkey_googlereader_plus_taberareloo_clear').value
   = $('shortcutkey_play_on_tumblr_play_clear').value
   = $('shortcutkey_play_on_tumblr_like_clear').value
@@ -76,6 +77,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
   // Dashboard + Taberareloo
   var dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post["dashboard_plus_taberareloo"]);
   var dashboard_short = new Shortcutkey("shortcutkey_dashboard_plus_taberareloo", true);
+  var dashboard_manually_check = new Check('dashboard_plus_taberareloo_manually', !!Config.post["dashboard_plus_taberareloo_manually"]);
+  var dashboard_manually_short = new Shortcutkey("shortcutkey_dashboard_plus_taberareloo_manually", true);
+
   // GoogleReader + Taberareloo
   var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post["googlereader_plus_taberareloo"]);
   var gr_short = new Shortcutkey("shortcutkey_googlereader_plus_taberareloo", true);
@@ -133,12 +137,14 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'tag_auto_complete': tag_check.body(),
           'ldr_plus_taberareloo': ldr_check.body(),
           'dashboard_plus_taberareloo': dashboard_check.body(),
+          'dashboard_plus_taberareloo_manually': dashboard_manually_check.body(),
           'googlereader_plus_taberareloo': gr_check.body(),
           'play_on_tumblr_play': play_play_check.body(),
           'play_on_tumblr_like': play_like_check.body(),
           'play_on_tumblr_count': play_count_check.body(),
           "shortcutkey_ldr_plus_taberareloo"  : ldr_short.body(),
           "shortcutkey_dashboard_plus_taberareloo"  : dashboard_short.body(),
+          "shortcutkey_dashboard_plus_taberareloo_manually"  : dashboard_manually_short.body(),
           "shortcutkey_googlereader_plus_taberareloo"  : gr_short.body(),
           "shortcutkey_play_on_tumblr_play"  : play_play_short.body(),
           "shortcutkey_play_on_tumblr_like"  : play_like_short.body(),

@@ -512,6 +512,7 @@ var PosterItem = function(ps, poster, index, posters){
 };
 
 PosterItem.prototype = {
+
   toggle: function(){
     this.checked()? this.off() : this.on();
     this.posters.postCheck();

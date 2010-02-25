@@ -187,15 +187,23 @@ UserScripts.register([
   {
     name  : 'Dashboard + Taberareloo',
     count : 0,
+    keys  : {},
     check : function(){
-      var key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo'];
+      var r_key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo'];
+      var r_flag= TBRL.config['post']['dashboard_plus_taberareloo'];
+      var m_key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo_manually'];
+      var m_flag= TBRL.config['post']['dashboard_plus_taberareloo_manually'];
       if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
           /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
           /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
           /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href)     ||
           /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
-         ) && TBRL.config['post']['dashboard_plus_taberareloo'] && key){
-        this.key = key;
+         ) && ((r_flag && r_key) ||
+               (m_flag && m_key))){
+        if(r_flag)
+          this.keys[r_key] = false;
+        if(m_flag)
+          this.keys[m_key] = true;
         return true;
       } else {
         return false;
@@ -279,15 +287,17 @@ UserScripts.register([
       document.dispatchEvent(ev);
       return ret;
     },
-    reblogPins : function(len){
+    reblogPins : function(len, manually){
       var ret = new Deferred();
       var self = this;
       var ev_name = 'LDRize.strokePins.Taberareloo'+(++this.count);
       var results = [];
       var returned = 0;
       document.addEventListener(ev_name, function(e){
+        var target = e.target;
         setTimeout(function(){
-          self.reblog(e.target, true);
+          self.notify(target, true);
+          self.reblog(target, manually);
         }, 0);
         if(++returned === len){
           document.removeEventListener(ev_name, arguments.callee, false);
@@ -319,26 +329,29 @@ UserScripts.register([
     },
     fire  : function(ev){
       var self = this;
-      if(keyString(ev) === this.key){
+      var key  = keyString(ev);
+      if(key in this.keys){
         if(!('selectionStart' in ev.target && ev.target.disabled !== true)){
           stop(ev);
+          var manually = this.keys[key];
           this.getStatus().addCallback(function(data){
             var pins_count = data.pins_count;
             if(pins_count > 0){
-              return self.reblogPins(pins_count).addCallback(function(){
+              return self.reblogPins(pins_count, manually).addCallback(function(){
                 return self.clearPins();
               });
             } else {
               var current = self.getCurrentItem();
-              if(current)
-                return self.reblog(current);
+              if(current){
+                self.notify(current);
+                return self.reblog(current, manually);
+              }
             }
           });
         }
       }
     },
-    reblog: function(node, hide){
-      this.notify(node, hide);
+    reblog: function(node, manually){
       var sel = createFlavoredString(window.getSelection());
       var ctx = update({
           document  : document,
@@ -352,7 +365,7 @@ UserScripts.register([
       }, window.location);
       var ext = Extractors['ReBlog - Dashboard'];
       if(ext.check(ctx)){
-        return TBRL.share(ctx, ext, false);
+        return TBRL.share(ctx, ext, !!manually);
       }
     },
     notify: function(elm, hide){
