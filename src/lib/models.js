@@ -841,7 +841,7 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request('http://www.google.com/bookmarks/mark', {
+    return request('https://www.google.com/bookmarks/mark', {
       queryString :  {
         op : 'add'
       }
@@ -852,7 +852,7 @@ Models.register({
 
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
       var fs = formContents(form);
-      return request('http://www.google.com'+$X('//form[@name="add_bkmk_form"]/@action', doc)[0], {
+      return request('https://www.google.com'+form.getAttribute('action'), {
         //denyRedirection: true,
         sendContent  : update(fs, {
           title      : ps.item,
