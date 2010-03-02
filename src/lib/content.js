@@ -1,8 +1,6 @@
 // vim: fileencoding=utf-8
 // content script space
 
-var connection = chrome.extension.connect({name : 'TBRL'});
-
 var log = function(){
   var d = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {
@@ -94,15 +92,6 @@ var TBRL = {
     TBRL.config = config;
     document.addEventListener('mousemove', TBRL.mousehandler, false);
     document.addEventListener('unload', TBRL.unload, false);
-    connection.onMessage.addListener(function(item){
-      var type = item.type;
-      if(type === 'request'){
-        request_handler(item);
-      } else if(type === 'post'){
-        post_handler(item);
-      }
-    });
-
     window.addEventListener('Taberareloo.link', TBRL.link, false);
     window.addEventListener('Taberareloo.quote', TBRL.quote, false);
     window.addEventListener('Taberareloo.general', TBRL.general, false);
@@ -287,58 +276,23 @@ var TBRL = {
 
 TBRL.getConfig().addCallback(TBRL.init);
 
-Callbacks = {};
-var request = (function(){
-  var ID = 0;
-  return function(url, opt){
-    var id = "request_"+(++ID);
-    var ret = Callbacks[id] = new Deferred();
-    connection.postMessage({
-      "type" : "request",
+var request = function(url, opt){
+  var ret = new Deferred();
+  chrome.extension.sendRequest(TBRL.id, {
+    request: "request",
+    content: {
       "url" : url,
-      "opt" : opt,
-      "id" : id
-    });
-    return ret;
-  }
-})();
-var request_handler = function(item){
-  var d = Callbacks[item.id];
-  if(d){
-    delete Callbacks[item.id];
-    var suc = item.success;
-    if(suc){
-      d.callback(item.res);
-    } else {
-      d.errback(item.res);
+      "opt" : opt
     }
-  }
-};
-var post = (function(){
-  var ID = 0;
-  return function(ps){
-    var id = "post_"+(++ID);
-    var ret = Callbacks[id] = new Deferred();
-    connection.postMessage({
-      "type" : "post",
-      "ps" : ps,
-      "id" : id
-    });
-    return ret;
-  }
-})();
-var post_handler = function(item){
-  var d = Callbacks[item.id];
-  if(d){
-    delete Callbacks[item.id];
-    var suc = item.success;
-    if(suc){
-      d.callback(item.res);
+  }, function(res){
+    if(res.success){
+      ret.callback(res.content);
     } else {
-      d.errback(item.res);
+      ret.errback(res.content);
     }
-  }
-};
+  });
+  return ret;
+}
 
 var getTitle = function(){
   function title_getter(){

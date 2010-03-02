@@ -29,17 +29,6 @@ function addTab(url, focus){
 }
 
 window.addEventListener('load', function(){
-  chrome.self.onConnect.addListener(function(port){
-    // connection session
-    port.onMessage.addListener(function(item, con){
-      var type = item.type;
-      if(type === 'request'){
-        request_handler(item, con);
-      } else if(type === 'post'){
-        post_handler(item, con);
-      }
-    });
-  });
   var CHROME_GESTURES = 'jpkfjicglakibpenojifdiepckckakgk';
   var CHROME_KEYCONFIG = 'okneonigbfnolfkmfgjmaeniipdjkgkl';
   var REGISTER = {
@@ -74,27 +63,6 @@ window.addEventListener('load', function(){
     }
   }, 1000*10);
 }, false);
-
-var request_handler = function(item, con){
-  var opt = item.opt;
-  var url = item.url;
-  var id = item.id;
-  return request(url, opt).addCallbacks(function(res){
-    con.postMessage({
-      type : "request",
-      id   : id,
-      res  : res,
-      success : true
-    });
-  }, function(res){
-    con.postMessage({
-      type : "request",
-      id   : id,
-      res  : res,
-      success: false
-    });
-  });
-}
 
 var post_handler = function(item, con){
   var ps = item.ps;
@@ -459,6 +427,22 @@ var onRequestsHandlers = {
   log: function(req, sender, func){
     console.log.apply(console, req.content);
     func(req.content);
+  },
+  request: function(req, sender, func){
+    var content = req.content,
+        opt = content.opt,
+        url = content.url;
+    return request(url, opt).addCallbacks(function(res){
+      func({
+        success: true,
+        content: res
+      });
+    }, function(res){
+      func({
+        success: false,
+        content: res
+      });
+    });
   }
 }
 
