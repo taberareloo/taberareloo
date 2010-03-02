@@ -34,6 +34,29 @@ div#toggle_detail {
   height: 14px;
   width: 14px;
 }
+button#cancel {
+  outline: 0px none;
+  display: inline-block;
+  line-height: normal;
+  -webkit-border-radius: 4px;
+  background-color: white;
+  border: solid 1px silver;
+  color: gray;
+  padding: 1px;
+  margin: 0px 0px 0px 10px;
+  cursor: pointer;
+}
+button#cancel:hover {
+  background-color: #fbe3e4;
+  border-color: #fbc2c4;
+  color: #fb707f;
+}
+button#cancel:active {
+  padding: 0px;
+  margin: 1px 1px 1px 11px;
+  background-color: #fb909f;
+  color: white;
+}
 div#title {
   display: block;
   height : 30px;

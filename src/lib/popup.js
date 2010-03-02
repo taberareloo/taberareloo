@@ -37,20 +37,6 @@ function getSelected(){
   return d;
 };
 
-function getTitle(tab){
-  if(tab.title){
-    return succeed(tab.title);
-  } else {
-    var d = new Deferred();
-    chrome.tabs.sendRequest(tab.id, {
-      request: 'title'
-    }, function(res){
-      d.callback(res.title);
-    });
-    return d;
-  }
-}
-
 function getPsInfo(tab){
   var d = new Deferred();
   chrome.tabs.sendRequest(tab.id, {
@@ -96,6 +82,7 @@ main.addCallback(function(ps){
 var Form = function(ps){
   this.ps = ps;
   this.posted = false;
+  this.canceled = false;
   this.savers = {};
   this.toggles = [];
   this.shown = false;
@@ -109,8 +96,10 @@ var Form = function(ps){
   type.appendChild($T(ps.type));
 
   connect(window, 'onunload', this, function(ev){
-    if(!this.posted && isPopup){
+    if(!this.posted && isPopup && !this.canceled){
       this.save();
+    } else {
+      this.del();
     }
   });
 
@@ -129,6 +118,16 @@ var Form = function(ps){
     }
     this.toggle();
   });
+
+  if(isPopup){
+    var cancel = $N('button', {
+      'type' : 'button',
+      'id'   : 'cancel',
+      'title': 'Cancel this post contents'
+    }, 'Cancel');
+    connect(cancel, 'onclick', this, 'cancel');
+    $("icon_container").appendChild(cancel);
+  }
 
   this[ps.type] && this[ps.type]();
 };
@@ -191,6 +190,9 @@ Form.prototype = {
     }, this);
     background.TBRL.Popup.contents[this.ps.itemUrl] = this.ps;
   },
+  del : function(){
+    delete background.TBRL.Popup.contents[this.ps.itemUrl];
+  },
   post: function(){
     try{
       this.posted = true;
@@ -201,6 +203,10 @@ Form.prototype = {
     }catch(e){
       log(e);
     }
+  },
+  cancel: function(){
+    this.canceled = true;
+    window.close();
   },
   toggle: function(){
     this.toggles.forEach(function(unit){
