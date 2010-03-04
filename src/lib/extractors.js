@@ -326,7 +326,7 @@ Extractors.register([
           if(form['post[type]']==='photo')
             form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
         }
-        if(TBRL.config.entry['reconvert_text'] && form['post[type]']==='link'){
+        if(TBRL.config.entry['not_convert_text'] && form['post[type]']==='link'){
           var m = ctx.href.match(/^http:\/\/([^\/]+)\/post\/([^\/]+)\/?/);
           if(m){
             return request('http://'+m[1]+'/api/read', {
@@ -349,12 +349,9 @@ Extractors.register([
                 return form;
               }
             });
-          } else {
-            return form;
           }
-        } else {
-          return form;
         }
+        return form;
       });
     },
     extractByPage : function(ctx, doc){

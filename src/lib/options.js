@@ -59,7 +59,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
   $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
   $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
-  $('label_reconvertText').appendChild($T(chrome.i18n.getMessage('label_reconvertText')));
+  $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
   $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
   $('save').value = chrome.i18n.getMessage('label_save');
 
@@ -113,8 +113,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var thumbnail = new ThumbnailTemplate();
   // trim reblog info
   var reblog_check = new Check('trim_reblog_info', !!Config.entry["trim_reblog_info"]);
-  // reconvert to Text
-  var reconvert_check = new Check('reconvert_text', !!Config.entry["reconvert_text"]);
+  // notconvert to Text
+  var notconvert_check = new Check('not_convert_text', !!Config.entry["not_convert_text"]);
   // keyconfig
   var keyconfig_check = new Check("keyconfig", !!Config.post['keyconfig']);
   // shortcutkey quick link post
@@ -163,7 +163,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
         'entry'    : {
           'thumbnail_template' : thumbnail.body(),
           'trim_reblog_info'   : reblog_check.body(),
-          'reconvert_text'     : reconvert_check.body()
+          'not_convert_text'   : notconvert_check.body()
         }
       });
       if(!tcheck){

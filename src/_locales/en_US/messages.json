@@ -76,8 +76,8 @@
   "label_trimReblogInfo": {
     "message": "Trim reblog info"
   },
-  "label_reconvertText": {
-    "message": "Re-Convert Link to Text Post"
+  "label_notconvertText": {
+    "message": "Not convert long Text post to Link"
   },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",

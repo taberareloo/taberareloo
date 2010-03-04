@@ -269,7 +269,7 @@ var TBRL = {
     },
     "entry"   : {
       "trim_reblog_info"  : false,
-      "reconvert_text"    : false,
+      "not_convert_text"  : true,
       "thumbnail_template": ""
     }
   },
