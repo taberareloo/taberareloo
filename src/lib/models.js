@@ -71,10 +71,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    var res = /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.file;
-    if(ps.type === 'audio')
-      return res && ps.ext === 'mp3';
-    return res;
+    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.file && ((ps.type !== 'audio') || ps.suffix === '.mp3');
   },
 
   /**

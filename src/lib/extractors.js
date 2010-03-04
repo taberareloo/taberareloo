@@ -848,14 +848,14 @@ Extractors.register([
       if(m){
         ctx.title = m[1];
       }
-      m = src.match(/[^\/\s\.]*\.([^\/\s\.])$/);
+      m = src.match(/[^\/\s\.]*(\.[^\/\s\.])$/);
       if(m){
         ext = m[1];
       }
       return {
         type   : 'audio',
         itemUrl: src,
-        ext    : ext,
+        suffix : ext,
         item   : ctx.title
       };
     }
