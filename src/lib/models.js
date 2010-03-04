@@ -7,6 +7,8 @@ var Tumblr = {
   ICON : 'http://www.tumblr.com/images/favicon.gif',
   MEDIA_URL : 'http://media.tumblr.com/',
   TUMBLR_URL : 'http://www.tumblr.com/',
+  LINK : 'http://www.tumblr.com/',
+  LOGIN_URL : 'http://www.tumblr.com/login',
 
   /**
    * ポストを削除する。
@@ -325,8 +327,9 @@ Models.register(Tumblr);
 Models.register({
   name : '4u',
   ICON : chrome.extension.getURL('skin/4u.ico'),
+  LOGIN_URL : 'http://4u.straightline.jp/admin/login',
 
-  URL : 'http://4u.straightline.jp/',
+  LINK : 'http://4u.straightline.jp/',
 
   check : function(ps){
     return ps.type === 'photo' && !ps.file;
@@ -334,7 +337,7 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request(this.URL + 'power/manage/register', {
+    return request(this.LINK + 'power/manage/register', {
       referrer : ps.pageUrl,
       queryString : {
         site_title  : ps.page,
@@ -356,9 +359,9 @@ Models.register({
 
   iLoveHer : function(id){
     var self = this;
-    return request(this.URL + 'user/manage/do_register', {
+    return request(this.LINK + 'user/manage/do_register', {
       redirectionLimit : 0,
-      referrer : this.URL,
+      referrer : this.LINK,
       queryString : {
         src : id
       }
@@ -405,6 +408,8 @@ Models.register({
 Models.register({
   name : 'HatenaFotolife',
   ICON : 'http://f.hatena.ne.jp/favicon.ico',
+  LINK : 'http://f.hatena.ne.jp/',
+  LOGIN_URL : 'https://www.hatena.ne.jp/login',
 
   check : function(ps){
     return ps.type === 'photo';
@@ -466,6 +471,8 @@ Models.register({
 Models.register({
   name : 'HatenaBookmark',
   ICON : 'http://b.hatena.ne.jp/favicon.ico',
+  LINK : 'http://b.hatena.ne.jp/',
+  LOGIN_URL : 'https://www.hatena.ne.jp/login',
 
   POST_URL : 'http://b.hatena.ne.jp/add',
   JSON_URL : 'http://b.hatena.ne.jp/my.name',
@@ -573,6 +580,8 @@ Models.register({
 Models.register({
   name : 'Delicious',
   ICON : 'http://delicious.com/favicon.ico',
+  LINK : 'http://delicious.com/',
+  LOGIN_URL : 'https://secure.delicious.com/login',
 
   /**
    * ユーザーの利用しているタグ一覧を取得する。
@@ -713,6 +722,8 @@ Models.register({
   name : 'LivedoorClip',
   ICON : 'http://clip.livedoor.com/favicon.ico',
   POST_URL : 'http://clip.livedoor.com/clip/add',
+  LOGIN_URL: 'https://member.livedoor.com/login/',
+  LINK : 'http://clip.livedoor.com/',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -846,6 +857,8 @@ Models.register({
 Models.register({
   name : 'GoogleBookmarks',
   ICON : Models.Google.ICON,
+  LINK : 'http://www.google.com/bookmarks/',
+  LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -955,6 +968,8 @@ Models.register({
   name     : 'Evernote',
   ICON     : 'http://www.evernote.com/favicon.ico',
   POST_URL : 'http://www.evernote.com/clip.action',
+  LOGIN_URL: 'https://www.evernote.com/Login.action',
+  LINK     : 'http://www.evernote.com/',
 
   check : function(ps){
     return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -1015,6 +1030,8 @@ Models.register({
 Models.register({
   name : 'FriendFeed',
   ICON : 'http://friendfeed.com/favicon.ico',
+  LINK : 'http://friendfeed.com/',
+  LOGIN_URL : 'https://friendfeed.com/account/login',
   check : function(ps){
     return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
   },
@@ -1052,6 +1069,8 @@ Models.register({
   name : 'Twitter',
   ICON : 'http://twitter.com/favicon.ico',
   URL  : 'http://twitter.com',
+  LINK : 'http://twitter.com/',
+  LOGIN_URL : 'https://twitter.com/login',
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
@@ -1134,7 +1153,9 @@ Models.register({
 Models.register({
   name : 'Instapaper',
   ICON : chrome.extension.getURL('skin/instapaper.ico'),
+  LINK : 'http://www.instapaper.com/',
   POST_URL: 'http://www.instapaper.com/edit',
+  LOGIN_URL : 'https://www.instapaper.com/user/login',
   check : function(ps){
     return /quote|link/.test(ps.type);
   },
@@ -1363,6 +1384,8 @@ items(Models.Yahoo.katakana).forEach(function(pair){
 Models.register({
   name : 'YahooBookmarks',
   ICON : 'http://bookmarks.yahoo.co.jp/favicon.ico',
+  LINK : 'http://bookmarks.yahoo.co.jp/',
+  LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -1434,6 +1457,8 @@ Models.register({
 Models.register({
   name : 'Wassr',
   ICON : 'http://wassr.jp/favicon.ico',
+  LINK : 'http://wassr.jp/',
+  LOGIN_URL : 'http://wassr.jp/',
 
   check : function(ps){
     return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -1464,6 +1489,8 @@ Models.register({
   name: 'Clipp',
   ICON : chrome.extension.getURL('skin/item.ico'),
   CLIPP_URL: 'http://clipp.in/',
+  LINK : 'http://clipp.in/',
+  LOGIN_URL: 'http://clipp.in/account/login',
 
   check: function(ps) {
     return /photo|quote|link|video/.test(ps.type) && !ps.file;
@@ -1587,6 +1614,42 @@ Models.register({
           '<p>' + escapeHTML(ps.description) + '</p>' ], '')
       };
     }
+  }
+});
+
+Models.register({
+  name : 'gist',
+  ICON : 'http://gist.github.com/favicon.ico',
+  LINK : 'http://gist.github.com/',
+  LOGIN_URL : 'https://github.com/login',
+  check: function(ps){
+    return /regular|quote/.test(ps.type);
+  },
+  post : function(ps){
+    var self = this;
+    return request(this.LINK).addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," userbox ")]', doc)[0])){
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+      var form = formContents($X('descendant::form[@action="/gists"]', doc)[0]);
+      var content;
+      switch(ps.type){
+        case 'regular':
+          content = ps.description;
+          break;
+        case 'quote':
+          content = joinText([ps.body, '', ps.itemUrl, '', ps.description], '\n\n');
+          break;
+      }
+      form['file_contents[gistfile1]'] = content;
+      form['file_name[gistfile1]'] = ps.item;
+      // public
+      delete form['action_button'];
+      return request(self.LINK+'gists', {
+        sendContent: form
+      });
+    });
   }
 });
 

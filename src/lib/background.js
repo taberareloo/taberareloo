@@ -277,8 +277,10 @@ var TBRL = {
     post: function(ps, posters){
       var self = this;
       var ds   = {};
+      var models = {};
       posters = [].concat(posters);
       posters.forEach(function(p){
+        models[p.name] = p;
         try{
           ds[p.name] = (ps.favorite && RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name))? p.favor(ps) : p.post(ps);
         } catch(e){
@@ -286,17 +288,18 @@ var TBRL = {
         }
       });
       return new DeferredHash(ds).addCallback(function(ress){
-        var errs = [];
+        var errs = [], urls = [];
         for(var name in ress){
           var success = ress[name][0], res = ress[name][1];
           if(!success){
             var msg = name + ': ' +
               (res.message.status ? '\n' + ('HTTP Status Code ' + res.message.status).indent(4) : '\n' + res.message.indent(4));
             errs.push(msg);
+            urls.push(models[name].LOGIN_URL);
           }
         }
         if(errs.length){
-          self.alertError(chrome.i18n.getMessage('error_post', [errs.join('\n').indent(2), ps.page, ps.pageUrl]), ps.pageUrl);
+          self.alertError(chrome.i18n.getMessage('error_post', [errs.join('\n').indent(2), ps.page, ps.pageUrl]), ps.pageUrl, urls);
         } else {
           delete TBRL.Popup.contents[ps.itemUrl];
         }
@@ -307,13 +310,21 @@ var TBRL = {
     isEnableSite: function(link){
       return link.indexOf('http') === 0;
     },
-    alertError: function(error, url){
+    alertError: function(error, url, logins){
       var res = confirm(error + '\n\n' + chrome.i18n.getMessage('error_reopen'));
       if(res){
         chrome.tabs.create({
           url: url,
           selected: true
         });
+        if(logins.length){
+          logins.uniq().forEach(function(url){
+            chrome.tabs.create({
+              url: url,
+              selected: false
+            });
+          });
+        }
       }
     }
   },

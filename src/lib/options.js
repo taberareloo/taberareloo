@@ -187,6 +187,7 @@ var Services = function(){
 
     var row = [model.name];
     row.icon = model.ICON;
+    row.link = model.LINK;
     var config = configs[model.name] || {};
     Services.TYPES.forEach(function(type){
       var postable = (type === 'favorite')? !!model.favor : model.check({
@@ -206,18 +207,29 @@ var Services = function(){
 
   this.all.forEach(function(service){
     var icon = service.icon;
+    var link = service.link;
     service = $A(service);
     servicename = service[0];
     self.elements[servicename] = {};
-    service[0] = $N('td', null, [
-      $N('img', {
+    var children = [];
+    if(link){
+      children.push($N('a', {
+        href: link,
+        target: '_blank'
+      }, $N('img', {
         src: icon,
         class: 'service_icon'
-      }),
-      $N('p', {
-        class: 'service_text'
-      }, service[0]+'')
-    ]);
+      })));
+    } else {
+      children.push($N('img', {
+        src: icon,
+        class: 'service_icon'
+      }));
+    }
+    children.push($N('p', {
+      class: 'service_text'
+    }, service[0]+''));
+    service[0] = $N('td', null, children);
     var ELMS = Services.ELMS;
     for(var i = 1, len = service.length; i < len; ++i)(function(item, index){
       if(item){
