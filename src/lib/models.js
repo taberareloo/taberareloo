@@ -1722,7 +1722,7 @@ Models.copyTo(this);
 
 Models.check = function(ps){
   return this.values.filter(function(m){
-    if((ps.favorite && ps.favorite.name === m.name) || (m.check && m.check(ps)))
+    if((ps.favorite && ps.favorite.name === (m.typeName || m.name)) || (m.check && m.check(ps)))
       return true;
   });
 }
@@ -1730,7 +1730,7 @@ Models.check = function(ps){
 Models.getDefaults = function(ps){
   var config = TBRL.Config['services'];
   return this.check(ps).filter(function(m){
-    return Models.getPostConfig(config, m.name, ps) === 'default';
+    return Models.getPostConfig(config, m.name, ps, m) === 'default';
   });
 }
 
@@ -1739,13 +1739,13 @@ Models.getEnables = function(ps){
   return this.check(ps).filter(function(m){
     m.config = (m.config || {});
 
-    var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps);
+    var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps, m);
     return val === undefined || /default|enabled/.test(val);
   });
 }
 
 Models.getConfig = function(ps, poster){
-  var c  = Models.getPostConfig(TBRL.Config['services'], poster.name, ps);
+  var c  = Models.getPostConfig(TBRL.Config['services'], poster.name, ps, poster);
   if(c === 'default'){
     return 'default';
   } else if(c === undefined || 'enabled' === c){
@@ -1755,9 +1755,9 @@ Models.getConfig = function(ps, poster){
   }
 }
 
-Models.getPostConfig = function(config, name, ps){
+Models.getPostConfig = function(config, name, ps, model){
   var c = config[name] || {};
-  return (ps.favorite && ps.favorite.name === name)? c.favorite : c[ps.type];
+  return (ps.favorite && ps.favorite.name === (model.typeName || name))? c.favorite : c[ps.type];
 }
 
 Models.multipleTumblelogs = [];
@@ -1767,6 +1767,7 @@ Models.getMultiTumblelogs = function(){
     return blogs.map(function(blog){
       var model = update({}, Tumblr);
       model.name = 'Tumblr - ' + blog.name;
+      model.typeName = 'Tumblr';
       addBefore(model, 'appendTags', function(form, ps){
         form.channel_id = blog.id;
       });
