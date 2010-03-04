@@ -252,7 +252,7 @@ var Services = function(){
   tbody.appendChild(df);
 };
 
-Services.TYPES = ['regular', 'photo', 'quote', 'link', 'video', 'conversation', 'favorite'];
+Services.TYPES = ['regular', 'photo', 'quote', 'link', 'video', 'audio', 'conversation', 'favorite'];
 
 Services.ELMS = {
   'container': $N('div', {

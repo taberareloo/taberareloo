@@ -181,6 +181,15 @@ Form.prototype = {
     this.toggles = [title, tags, link, desc];
     callLater(0.1, Form.resize);
   },
+  audio: function(){
+    var ps = this.ps;
+    var title = this.savers['item'] = this.title = new Title(ps);
+    var link  = this.savers['itemUrl'] = this.link = new Audio(ps);
+    var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
+    var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
+    this.toggles = [title, tags, link, desc];
+    callLater(0.1, Form.resize);
+  },
   save: function(){
     Object.keys(this.savers).forEach(function(key){
       var body = this.savers[key].body();
@@ -346,6 +355,27 @@ var Pic = function(ps, toggle){
 };
 
 Pic.prototype = {
+  body: function(){
+    return this.url;
+  },
+  toggle: function(){
+  }
+};
+
+var Audio = function(ps, toggle){
+  this.url = ps.itemUrl || '';
+  if(this.url){
+    // tumblr's audio cannot access
+    // so url is empty value
+    this.au = $('audio');
+    this.au.appendChild(this.audio = $N('audio', {
+      controls: 'true',
+      src     : this.url
+    }));
+  }
+};
+
+Audio.prototype = {
   body: function(){
     return this.url;
   },

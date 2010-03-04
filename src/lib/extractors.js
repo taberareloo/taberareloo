@@ -415,6 +415,11 @@ Extractors.register([
           item : form['post[one]'],
           body : form['post[two]']
         };
+      case 'audio':
+        return {
+          body    : form['post[two]'],
+          itemUrl : ''
+        };
       }
       return null;
     }
@@ -827,6 +832,32 @@ Extractors.register([
           body    : $X('//input[@name="script_code"]/@value', doc)[0]
         };
       });
+    }
+  },
+
+  {
+    name : 'Audio',
+    ICON : skin+'audio.png',
+    check: function(ctx){
+      return (tagName(ctx.target) === 'audio') && ctx.target.src;
+    },
+    extract: function(ctx){
+      var src = ctx.target.src;
+      var ext = '';
+      var m = src.match(/([^\/\s]+)$/);
+      if(m){
+        ctx.title = m[1];
+      }
+      m = src.match(/[^\/\s\.]*\.([^\/\s\.])$/);
+      if(m){
+        ext = m[1];
+      }
+      return {
+        type   : 'audio',
+        itemUrl: src,
+        ext    : ext,
+        item   : ctx.title
+      };
     }
   },
 
