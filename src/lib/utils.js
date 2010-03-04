@@ -37,11 +37,16 @@ function createHTML(source){
   return doc;
 }
 
+//function createXML(str){
+//  var xhr = new XMLHttpRequest();
+//  xhr.open("GET", str, false);
+//  xhr.send(null);
+//  return xhr.responseXML;
+//}
+
 function createXML(str){
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", str, false);
-  xhr.send(null);
-  return xhr.responseXML;
+  var p = new DOMParser();
+  return p.parseFromString(str, "text/xml");
 }
 
 // http://gist.github.com/184276
