@@ -353,6 +353,20 @@ var TBRL = {
     contents : {},
     suggestionShownDefault: false
   },
+  Notification: {
+    contents: {},
+    id: 0,
+    notify: function(content){
+      var notify = TBRL.Notification;
+      var id = ++notify.id;
+      notify.contents[id] = content;
+      var query = queryString({
+        'id': id
+      }, true);
+      var note = webkitNotifications.createHTMLNotification(chrome.extension.getURL('notifications.html')+query);
+      note.show();
+    }
+  },
   configSet: function(config){
     TBRL.Config = config;
     window.localStorage.options = JSON.stringify(config);
@@ -454,6 +468,10 @@ var onRequestsHandlers = {
         content: res
       });
     });
+  },
+  notifications: function(req, sender, func){
+    var id = req.content;
+    func(TBRL.Notification.contents[id]);
   }
 }
 
