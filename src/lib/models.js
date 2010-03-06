@@ -634,7 +634,7 @@ Models.register({
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
         function getTags(part){
-          return $X('id("save-' + part + '-tags")//a[contains(@class, "tag-list-tag")]/text()', doc);
+          return $X('id("save-' + part + '-tags")//a[contains(@class, "m")]/@title', doc);
         }
         return {
           editPage : editPage = 'http://delicious.com/save?url=' + url,
@@ -646,9 +646,8 @@ Models.register({
           },
           duplicated : !!doc.getElementById('delete'),
           recommended : getTags('reco'),
-          popular : getTags('pop'),
-          network : getTags('net')
-        }
+          popular : getTags('pop')
+        };
       })
     };
 
