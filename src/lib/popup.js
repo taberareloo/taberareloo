@@ -236,16 +236,18 @@ Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
   form.post();
 };
 
-Form.resize = function(resizeWidth){
+Form.resize = function(){
   if(!Form.nowResizing){
     Form.nowResizing = true;
-    var root = document.documentElement;
-    var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
-    var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
-    window.resizeBy((resizeWidth)? width : 0, height);
+    var root = document.body;
+//    var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
+//    var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
+    var height = root.scrollHeight - window.outerHeight;
+    var width  = root.scrollWidth  - window.outerWidth;
+    window.resizeBy(width, height);
     Form.nowResizing = false;
   } else {
-    callLater(0.5, partial(arguments.callee, resizeWidth));
+    callLater(0.5, arguments.callee);
   }
 };
 
@@ -349,7 +351,7 @@ var Pic = function(ps, toggle){
     }
     self.size.appendChild($T(width + ' × ' + height));
     wait(0).addCallback(function(){
-      Form.resize(true);
+      Form.resize();
     });
   });
 };
