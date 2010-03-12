@@ -533,7 +533,7 @@ var PosterItem = function(ps, poster, index, posters){
 
   img.src = poster.ICON;
 
-  connect(img, 'onclick', this, 'toggle');
+  connect(img, 'onclick', this, 'clicked');
   if(index < 9){
     Form.shortcutkeys[KEY_ACCEL+' + '+(index+1)] = bind(this.toggle, this);
     Form.shortcutkeys['ALT + '+(index+1)] = bind(this.quick, this);
@@ -563,6 +563,14 @@ PosterItem.prototype = {
   },
   checked: function(){
     return !hasElementClass(this.element, 'disabled');
+  },
+  clicked: function(ev){
+    var mod = ev.modifier();
+    if(mod.alt || mod.meta){
+      this.quick(ev);
+    } else {
+      this.toggle();
+    }
   },
   off: function(){
     addElementClass(this.element, 'disabled');
