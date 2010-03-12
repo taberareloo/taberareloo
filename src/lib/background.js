@@ -331,7 +331,7 @@ var TBRL = {
   Popup: {
     count: 0,
     open: function(tab, ps){
-      var height = 'height=450';
+      var height = 'height=300';
       if(ps.type === 'quote' || ps.type === 'regular'){
         height = 'height=250'
       }
