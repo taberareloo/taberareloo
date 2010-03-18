@@ -646,7 +646,8 @@ Models.register({
           },
           duplicated : !!doc.getElementById('delete'),
           recommended : getTags('reco'),
-          popular : getTags('pop')
+          popular : getTags('pop'),
+          network : getTags('net')
         };
       })
     };
