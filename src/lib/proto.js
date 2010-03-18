@@ -1,9 +1,5 @@
 // vim: fileencoding=utf-8
 
-Array.isArray = function(a){
-  return (a instanceof Array || (a && typeof(a.length) == 'number' && typeof(a) != 'string'));
-}
-
 // Array extension
 update(Array.prototype, {
   flatten : function(){
