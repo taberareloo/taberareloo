@@ -240,6 +240,8 @@ Form.resize = function(){
   if(!Form.nowResizing){
     Form.nowResizing = true;
     var root = document.body;
+//    var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
+//    var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
     var height = root.scrollHeight - window.outerHeight;
     var width  = root.scrollWidth  - window.outerWidth;
     window.resizeBy(width, height);
