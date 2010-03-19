@@ -1653,6 +1653,73 @@ Models.register({
   }
 });
 
+Models.register({
+  name : 'PickNaver',
+  ICON : 'http://naver.jp/favicon.ico',
+  POST_URL : 'http://naver.jp/api/post/html/mainboard',
+  LOGIN_URL: 'https://ssl.naver.jp/login?fromUrl=http://pick.naver.jp/',
+  HOME_URL : 'http://www.naver.jp/',
+  LINK : 'http://pick.naver.jp/',
+  SHORTEN_SERVICE : 'bit.ly',
+
+  check : function(ps){
+    return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file;
+  },
+
+  checkAuth : function() {
+    var self = this;
+    return request(this.HOME_URL).addCallback(function(res) {
+      var login = res.responseText.extract(/(span class="logout")/);
+      if (!login) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+      return true;
+    });
+  },
+
+  post : function(ps){
+    var self = this;
+    return this.checkAuth().addCallback(function(ok) {
+      return self.update(joinText([ps.body, ps.description], "\n", true), ps);
+    });
+  },
+
+  update : function(status, ps) {
+    var self = this;
+    return maybeDeferred(
+      (status.length < 117 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
+    ).addCallback(function(status) {
+      var typeCode = 'U';
+      var media = {};
+      if (ps.type == 'photo') {
+        typeCode = 'I';
+        media.mediaUrl = ps.pageUrl;
+        media.mediaThumbnailUrl = ps.itemUrl;
+      }
+      else {
+        media.mediaUrl = ps.itemUrl;
+      }
+
+      return request(self.POST_URL, {
+        method : 'PUT',
+        headers : {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8, application/json',
+
+        },
+        sendContent : JSON.stringify({
+          serviceTypeCode: 'P',
+          refererTypeCode: 'W',
+          typeCode       : typeCode,
+          postText       : status,
+          urlTitle       : ps.item,
+          media          : media
+        })
+      });
+    })
+  }
+});
+
 // http://www.kawa.net/works/ajax/romanize/japanese.html
 Models.register({
   name : 'Kawa',

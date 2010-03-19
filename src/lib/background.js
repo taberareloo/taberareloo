@@ -151,24 +151,26 @@ function getCharset(text){
 function request(url, opt){
   var req = new XMLHttpRequest(), ret = new Deferred();
 
-  opt = update({
-    method: 'GET'
-  }, opt || {});
+  opt = (opt)? update({}, opt) : {};
+  var method = opt.method && opt.method.toUpperCase();
 
   if(opt.queryString){
     var qs = queryString(opt.queryString, true);
     url += qs;
   }
 
-  if(opt.sendContent){
-    opt.method = 'POST';
+  if(opt.sendContent && (!method || method === 'POST')){
+    if(!method) method = 'POST';
     opt.sendContent = queryString(opt.sendContent, false);
+  }
+  if(!method){
+    method = "GET";
   }
 
   if('username' in opt){
-    req.open(opt.method ? opt.method : (opt.sendContent)? 'POST' : 'GET', url, true, opt.username, opt.password);
+    req.open(method, url, true, opt.username, opt.password);
   } else {
-    req.open(opt.method ? opt.method : (opt.sendContent)? 'POST' : 'GET', url, true);
+    req.open(method, url, true);
   }
 
   if(opt.charset) req.overrideMimeType(opt.charset);
