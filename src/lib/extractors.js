@@ -743,7 +743,7 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\?v=.*/);
     },
     extract : function(ctx){
-      var author = $X('id("watch-channel-stats")/a', ctx.document)[0];
+      var author = $X('id("watch-channel-stats")/a', ctx.document)[0] || $X('id("watch-username")', ctx.document)[0];
       ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',

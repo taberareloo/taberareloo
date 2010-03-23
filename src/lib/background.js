@@ -333,10 +333,7 @@ var TBRL = {
   Popup: {
     count: 0,
     open: function(tab, ps){
-      var height = 'height=300';
-      if(ps.type === 'quote' || ps.type === 'regular'){
-        height = 'height=250'
-      }
+      var height = 'height=200';
       var id = 'QuickPost'+(TBRL.Popup.count++);
       var query = queryString({
         'quick' : 'true',
