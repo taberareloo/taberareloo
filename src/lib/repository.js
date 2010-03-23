@@ -46,7 +46,7 @@ Repository.prototype = {
     return t;
   },
   check : function(){
-    var args = arguments;
+    var args = $A(arguments);
     return this.values.reduce(function(memo, i){
       if(i.check && i.check.apply(i, args)) memo.push(i);
       return memo;

@@ -935,7 +935,7 @@ Extractors.register([
             return bg;
           } else {
             var parent = elm.parentNode;
-            if(parent === doc){
+            if(parent === doc || !parent){
               return null;
             } else {
               return arguments.callee(parent);
