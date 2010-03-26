@@ -7,14 +7,13 @@
 body {
   overflow: hidden;
   margin: 10px;
+  min-width: 420px;
 }
 body * {
   -webkit-user-select: none;
 }
-div#main {
-  width  : 420px;
-  margin :2px;
-  padding:2px;
+div#form {
+  width  : 100%;
   min-height : 100px;
 }
 div#icon_container > * {
