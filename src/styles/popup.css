@@ -179,6 +179,7 @@ div#pic {
 img#image {
   display: block;
   max-width : 100%;
+  margin: 0px auto;
 }
 textarea#desc {
   height : 100px;
