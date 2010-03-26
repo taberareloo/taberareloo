@@ -856,7 +856,7 @@ Models.register({
 
 Models.register({
   name : 'GoogleBookmarks',
-  ICON : Models.Google.ICON,
+  ICON : 'https://www.google.com/bookmarks/api/static/images/favicon.ico',
   LINK : 'http://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
 
