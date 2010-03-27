@@ -244,7 +244,6 @@ Form.resize = function(){
 //    var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
     var height = root.scrollHeight - window.innerHeight;
     var width  = root.scrollWidth  - window.innerWidth;
-    console.log(width, height);
     window.resizeBy(width, height);
     Form.nowResizing = false;
   } else {
