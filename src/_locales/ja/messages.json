@@ -73,6 +73,9 @@
   "label_thumbnailTemplate": {
     "message": "Linkポストのサムネイルテンプレート"
   },
+  "label_twitterTemplate": {
+    "message": "Twitterへの投稿のテンプレート"
+  },
   "label_trimReblogInfo": {
     "message": "reblog情報を除去する"
   },

@@ -614,5 +614,14 @@ function getFlavor(ps, name){
     ps.flavors[name] || ps.body;
 }
 
+function templateExtract(template, hash){
+  var reg = /%(%|([^\s]+?[^%\s])%)/g;
+
+  return template.replace(reg, function(m, flag, title){
+    return (flag[0] === '%')     ? '%' :
+      hash.hasOwnProperty(title) ? (hash[title] || "") : "";
+  });
+}
+
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 

@@ -1078,7 +1078,21 @@ Models.register({
   },
 
   post : function(ps){
-    return this.update(joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' '));
+    var template = TBRL.Config['entry']['twitter_template'];
+    if(!template){
+      return this.update(joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' '));
+    } else {
+      return this.update(templateExtract(template,{
+        description   : ps.description,
+        description_q : (ps.description) ? '"'+ps.description+'"' : null,
+        body          : ps.body,
+        body_q        : (ps.body) ? '"'+ps.body+'"' : null,
+        title         : ps.item,
+        title_q       : (ps.item) ? '"'+ps.item+'"' : null,
+        link          : ps.itemUrl,
+        link_q        : (ps.itemUrl) ? '"'+ps.itemUrl+'"' : null
+      }));
+    }
   },
 
   update : function(status){
@@ -1704,7 +1718,7 @@ Models.register({
         method : 'PUT',
         headers : {
           'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8, application/json',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8, application/json'
 
         },
         sendContent : JSON.stringify({

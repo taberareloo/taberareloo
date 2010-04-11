@@ -73,6 +73,9 @@
   "label_thumbnailTemplate": {
     "message": "Link thumbnail template"
   },
+  "label_twitterTemplate": {
+    "message": "Twitter template"
+  },
   "label_trimReblogInfo": {
     "message": "Trim reblog info"
   },

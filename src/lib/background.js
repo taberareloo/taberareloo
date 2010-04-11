@@ -272,7 +272,8 @@ var TBRL = {
     "entry"   : {
       "trim_reblog_info"  : false,
       "not_convert_text"  : true,
-      "thumbnail_template": ""
+      "thumbnail_template": "",
+      "twitter_template"  : ""
     }
   },
   Service: {

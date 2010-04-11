@@ -151,3 +151,21 @@ input#save {
 p.userscript_title {
   min-width: 250px;
 }
+table.option_table th {
+  background-color: #E1E1E1 !important;
+  text-align: center !important;
+}
+table.option_table tr,
+table.option_table td,
+table.option_table th {
+  padding: 5px !important;
+  margin: 0 !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: #bbb !important;
+}
+table.option_table td,
+table.option_table th {
+  border-style: solid !important;
+  border-color: #bbb !important;
+}

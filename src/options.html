@@ -148,9 +148,48 @@
     </div>
     <div id="entry" class="slide">
       <div class="option">
-      <p id="label_thumbnailTemplate"></p>
-      <input type="text" class="text_input" id="thumbnail_template" placeholder="<img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; />">
-      <div class="option_line"><p id="label_example"></p><p>&lt;img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; /&gt;</p></div>
+        <p id="label_thumbnailTemplate"></p>
+        <input type="text" class="text_input" id="thumbnail_template" placeholder="<img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; />">
+        <div class="option_line"><p id="label_example"></p><p>&lt;img src=&quot;http://mozshot.nemui.org/shot?{url}&quot; /&gt;</p></div>
+      </div>
+      <div class="option">
+        <p id="label_twitterTemplate"></p>
+        <input type="text" class="text_input" id="twitter_template">
+        <table class="option_table"><tr><th>format</th><th>item</th></tr>
+          <tr>
+            <td>%link%</td>
+            <td>link of entry</td>
+          </tr>
+          <tr>
+            <td>%link_q%</td>
+            <td>link with double quote : "</td>
+          </tr>
+          <tr>
+            <td>%title%</td>
+            <td>title of entry</td>
+          </tr>
+          <tr>
+            <td>%title_q%</td>
+            <td>title with double quote : "</td>
+          </tr>
+          <tr>
+            <td>%description%</td>
+            <td>description for entry you add</td>
+          </tr>
+          <tr>
+            <td>%description_q%</td>
+            <td>description with double quote : "</td>
+          </tr>
+          <tr>
+            <td>%body%</td>
+            <td>quote body when entry is quote</td>
+          </tr>
+          <tr>
+            <td>%body_q%</td>
+            <td>quote body with double quote : "</td>
+          </tr>
+          </tr>
+        </table>
       </div>
       <div class="option">
       <p id="label_trimReblogInfo"></p><input id="trim_reblog_info_checkbox" type="checkbox" name="trim_reblog_info">

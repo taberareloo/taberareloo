@@ -58,6 +58,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
   $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
   $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
+  $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
   $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
   $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
   $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
@@ -110,7 +111,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var tumble_check = new Check('multi_tumblelogs', !!Config.post["multi_tumblelogs"]);
   var tumble_list = new TumbleList();
   // thumbnail template
-  var thumbnail = new ThumbnailTemplate();
+  var thumbnail = new TemplateInput("thumbnail_template");
+  // twitter template
+  var twittemp = new TemplateInput("twitter_template");
   // trim reblog info
   var reblog_check = new Check('trim_reblog_info', !!Config.entry["trim_reblog_info"]);
   // notconvert to Text
@@ -162,6 +165,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
         },
         'entry'    : {
           'thumbnail_template' : thumbnail.body(),
+          'twitter_template' : twittemp.body(),
           'trim_reblog_info'   : reblog_check.body(),
           'not_convert_text'   : notconvert_check.body()
         }
@@ -360,12 +364,12 @@ Check.prototype = {
   }
 };
 
-var ThumbnailTemplate = function(){
-  this.input = $('thumbnail_template');
-  this.input.value = Config["entry"]["thumbnail_template"];
+var TemplateInput = function(id){
+  this.input = $(id);
+  this.input.value = Config["entry"][id];
 };
 
-ThumbnailTemplate.prototype = {
+TemplateInput.prototype = {
   body: function(){
     return this.input.value;
   }
