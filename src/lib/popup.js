@@ -566,7 +566,8 @@ PosterItem.prototype = {
   },
   clicked: function(ev){
     var mod = ev.modifier();
-    if(mod.alt){
+    var mouse = ev.mouse();
+    if(mod.alt || mouse.button.middle){
       this.quick(ev);
     } else {
       this.toggle();
