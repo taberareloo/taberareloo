@@ -10,7 +10,6 @@ div#FLASH_MESSAGE{
 
   background-color : #444;
   color : #FFF;
-  -moz-border-radius: 0.3em;
   border-radius: 0.3em;
   min-width : 1em;
   text-align : center;
