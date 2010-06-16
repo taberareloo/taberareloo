@@ -39,7 +39,7 @@ var Tumblr = {
    */
   trimReblogInfo : function(form){
     if(!TBRL.Config['entry']['trim_reblog_info'])
-     return;
+     return null;
 
     function trimQuote(entry){
       entry = entry.replace(/<p><\/p>/g, '').replace(/<p><a[^<]+<\/a>:<\/p>/g, '');
@@ -731,29 +731,39 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return LivedoorClip.getToken().addCallback(function(token){
-      var content = {
-        rate    : ps.rate? ps.rate : '',
-        title   : ps.item,
-        postKey : token,
-        link    : ps.itemUrl,
-        tags    : ps.tags? ps.tags.join(' ') : '',
-        notes   : joinText([ps.body, ps.description], ' ', true),
-        public  : ps.private? 'off' : 'on'
-      };
-      return request(LivedoorClip.POST_URL, {
-        //denyRedirection: true,
-        sendContent : content,
-        queryString : {
-          cache: Date.now()
-        }
-      }).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        if($X('id("loginFormbox")', doc)[0]){
-          delete self['token'];
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-        }
-      });
+    return request(this.POST_URL, {
+      queryString: {
+        link: ps.itemUrl,
+        cache: Date.now()
+      }
+    }).addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      if ($X('id("loginFormbox")', doc)[0]) {
+        delete self['token'];
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      } else {
+        var form = $X('//form[@name="clip"]',doc)[0];
+        var content = formContents(form);
+        return request(LivedoorClip.POST_URL, {
+          //denyRedirection: true,
+          sendContent : update(content, {
+            rate    : ps.rate? ps.rate : '',
+            title   : ps.item,
+            tags    : ps.tags? ps.tags.join(' ') : '',
+            notes   : joinText([ps.body, ps.description], ' ', true),
+            public  : ps.private? 'off' : 'on'
+          }),
+          queryString : {
+            cache: Date.now()
+          }
+        }).addCallback(function(res){
+          var doc = createHTML(res.responseText);
+          if($X('id("loginFormbox")', doc)[0]){
+            delete self['token'];
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          }
+        });
+      }
     });
   },
 
@@ -781,28 +791,6 @@ Models.register({
         };
       }
     });
-  },
-
-  getToken : function(){
-    if(this.token){
-      return succeed(this.token);
-    } else {
-      var self = this;
-      return request(LivedoorClip.POST_URL, {
-        queryString : {
-          link : 'http://tombloo/',
-          cache: Date.now()
-        }
-      }).addCallback(function(res){
-        if(res.responseText.match(/"postkey" value="(.*)"/)){
-          self.token = RegExp.$1;
-          return self.token;
-        } else {
-          delete self['token'];
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-        }
-      });
-    }
   }
 });
 
@@ -1865,8 +1853,7 @@ Models.copyTo(this);
 
 Models.check = function(ps){
   return this.values.filter(function(m){
-    if((ps.favorite && ps.favorite.name === (m.typeName || m.name)) || (m.check && m.check(ps)))
-      return true;
+    return (ps.favorite && ps.favorite.name === (m.typeName || m.name)) || (m.check && m.check(ps));
   });
 }
 
