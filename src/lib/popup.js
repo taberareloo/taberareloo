@@ -54,8 +54,8 @@ function getPsInfo(tab){
 
 function notify(message){
   var msg = $('message');
-  $D(msg);
-  msg.appendChild($T(message));
+  // $D(msg);
+  msg.appendChild($T(message+'\n'));
   addElementClass(msg, 'shown');
   callLater(0, Form.resize);
 };
@@ -127,6 +127,24 @@ var Form = function(ps){
     }, 'Cancel');
     connect(cancel, 'onclick', this, 'cancel');
     $("icon_container").appendChild(cancel);
+  }
+
+  if (ps.https.pageUrl[0] || ps.https.itemUrl[0]) {
+    // pageUrl or itemUrl is https
+    var list = [];
+    if (ps.https.pageUrl[0]) {
+      list.push(chrome.i18n.getMessage('warning_https', [
+                                        "PageURL",
+                                        ps.https.pageUrl[1],
+                                        ps.pageUrl]));
+    }
+    if (ps.https.itemUrl[0]) {
+      list.push(chrome.i18n.getMessage('warning_https',[
+                                        "ItemURL",
+                                        ps.https.itemUrl[1],
+                                        ps.itemUrl]));
+    }
+    notify(list.join('\n'));
   }
 
   this[ps.type] && this[ps.type]();

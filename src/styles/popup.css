@@ -237,5 +237,5 @@ pre#message.shown {
   visibility: visible;
   background: #FFFF99;
   border: 1px solid #F0D67C;
-  overflow: hidden;
+  overflow: auto;
 }

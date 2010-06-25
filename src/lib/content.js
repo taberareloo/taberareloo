@@ -248,10 +248,10 @@ var TBRL = {
       chrome.extension.sendRequest(TBRL.id, {
         request: "share",
         show   : show,
-        content: update({
+        content: checkHttps(update({
           page    : ctx.title,
           pageUrl : ctx.href
-        }, ps)
+        }, ps))
       }, function(res){ });
     });
   },
@@ -335,10 +335,10 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
         var d = Extractors.Link.extract(ctx);
       }
       maybeDeferred(d).addCallback(function(ps){
-        func(update({
+        func(checkHttps(update({
           page    : title,
           pageUrl : content.url
-        }, ps));
+        }, ps)));
       });
     });
   }

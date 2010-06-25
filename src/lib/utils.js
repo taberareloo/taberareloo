@@ -623,5 +623,26 @@ function templateExtract(template, hash){
   });
 }
 
+function checkHttps(ps) {
+  var page = ps.pageUrl,
+      item = ps.itemUrl,
+      pageFlag = false,
+      itemFlag = false,
+      m    = null;
+  if (page && (m = page.match(/^https:\/\/[^/]+/))) {
+    pageFlag = true;
+    ps.pageUrl = m[0];
+  }
+  if (item && (m = item.match(/^https:\/\/[^/]+/))) {
+    itemFlag = true;
+    ps.itemUrl = m[0];
+  }
+  ps.https = {
+    pageUrl: [pageFlag, page],
+    itemUrl: [itemFlag, item]
+  };
+  return ps;
+}
+
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 

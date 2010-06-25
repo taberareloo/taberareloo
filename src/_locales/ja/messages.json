@@ -82,6 +82,21 @@
   "label_notconvertText": {
     "message": "長文を含むTextポストをLinkポストに変換しない"
   },
+  "warning_https": {
+    "message": "Https $title$\n    $original$\n    は\n    $modified$\n    に変換されました。",
+    "description": "httpsのリンクが見つかった",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      },
+      "original": {
+        "content": "$2"
+      },
+      "modified": {
+        "content": "$3"
+      }
+    }
+  },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
     "description": "ポストに失敗した",
