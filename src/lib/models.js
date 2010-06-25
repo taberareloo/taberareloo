@@ -1184,6 +1184,37 @@ Models.register({
   }
 });
 
+Models.register({
+  name : 'ReadItLater',
+  ICON : 'http://readitlaterlist.com/favicon.ico',
+  LINK : 'http://readitlaterlist.com/',
+  LOGIN_URL : 'http://readitlaterlist.com/l',
+  check : function(ps){
+    return /quote|link/.test(ps.type);
+  },
+  post : function(ps){
+    var that = this;
+    return request('http://readitlaterlist.com/edit').addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      var form = $X('id("content")/form', doc)[0];
+      if (form) {
+        return request('http://readitlaterlist.com/edit_process.php', {
+          queryString: {
+            BL: 1
+          },
+          sendContent: update(formContents(form), {
+            tags : ps.tags? ps.tags.join(',') : '',
+            title: ps.item,
+            url  : ps.itemUrl
+          })
+        });
+      } else {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
+    });
+  }
+});
+
 // http://developer.yahoo.co.jp/jlp/MAService/V1/parse.html
 // APP_ID => Taberareloo ID
 Models.register({
