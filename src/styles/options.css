@@ -11,6 +11,7 @@ li.tab {
   margin: 8px;
   background-color: gray;
   -webkit-border-radius: 4px;
+  border-radius: 4px;
   list-style: none inside;
   cursor: pointer;
 }
@@ -44,6 +45,7 @@ div#inner {
   width: 500%;
   heigt: 100%;
   -webkit-transition: margin-left 0.1s ease-out;
+  transition: margin-left 0.1s ease-out;
 }
 div.slide {
   font-size: 80%;
@@ -60,6 +62,7 @@ div.item {
   margin: 10px;
   border: 1px solid silver;
   -webkit-border-radius: 4px;
+  border-radius: 4px;
 }
 div.option a,
 div.item a{
