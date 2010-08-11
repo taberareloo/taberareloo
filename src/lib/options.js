@@ -258,7 +258,6 @@ function Services(){
         });
         dragger.register(container, {
           start: function(ev) {
-            console.log("START");
             this.status = status;
             removeElementClass(table, 'normal');
             addElementClass(table, status);
@@ -267,7 +266,6 @@ function Services(){
             this.status = null;
             removeElementClass(table, status);
             addElementClass(table, 'normal');
-            console.log("END");
           }
         });
         dragger.dragging(container, function(ev) {
@@ -396,11 +394,9 @@ Dragger.prototype = {
   register: function dragger_register(target, obj) {
     var that = this;
     connect(target, 'onmousedown', target, function(ev) {
-      console.assert(that.src === null);
       ev.stop();
       that.src = target;
       var sig = connect(document, 'onmouseup', document, function(ev) {
-        console.assert(that.src === target);
         disconnect(sig);
         obj.end.call(that, ev);
         that.src = null;
