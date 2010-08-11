@@ -1197,7 +1197,9 @@ Models.register({
     return request('http://readitlaterlist.com/edit').addCallback(function(res) {
       var doc = createHTML(res.responseText);
       var form = $X('id("content")/form', doc)[0];
-      if (form) {
+      if (/login/.test(form.action)) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      } else {
         return request('http://readitlaterlist.com/edit_process.php', {
           queryString: {
             BL: 1
@@ -1208,8 +1210,6 @@ Models.register({
             url  : ps.itemUrl
           })
         });
-      } else {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
   }
