@@ -9,7 +9,7 @@ body {
   margin: 10px;
   min-width: 420px;
 }
-body * {
+body {
   -webkit-user-select: none;
   user-select: none;
 }
@@ -247,4 +247,6 @@ pre#message.shown {
   background: #FFFF99;
   border: 1px solid #F0D67C;
   overflow: auto;
+  -webkit-user-select: text;
+  user-select: text;
 }

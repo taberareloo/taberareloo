@@ -4,6 +4,8 @@ ul#tabs {
   padding: 1px;
   margin: 0px 0px 10px 0px;
   background-color: lightgray;
+  -webkit-user-select: none;
+  user-select: none;
 }
 li.tab {
   display: inline-block;
@@ -79,6 +81,10 @@ tr.service:nth-of-type(odd) {
 tr.service:nth-of-type(even) {
   background-color: white;
 }
+#services {
+  -webkit-user-select: none;
+  user-select: none;
+}
 p.service_text {
   display: inline;
 }
@@ -96,6 +102,8 @@ div.button {
   width: 16px;
   height: 16px;
   background-repeat: no-repeat;
+}
+table.normal div.button {
   cursor: pointer;
 }
 div.button.empty {
@@ -110,6 +118,15 @@ div.button.disabled {
 }
 div.button.default {
   background-image: url("../skin/default.png");
+}
+table.enabled {
+  cursor: url("../skin/enabled.png"), move !important;
+}
+table.disabled {
+  cursor: url("../skin/disabled.png"), move !important;
+}
+table.default {
+  cursor: url("../skin/default.png"), move !important;
 }
 label.tag_provider_set {
   display: block;

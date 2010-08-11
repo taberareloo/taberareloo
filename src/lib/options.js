@@ -180,7 +180,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   });
 });
 
-var Services = function(){
+function Services(){
   var container = $('container');
   var self = this;
   this.all = [];
@@ -208,6 +208,8 @@ var Services = function(){
   var tbody = $('service_body');
   var df = $DF();
   this.elements = {};
+  var table = $('service_table');
+  var dragger = new Dragger();
 
   this.all.forEach(function(service){
     var icon = service.icon;
@@ -239,19 +241,39 @@ var Services = function(){
       if(item){
         var container = ELMS.container.cloneNode(false);
         var button = ELMS[item].cloneNode(false);
+        var status = item;
         container.appendChild(button);
         service[index] = $N('td', null, [container]);
         self.elements[servicename][Services.TYPES[index-1]] = button;
         connect(service[index], 'onclick', service[index], function(ev){
-          if(hasElementClass(button, 'enabled')){
-            removeElementClass(button, 'enabled');
-            addElementClass(button, 'disabled');
-          } else if(hasElementClass(button, 'disabled')){
-            removeElementClass(button, 'disabled');
-            addElementClass(button, 'default');
+          removeElementClass(button, status);
+          if(status === 'enabled'){
+            status = 'disabled';
+          } else if(status === 'disabled'){
+            status = 'default';
           } else {
-            removeElementClass(button, 'default');
-            addElementClass(button, 'enabled');
+            status = 'enabled';
+          }
+          addElementClass(button, status);
+        });
+        dragger.register(container, {
+          start: function(ev) {
+            console.log("START");
+            this.status = status;
+            removeElementClass(table, 'normal');
+            addElementClass(table, status);
+          },
+          end:   function(ev) {
+            this.status = null;
+            removeElementClass(table, status);
+            addElementClass(table, 'normal');
+            console.log("END");
+          }
+        });
+        dragger.dragging(container, function(ev) {
+          if (this.src !== container) {
+            status = this.status;
+            button.setAttribute('class', 'button '+status);
           }
         });
       } else {
@@ -311,7 +333,7 @@ Services.prototype = {
   }
 };
 
-var Provider = function(){
+function Provider(){
   var self = this
   this.provider = Config["post"]["tag_provider"];
   this.radioboxes = [];
@@ -353,7 +375,7 @@ Provider.prototype = {
   }
 };
 
-var Check = function(name, checked){
+function Check(name, checked){
   this.check = $(name+'_checkbox');
   this.check.checked = checked;
 }
@@ -364,7 +386,39 @@ Check.prototype = {
   }
 };
 
-var TemplateInput = function(id){
+// Chrome 6 does'nt implement event#dataTransfer#setDragImage
+// so now, implement dragger by the legacy way such as mouseover etc.
+function Dragger() {
+  this.src = null;
+}
+
+Dragger.prototype = {
+  register: function dragger_register(target, obj) {
+    var that = this;
+    connect(target, 'onmousedown', target, function(ev) {
+      console.assert(that.src === null);
+      ev.stop();
+      that.src = target;
+      var sig = connect(document, 'onmouseup', document, function(ev) {
+        console.assert(that.src === target);
+        disconnect(sig);
+        obj.end.call(that, ev);
+        that.src = null;
+      });
+      obj.start.call(that, ev);
+    }, false);
+  },
+  dragging: function dragger_dragging(target, func) {
+    var that = this;
+    connect(target, 'onmouseover', target, function(ev) {
+      if (that.src) {
+        func.call(that, ev);
+      }
+    });
+  }
+};
+
+function TemplateInput(id){
   this.input = $(id);
   this.input.value = Config["entry"][id];
 };
@@ -375,7 +429,7 @@ TemplateInput.prototype = {
   }
 };
 
-var Shortcutkey = function(name, meta, filter){
+function Shortcutkey(name, meta, filter){
   var elm = this.elm = $(name);
   var clear = $(name+'_clear');
   this.config = Config["post"][name] || '';
@@ -518,7 +572,7 @@ Shortcutkey.keyString2LDR = function(key){
   return res;
 };
 
-var TumbleList = function(){
+function TumbleList(){
   var self = this;
   this.field = $("multi_tumble_field");
   this.button = $("multi_tumblelogs_button");
