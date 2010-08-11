@@ -315,19 +315,37 @@ var TBRL = {
     },
     alertError: function(error, url, logins){
       var res = confirm(error + '\n\n' + chrome.i18n.getMessage('error_reopen'));
-      if(res){
-        chrome.tabs.create({
-          url: url,
-          selected: true
-        });
-        if(logins.length){
-          logins.uniq().forEach(function(url){
+      if (res) {
+        chrome.windows.getAll(null, function(wins) {
+          if (wins.length) {
             chrome.tabs.create({
               url: url,
-              selected: false
+              selected: true
             });
-          });
-        }
+            if (logins.length) {
+              logins.uniq().forEach(function(url){
+                chrome.tabs.create({
+                  url: url,
+                  selected: false
+                });
+              });
+            }
+          } else {
+            chrome.windows.create({
+              url: url
+            }, function(win) {
+              if (logins.length) {
+                logins.uniq().forEach(function(url){
+                  chrome.tabs.create({
+                    windowId: win.id,
+                    url: url,
+                    selected: false
+                  });
+                });
+              }
+            });
+          }
+        });
       }
     }
   },
