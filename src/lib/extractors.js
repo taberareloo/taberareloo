@@ -743,7 +743,13 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\?v=.*/);
     },
     extract : function(ctx){
-      var author = $X('id("watch-channel-stats")/a', ctx.document)[0] || $X('id("watch-username")', ctx.document)[0];
+      var author_anchor = $X('id("watch-channel-stats")/a', ctx.document)[0] || $X('id("watch-username")', ctx.document)[0];
+      if (author_anchor) {
+        var author = author_anchor.textContent;
+      } else {
+        var banner = $X('id("watch-userbanner")/descendant::img')[0];
+        var author = banner.title;
+      }
       ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',
