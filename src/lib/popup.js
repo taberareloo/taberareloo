@@ -221,14 +221,16 @@ Form.prototype = {
     delete background.TBRL.Popup.contents[this.ps.itemUrl];
   },
   post: function(){
-    try{
-      this.posted = true;
-      this.save();
-      if(this.tags) this.tags.addNewTags();
-      background.TBRL.Service.post(this.ps, this.posters.body());
-      window.close();
-    }catch(e){
-      log(e);
+    if (this.posters.isPostable()) {
+      try{
+        this.posted = true;
+        this.save();
+        if(this.tags) this.tags.addNewTags();
+        background.TBRL.Service.post(this.ps, this.posters.body());
+        window.close();
+      }catch(e){
+        log(e);
+      }
     }
   },
   cancel: function(){
@@ -498,8 +500,11 @@ Posters.prototype = {
   allOn: function(){
     this.posterItems.forEach(methodcaller('on'));
   },
+  isPostable: function() {
+    return !!this.body().length;
+  },
   postCheck: function(){
-    if(this.body().length){
+    if(this.isPostable()){
       this.elmButton.removeAttribute('disabled');
     } else {
       this.elmButton.setAttribute('disabled', 'true');
