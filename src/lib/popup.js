@@ -57,7 +57,7 @@ function notify(message){
   // $D(msg);
   msg.appendChild($T(message+'\n'));
   addElementClass(msg, 'shown');
-  callLater(0, Form.resize);
+  callLater(0.5, Form.resize);
 };
 
 var main = new Deferred();
@@ -160,7 +160,7 @@ Form.prototype = {
     this.toggles = [title, link];
     tags.focus();
     // resize timingはそれぞれ異なる場合がある(photoなどは画像がloadされたとき)
-    callLater(0.1, Form.resize);
+    callLater(0.5, Form.resize);
   },
   quote: function(){
     var ps = this.ps;
@@ -171,7 +171,7 @@ Form.prototype = {
     var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
     this.toggles = [title, link, tags, desc];
     body.focus();
-    callLater(0.1, Form.resize);
+    callLater(0.5, Form.resize);
   },
   photo: function(){
     var ps = this.ps;
@@ -188,7 +188,7 @@ Form.prototype = {
     var desc  = this.savers['description'] = this.desc = new Desc(ps);
     this.toggles = [title, tags];
     desc.focus();
-    callLater(0.1, Form.resize);
+    callLater(0.5, Form.resize);
   },
   video: function(){
     var ps = this.ps;
@@ -197,7 +197,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
     this.toggles = [title, tags, link, desc];
-    callLater(0.1, Form.resize);
+    callLater(0.5, Form.resize);
   },
   audio: function(){
     var ps = this.ps;
@@ -206,7 +206,7 @@ Form.prototype = {
     var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
     var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
     this.toggles = [title, tags, link, desc];
-    callLater(0.1, Form.resize);
+    callLater(0.5, Form.resize);
   },
   save: function(){
     Object.keys(this.savers).forEach(function(key){

@@ -579,8 +579,8 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : 'http://delicious.com/favicon.ico',
-  LINK : 'http://delicious.com/',
+  ICON : 'http://www.delicious.com/favicon.ico',
+  LINK : 'http://www.delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
   /**
@@ -622,7 +622,7 @@ Models.register({
       tags : this.getUserTags(),
       suggestions : this.getCurrentUser().addCallback(function(user){
         // ブックマークレット用画面の削除リンクを使い既ブックマークを判定する
-        return request('http://delicious.com/save', {
+        return request('http://www.delicious.com/save', {
           queryString : {
             noui : 1,
             url  : url
@@ -637,7 +637,7 @@ Models.register({
           return $X('id("save-' + part + '-tags")//a[contains(@class, "m")]/@title', doc);
         }
         return {
-          editPage : editPage = 'http://delicious.com/save?url=' + url,
+          editPage : editPage = 'http://www.delicious.com/save?url=' + url,
           form : {
             item        : doc.getElementById('title').value,
             description : doc.getElementById('notes').value,
@@ -673,7 +673,7 @@ Models.register({
       return succeed(this.currentUser);
     } else {
       var self = this;
-      return request("http://delicious.com/save").addCallback(function(res){
+      return request("http://www.delicious.com/save").addCallback(function(res){
         var doc = createHTML(res.responseText);
         var match = res.responseText.match(/Delicious\.Config\.set\('LoggedInUsername', '([^']+)'\);/);
         if(match){
@@ -693,7 +693,7 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request('http://delicious.com/post/', {
+    return request('http://www.delicious.com/post/', {
       queryString :  {
         title : ps.item,
         url   : ps.itemUrl
@@ -704,7 +704,7 @@ Models.register({
       if(!elmForm)
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
-      return request('http://delicious.com' + $X('id("saveitem")/@action', doc)[0], {
+      return request('http://www.delicious.com' + $X('id("saveitem")/@action', doc)[0], {
         //denyRedirection: true,
         sendContent : update(formContents(elmForm), {
           description : ps.item,
