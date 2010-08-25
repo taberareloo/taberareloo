@@ -52,10 +52,14 @@ function getPsInfo(tab){
   return d;
 };
 
-function notify(message){
+function notify(message, is_element){
   var msg = $('message');
   // $D(msg);
-  msg.appendChild($T(message+'\n'));
+  if (is_element) {
+    msg.appendChild($T(message+'\n'));
+  } else {
+    msg.appendChild(message);
+  }
   addElementClass(msg, 'shown');
   callLater(0.5, Form.resize);
 };
