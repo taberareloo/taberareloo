@@ -97,6 +97,9 @@
       }
     }
   },
+  "confirm_https": {
+    "message": "httpsリンクのポストを許可しますか?"
+  },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
     "description": "ポストに失敗した",

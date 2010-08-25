@@ -56,12 +56,17 @@ function notify(message, is_element){
   var msg = $('message');
   // $D(msg);
   if (is_element) {
-    msg.appendChild($T(message+'\n'));
-  } else {
     msg.appendChild(message);
+  } else {
+    msg.appendChild($T(message+'\n'));
   }
   addElementClass(msg, 'shown');
   callLater(0.5, Form.resize);
+};
+notify.clear = function notify_clear() {
+  var msg = $('message');
+  $D(msg);
+  removeElementClass(msg, 'shown');
 };
 
 var main = new Deferred();
@@ -148,7 +153,18 @@ var Form = function(ps){
                                         ps.https.itemUrl[1],
                                         ps.itemUrl]));
     }
-    notify(list.join('\n'));
+    list.push(chrome.i18n.getMessage('confirm_https'));
+    var df = $DF();
+    df.appendChild($T(list.join('\n')));
+    var button = $N('button', {
+      'type' : 'button',
+      'id'   : 'https_link',
+      'title': 'Allow posting https link'
+    }, 'Allow');
+    df.appendChild(button);
+    connect(button, 'onclick', this, 'allowHttps');
+    df.appendChild($T('\n'));
+    notify(df, true);
   }
 
   this[ps.type] && this[ps.type]();
@@ -240,6 +256,17 @@ Form.prototype = {
   cancel: function(){
     this.canceled = true;
     window.close();
+  },
+  allowHttps: function() {
+    notify.clear();
+    if (this.ps.https.pageUrl[0]) {
+      this.ps.pageUrl = this.ps.https.pageUrl[1];
+    }
+    if (this.ps.https.itemUrl[0]) {
+      this.ps.itemUrl = this.ps.https.itemUrl[1];
+    }
+    this.savers['itemUrl'] && this.savers['itemUrl'].reset(this.ps, true);
+    this.savers['tags'] && this.savers['tags'].reset(this.ps, true);
   },
   toggle: function(){
     this.toggles.forEach(function(unit){
@@ -348,6 +375,9 @@ Link.prototype = {
       this.link.removeAttribute('style');
     }
     this.shown = !this.shown;
+  },
+  reset: function(ps) {
+    this.linkInput.value = ps.itemUrl;
   }
 };
 
@@ -385,6 +415,11 @@ Pic.prototype = {
     return this.url;
   },
   toggle: function(){
+  },
+  reset: function(ps) {
+    $D(this.size);
+    this.url = ps.itemUrl;
+    this.image.src = this.url;
   }
 };
 
@@ -406,6 +441,10 @@ Audio.prototype = {
     return this.url;
   },
   toggle: function(){
+  },
+  reset: function(ps) {
+    this.url = ps.itemUrl;
+    this.audio.src = this.url;
   }
 };
 
@@ -618,7 +657,7 @@ var Tags = function(ps, toggle){
   this.container = [$('tags'), $('loading_icon'), $('suggestions')];
   this.shown = true;
   toggle && this.toggle();
-  var self = this;
+  var that = this;
   this.candidates = [];
   this.delay = 130;
   this.score = 0.0;
@@ -628,8 +667,9 @@ var Tags = function(ps, toggle){
   this.suggestionShown = false;
   this.suggestionIcon  = $('loading_icon');
   this.suggestionShownDefault = background.TBRL.Popup.suggestionShownDefault;
+  this.suggestionIconNotConnected = true;
   this.elmTags = {};
-  var ignoreTags = toggle;
+  this.ignoreTags = toggle;
 
   var tags = this.tags = $('tags');
   // unload
@@ -643,42 +683,21 @@ var Tags = function(ps, toggle){
     if(background.TBRL.Popup.candidates){
       this.candidates = background.TBRL.Popup.candidates;
       this.provider   = background.TBRL.Popup.provider;
-      self.autoComplete = true;
+      this.autoComplete = true;
     }
-    if(!ignoreTags){
-      background.Models[Config['post']['tag_provider']]
-      .getSuggestions(ps.itemUrl)
-      .addCallback(function(res){
-        self.arrangeSuggestions(res);
-        self.setSuggestions(res);
-        self.setTags(res.tags);
-
-        removeElementClass(self.suggestionIcon, 'loading');
-        addElementClass(self.suggestionIcon, 'loaded');
-        connect(self.suggestionIcon, 'onclick', self, 'toggleSuggestions');
-        if(self.suggestionShownDefault){
-          self.toggleSuggestions();
-        }
-      }).addErrback(function(e){
-        notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
-        var icon = $('loading_icon');
-        removeElementClass(icon, 'loading');
-        addElementClass(icon, 'loaded');
-      });
+    if(!this.ignoreTags){
+      this.loadSuggestion(ps.itemUrl);
     } else {
-      var icon = $('loading_icon');
-      icon.parentNode.removeChild(icon);
+      this.suggestionIcon.parentNode.removeChild(this.suggestionIcon);
     }
   } else {
-    var icon = $('loading_icon');
-    icon.parentNode.removeChild(icon);
+    this.suggestionIcon.parentNode.removeChild(this.suggestionIcon);
   }
 
   connect(tags, 'oninput', this, function(ev){
     // ずらさないとselectionStartの値が正確でない
-    var self = this;
     this.refreshCheck();
-    setTimeout(function(){ self.onInput(ev) }, 0);
+    setTimeout(function(){ that.onInput(ev) }, 0);
   });
   connect(tags, 'onterminate', this, 'refreshCheck');
   connect(tags, 'onkeydown', this, function(ev){
@@ -724,7 +743,7 @@ var Tags = function(ps, toggle){
   connect(tags, 'onblur', this, function(ev){
     // FIXME タイミングしだいで失敗する可能性あり
     setTimeout(function(){
-      self.popup.hidePopup();
+      that.popup.hidePopup();
     }, 200);
   });
   connect(tags, 'onclick', this.popup, 'hidePopup');
@@ -742,6 +761,40 @@ Tags.prototype = {
       });
     }
     this.shown = !this.shown;
+  },
+
+  loadSuggestion: function(url) {
+    var that = this;
+    background.Models[Config['post']['tag_provider']]
+    .getSuggestions(url)
+    .addCallback(function(res){
+      that.arrangeSuggestions(res);
+      that.setSuggestions(res);
+      that.setTags(res.tags);
+
+      removeElementClass(that.suggestionIcon, 'loading');
+      addElementClass(that.suggestionIcon, 'loaded');
+      if (that.suggestionIconNotConnected) {
+        that.suggestionIconNotConnected = false;
+        connect(that.suggestionIcon, 'onclick', that, 'toggleSuggestions');
+      }
+      if (that.suggestionShownDefault) {
+        that.openSuggestions();
+      }
+    }).addErrback(function(e){
+      notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+      removeElementClass(that.suggestionIcon, 'loading');
+      addElementClass(that.suggestionIcon, 'loaded');
+    });
+  },
+
+  reset: function(ps) {
+    if(Config['post']['tag_auto_complete'] && !this.ignoreTags) {
+      removeElementClass(this.suggestionIcon, 'loaded');
+      addElementClass(this.suggestionIcon, 'loading');
+      $D($('suggestions'));
+      this.loadSuggestion(ps.itemUrl);
+    }
   },
 
   focus: function(){
@@ -961,7 +1014,9 @@ Tags.prototype = {
   setTags: function(tags){
     var candidates = background.TBRL.Popup.candidates;
     var self = this;
-    if((background.TBRL.Popup.provider && background.TBRL.Popup.provider !== Config['post']['tag_provider']) || (!candidates || !candidates.length)){
+    if ((background.TBRL.Popup.provider &&
+         background.TBRL.Popup.provider !== Config['post']['tag_provider']) ||
+        (!candidates || !candidates.length)) {
       this.convertToCandidates(tags).addCallback(function(cands){
         self.candidates = cands;
         background.TBRL.Popup.candidates = cands;
@@ -1084,16 +1139,22 @@ Tags.prototype = {
   },
 
   toggleSuggestions: function(){
+    return this.suggestionShown ? this.closeSuggestions() : this.openSuggestions();
+  },
+
+  openSuggestions: function() {
     var sg = $('suggestions');
-    if(this.suggestionShown){
-      sg.style.display = 'none';
-    } else {
-      sg.style.display = 'block';
-    }
-    background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = !this.suggestionShown;
-    if(!addElementClass(this.suggestionIcon, 'extended')){
-      removeElementClass(this.suggestionIcon, 'extended');
-    }
+    sg.style.display = 'block';
+    background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = true;
+    addElementClass(this.suggestionIcon, 'extended');
+    return callLater(0, Form.resize);
+  },
+
+  closeSuggestions: function() {
+    var sg = $('suggestions');
+    sg.style.display = 'none';
+    background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = false;
+    removeElementClass(this.suggestionIcon, 'extended');
     return callLater(0, Form.resize);
   }
 };

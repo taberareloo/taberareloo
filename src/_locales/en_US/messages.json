@@ -97,6 +97,9 @@
       }
     }
   },
+  "confirm_https": {
+    "message": "Allow posting https link?"
+  },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",
     "description": "when post failed",
