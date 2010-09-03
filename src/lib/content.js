@@ -318,7 +318,7 @@ var getTitle = function(){
 };
 
 var onRequestHandlers = {
-  request: function(req, sender, func) {
+  popup: function(req, sender, func) {
     var content = req.content;
     (content.title ? succeed(content.title):getTitle()).addCallback(function(title){
       var sel = createFlavoredString(window.getSelection());
