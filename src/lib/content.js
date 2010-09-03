@@ -317,8 +317,8 @@ var getTitle = function(){
   }
 };
 
-chrome.extension.onRequest.addListener(function(req, sender, func){
-  if(req.request === 'popup'){
+var onRequestHandlers = {
+  request: function(req, sender, func) {
     var content = req.content;
     (content.title ? succeed(content.title):getTitle()).addCallback(function(title){
       var sel = createFlavoredString(window.getSelection());
@@ -341,5 +341,57 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
         }, ps)));
       });
     });
+  },
+  contextMenus: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var ctx = update({
+      document: document,
+      window: window,
+      title: document.title,
+      selection: (!!sel.raw)? sel : null,
+      target: TBRL.getTarget() || document.documentElement,
+      contextMenu: true
+    }, window.location);
+    if (ctx.target) {
+      switch (content.mediaType) {
+        case 'video':
+          ctx.onVideo = true;
+          ctx.target = $N('video', {
+            src: content.srcUrl
+          });
+          break;
+        case 'audio':
+          ctx.onVideo = true;
+          ctx.target = $N('audio', {
+            src: content.srcUrl
+          });
+          break;
+        case 'image':
+          ctx.onImage = true;
+          ctx.target = $N('img', {
+            src: content.srcUrl
+          });
+          break;
+        default:
+          if (content.linkUrl) {
+            // case link
+            ctx.onLink = true;
+            ctx.link = ctx.target = $N('a', {
+              href: content.linkUrl
+            });
+            ctx.title = content.linkUrl;
+          }
+          break;
+      }
+      TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    }
   }
+};
+
+chrome.extension.onRequest.addListener(function(req, sender, func){
+  var handler = onRequestHandlers[req.request];
+  handler && handler.apply(this, arguments);
 });
+

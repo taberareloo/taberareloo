@@ -499,3 +499,15 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
   handler && handler.apply(this, arguments);
 });
 
+chrome.contextMenus.create({
+  title: 'Share - Taberareloo',
+  contexts: ['all'],
+  onclick: function(info, tab) {
+    console.log(info);
+    chrome.tabs.sendRequest(tab.id, {
+      request: 'contextMenus',
+      content: info
+    });
+  },
+});
+
