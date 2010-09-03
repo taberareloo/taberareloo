@@ -290,12 +290,81 @@ Extractors.register([
 
   {
     name : 'Amazon',
-    getAsin: function(ctx){
-      return $X('id("ASIN")/@value')[0];
+    getAsin : function(ctx) {
+      return $X('id("ASIN")/@value', ctx.document)[0];
     },
-    extract: function(ctx){
-      var asin = this.getAsin(ctx);
-      // FIXME
+    normalizeUrl : function(host, asin) {
+      return  'http://' + host + '/o/ASIN/' + asin +
+        (this.affiliateId ? '/' + this.affiliateId + '/ref=nosim' : '');
+    },
+    get affiliateId() {
+      return TBRL.config.entry['amazon_affiliate_id'];
+    },
+    preCheck : function(ctx) {
+      return ctx.host.match(/amazon\./) && this.getAsin(ctx);
+    },
+    extract : function(ctx) {
+      ctx.href = this.normalizeUrl(ctx.host, this.getAsin(ctx));
+      ctx.title = 'Amazon: ' + $X('id("prodImage")/@alt', ctx.document)[0] + ': ' + ctx.document.title.split(/[：:] */).slice(-2).shift();
+
+      // 日本に特化(comの取得方法不明)
+      var date = new Date(ctx.document.body.innerHTML.extract('発売日：.*?</b>.*?([\\d/]+)'));
+      if (!isNaN(date)) {
+        ctx.date = date;
+      }
+    }
+  },
+
+  {
+    name : 'Photo - Amazon',
+    ICON : 'http://www.amazon.com/favicon.ico',
+    check : function(ctx){
+      return Extractors.Amazon.preCheck(ctx) && $X('./ancestor::*[@id="prodImageCell"]', ctx.target)[0];
+    },
+    extract : function(ctx){
+      Extractors.Amazon.extract(ctx);
+
+      var url = ctx.target.src.split('.');
+      url.splice(-2, 1, 'LZZZZZZZ');
+      url = url.join('.').replace('.L.LZZZZZZZ.', '.L.'); // カスタマーイメージ用
+
+      with (ctx.target) {
+        src = url;
+        height = '';
+        width = '';
+        style.height = 'auto';
+        style.width = 'auto';
+      }
+
+      return {
+        type    : 'photo',
+        item    : ctx.title,
+        itemUrl : url
+      };
+    }
+  },
+
+  {
+    name : 'Quote - Amazon',
+    ICON : 'http://www.amazon.com/favicon.ico',
+    check : function(ctx){
+      return Extractors.Amazon.preCheck(ctx) && ctx.selection;
+    },
+    extract : function(ctx){
+      Extractors.Amazon.extract(ctx);
+      return Extractors.Quote.extract(ctx);
+    }
+  },
+
+  {
+    name : 'Link - Amazon',
+    ICON : 'http://www.amazon.com/favicon.ico',
+    check : function(ctx){
+      return Extractors.Amazon.preCheck(ctx);
+    },
+    extract : function(ctx){
+      Extractors.Amazon.extract(ctx);
+      return Extractors.Link.extract(ctx);
     }
   },
 
@@ -482,9 +551,9 @@ Extractors.register([
     name : 'Photo - Google Book Search',
     ICON : 'http://www.google.com/favicon.ico',
     check : function(ctx){
-      if(!(/^books\.google\./).test(ctx.host))
-        return;
-
+      if(!(/^books\.google\./).test(ctx.host)) {
+        return null;
+      }
       return !!this.getImage(ctx);
     },
     extract : function(ctx){
@@ -498,17 +567,19 @@ Extractors.register([
     getImage : function(ctx){
       // 標準モード
       var img = $X('./ancestor::div[@class="pageImageDisplay"]//img[contains(@src, "//books.google.")]', ctx.target)[0];
-      if(img)
+      if (img) {
         return img;
+      }
 
       // HTMLモード
       var div = $X('./ancestor::div[@class="html_page_image"]', ctx.target)[0];
-      if(div){
+      if (div) {
         var img = new Image();
         img.src = getStyle(div, 'background-image').replace(/url\((.*)\)/, '$1');
 
         return img;
       }
+      return null;
     }
   },
 
@@ -618,8 +689,9 @@ Extractors.register([
     name : 'Photo - covered',
     ICON : 'chrome://tombloo/skin/photo.png',
     check : function(ctx){
-      if(!ctx.document.elementFromPoint || !ctx.onImage)
-        return;
+      if (!ctx.document.elementFromPoint || !ctx.onImage) {
+        return null;
+      }
 
       // 1px四方の画像の上でクリックされたか?
       // FIXME: naturalHeight利用
@@ -974,8 +1046,9 @@ Extractors.register([
       // ショートカットキーからポストするためcaptureTypeを追加
       // var type = ctx.captureType || input({'Capture Type' : ['Region', 'Element', 'View', 'Page']});
       var type = ctx.captureType || 'Region';
-      if(!type)
-        return;
+      if (!type) {
+        return null;
+      }
 
       var win = ctx.window;
       self.makeOpaqueFlash(ctx.document);

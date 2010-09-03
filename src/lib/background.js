@@ -1,4 +1,4 @@
-// vim: fileencoding=utf-8
+// -*- coding: utf-8 -*-
 
 function backgroundAlert(message){
   alert(message);
@@ -237,7 +237,8 @@ function getSelected(){
 
 var TBRL = {
   // default config
-  VERSION: '1.1.26',
+  VERSION: '2.0.0',
+  ID: chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   Config: {
     "services": {
     },
@@ -498,3 +499,86 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
   handler && handler.apply(this, arguments);
 });
 
+(function() {
+  var id = chrome.contextMenus.create({
+    title: 'Share ...',
+    contexts: ['all']
+  });
+  chrome.contextMenus.create({
+    title: 'Taberareloo',
+    contexts: ['all'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenus',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Quote',
+    contexts: ['selection'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusQuote',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Link',
+    contexts: ['link'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusLink',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Photo',
+    contexts: ['image'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusImage',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Video',
+    contexts: ['video'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusVideo',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Audio',
+    contexts: ['audio'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusAudio',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Photo - Capture',
+    contexts: ['all'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusCapture',
+        content: info
+      });
+    }
+  });
+})();

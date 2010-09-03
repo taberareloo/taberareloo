@@ -1,4 +1,4 @@
-// vim: fileencoding=utf-8
+// -*- coding: utf-8 -*-
 
 // Array extension
 update(Array.prototype, {

@@ -1,4 +1,4 @@
-// vim: fileencoding=utf-8
+// -*- coding: utf-8 -*-
 // content script space
 
 var log = function(){
@@ -317,8 +317,8 @@ var getTitle = function(){
   }
 };
 
-chrome.extension.onRequest.addListener(function(req, sender, func){
-  if(req.request === 'popup'){
+var onRequestHandlers = {
+  popup: function(req, sender, func) {
     var content = req.content;
     (content.title ? succeed(content.title):getTitle()).addCallback(function(title){
       var sel = createFlavoredString(window.getSelection());
@@ -341,5 +341,119 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
         }, ps)));
       });
     });
+  },
+  contextMenus: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = {};
+    var query = null;
+    switch (content.mediaType) {
+      case 'video':
+        ctx.onVideo = true;
+        ctx.target = $N('video', {
+          src: content.srcUrl
+        });
+        query = 'video[src="'+content.srcUrl+'"]';
+        break;
+      case 'audio':
+        ctx.onVideo = true;
+        ctx.target = $N('audio', {
+          src: content.srcUrl
+        });
+        query = 'audio[src="'+content.srcUrl+'"]';
+        break;
+      case 'image':
+        ctx.onImage = true;
+        ctx.target = $N('img', {
+          src: content.srcUrl
+        });
+        query = 'img[src="'+content.srcUrl+'"]';
+        break;
+      default:
+        if (content.linkUrl) {
+          // case link
+          ctx.onLink = true;
+          ctx.link = ctx.target = $N('a', {
+            href: content.linkUrl
+          });
+          ctx.title = content.linkUrl;
+          query = 'a[href="'+content.linkUrl+'"]';
+        }
+        break;
+    }
+    update(ctx, TBRL.createContext(query && document.querySelector(query)));
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+  },
+  contextMenusQuote: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext());
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Quote/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
+  },
+  contextMenusLink: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      title: content.linkUrl,
+      onLink: true,
+      contextMenu: true
+    }, TBRL.createContext(document.querySelector('a[href="'+content.linkUrl+'"]')));
+    ctx.link = ctx.target;
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Link/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
+  },
+  contextMenusImage: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      onImage: true,
+      contextMenu: true
+    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]')));
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Photo/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
+  },
+  contextMenusVideo: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      onVideo: true,
+      contextMenu: true
+    }, TBRL.createContext(document.querySelector('video[src="'+content.srcUrl+'"]')));
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Video/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
+  },
+  contextMenusAudio: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      onVideo: true,
+      contextMenu: true
+    }, TBRL.createContext(document.querySelector('audio[src="'+content.srcUrl+'"]')));
+    TBRL.share(ctx, Extractors.Audio, true);
+  },
+  contextMenusCapture: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext());
+    TBRL.share(ctx, Extractors["Photo - Capture"], true);
   }
+};
+
+chrome.extension.onRequest.addListener(function(req, sender, func){
+  var handler = onRequestHandlers[req.request];
+  handler && handler.apply(this, arguments);
 });

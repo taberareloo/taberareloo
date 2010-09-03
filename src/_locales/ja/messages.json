@@ -70,6 +70,9 @@
   "label_save": {
     "message": "保存"
   },
+  "label_amazonAffiliateId": {
+    "message": "AmazonアフィリエイトID"
+  },
   "label_thumbnailTemplate": {
     "message": "Linkポストのサムネイルテンプレート"
   },
