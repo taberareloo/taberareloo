@@ -538,7 +538,7 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
     }
   });
   chrome.contextMenus.create({
-    title: 'Image',
+    title: 'Photo',
     contexts: ['image'],
     parentId: id,
     onclick: function(info, tab) {
@@ -566,6 +566,17 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusAudio',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Photo - Capture',
+    contexts: ['all'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusCapture',
         content: info
       });
     }

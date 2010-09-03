@@ -345,132 +345,111 @@ var onRequestHandlers = {
   contextMenus: function(req, sender, func) {
     func({});
     var content = req.content;
-    var sel = createFlavoredString(window.getSelection());
-    var ctx = update({
-      document: document,
-      window: window,
-      title: document.title,
-      selection: (!!sel.raw)? sel : null,
-      target: TBRL.getTarget() || document.documentElement,
-      contextMenu: true
-    }, window.location);
-    if (ctx.target) {
-      switch (content.mediaType) {
-        case 'video':
-          ctx.onVideo = true;
-          ctx.target = $N('video', {
-            src: content.srcUrl
+    var ctx = {};
+    var query = null;
+    switch (content.mediaType) {
+      case 'video':
+        ctx.onVideo = true;
+        ctx.target = $N('video', {
+          src: content.srcUrl
+        });
+        query = 'video[src="'+content.srcUrl+'"]';
+        break;
+      case 'audio':
+        ctx.onVideo = true;
+        ctx.target = $N('audio', {
+          src: content.srcUrl
+        });
+        query = 'audio[src="'+content.srcUrl+'"]';
+        break;
+      case 'image':
+        ctx.onImage = true;
+        ctx.target = $N('img', {
+          src: content.srcUrl
+        });
+        query = 'img[src="'+content.srcUrl+'"]';
+        break;
+      default:
+        if (content.linkUrl) {
+          // case link
+          ctx.onLink = true;
+          ctx.link = ctx.target = $N('a', {
+            href: content.linkUrl
           });
-          break;
-        case 'audio':
-          ctx.onVideo = true;
-          ctx.target = $N('audio', {
-            src: content.srcUrl
-          });
-          break;
-        case 'image':
-          ctx.onImage = true;
-          ctx.target = $N('img', {
-            src: content.srcUrl
-          });
-          break;
-        default:
-          if (content.linkUrl) {
-            // case link
-            ctx.onLink = true;
-            ctx.link = ctx.target = $N('a', {
-              href: content.linkUrl
-            });
-            ctx.title = content.linkUrl;
-          }
-          break;
-      }
-      TBRL.share(ctx, Extractors.check(ctx)[0], true);
+          ctx.title = content.linkUrl;
+          query = 'a[href="'+content.linkUrl+'"]';
+        }
+        break;
     }
+    update(ctx, TBRL.createContext(query && document.querySelector(query)));
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
   },
   contextMenusQuote: function(req, sender, func) {
     func({});
     var content = req.content;
     var sel = createFlavoredString(window.getSelection());
     var ctx = update({
-      document: document,
-      window: window,
-      title: document.title,
-      selection: (!!sel.raw)? sel : null,
-      target: TBRL.getTarget() || document.documentElement,
       contextMenu: true
-    }, window.location);
-    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    }, TBRL.createContext());
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Quote/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
   },
   contextMenusLink: function(req, sender, func) {
     func({});
     var content = req.content;
-    var sel = createFlavoredString(window.getSelection());
-    var elm = $N('a', {
-      href: content.linkUrl
-    });
     var ctx = update({
-      document: document,
-      window: window,
       title: content.linkUrl,
-      selection: (!!sel.raw)? sel : null,
-      target: elm,
-      link: elm,
       onLink: true,
       contextMenu: true
-    }, window.location);
-    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    }, TBRL.createContext(document.querySelector('a[href="'+content.linkUrl+'"]')));
+    ctx.link = ctx.target;
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Link/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
   },
   contextMenusImage: function(req, sender, func) {
     func({});
     var content = req.content;
-    var sel = createFlavoredString(window.getSelection());
     var ctx = update({
-      document: document,
-      window: window,
-      title: document.title,
-      selection: (!!sel.raw)? sel : null,
-      target: $N('img', {
-        src: content.srcUrl
-      }),
       onImage: true,
       contextMenu: true
-    }, window.location);
-    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]')));
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Photo/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
   },
   contextMenusVideo: function(req, sender, func) {
     func({});
     var content = req.content;
-    var sel = createFlavoredString(window.getSelection());
     var ctx = update({
-      document: document,
-      window: window,
-      title: document.title,
-      selection: (!!sel.raw)? sel : null,
-      target: $N('video', {
-        src: content.srcUrl
-      }),
       onVideo: true,
       contextMenu: true
-    }, window.location);
-    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    }, TBRL.createContext(document.querySelector('video[src="'+content.srcUrl+'"]')));
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Video/.test(m.name);
+    })[0];
+    TBRL.share(ctx, ext, true);
   },
   contextMenusAudio: function(req, sender, func) {
     func({});
     var content = req.content;
-    var sel = createFlavoredString(window.getSelection());
     var ctx = update({
-      document: document,
-      window: window,
-      title: document.title,
-      selection: (!!sel.raw)? sel : null,
-      target: $N('audio', {
-        src: content.srcUrl
-      }),
       onVideo: true,
       contextMenu: true
-    }, window.location);
-    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    }, TBRL.createContext(document.querySelector('audio[src="'+content.srcUrl+'"]')));
+    TBRL.share(ctx, Extractors.Audio, true);
+  },
+  contextMenusCapture: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext());
+    TBRL.share(ctx, Extractors["Photo - Capture"], true);
   }
 };
 
