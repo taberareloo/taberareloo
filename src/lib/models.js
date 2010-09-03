@@ -907,6 +907,98 @@ Models.register({
 });
 
 Models.register({
+  name: 'GoogleCalendar',
+  ICON: 'http://calendar.google.com/googlecalendar/images/favicon.ico',
+
+  check: function(ps) {
+    return /regular|link/.test(ps.type) && !ps.file;
+  },
+
+  getAuthCookie: function() {
+    var ret = new Deferred();
+    chrome.cookies.getAll({
+      domain: 'www.google.com',
+      name : 'secid'
+    }, function(cookie) {
+      if (cookie.length) {
+        ret.callback(cookie[cookie.length-1].value);
+      } else {
+        ret.errback(new Error(getMessage('error.notLoggedin')));
+      }
+    });
+    return ret;
+  },
+
+  post: function(ps) {
+    if (ps.item && (ps.itemUrl || ps.description)) {
+      return this.addSchedule(
+          ps.item, joinText([ps.itemUrl, ps.body, ps.description], '\n'), ps.date);
+    } else {
+      return this.addSimpleSchedule(ps.description);
+    }
+  },
+
+  addSimpleSchedule: function(description){
+    return this.getAuthCookie().addCallback(function(cookie) {
+      var endpoint = 'http://www.google.com/calendar/m';
+      return request(endpoint, {
+        queryString : {
+          hl : 'en'
+        }
+      }).addCallback(function(res) {
+        // form.secidはクッキー内のsecidとは異なる
+        var doc = createHTML(res.responseText);
+        var form = formContents($X('//form', doc)[0]);
+        return request(endpoint, {
+          redirectionLimit : 0,
+          sendContent: {
+            ctext  : description,
+            secid  : form.secid,
+            as_sdt : form.as_sdt
+          }
+        });
+      });
+    });
+  },
+
+  addSchedule: function(title, description, from, to) {
+    var that = this;
+    from = from || new Date();
+    to = to || new Date(from.getTime() + (86400 * 1000));
+    return this.getAuthCookie().addCallback(function(cookie) {
+      console.log("OK", cookie);
+      return request('http://www.google.com/calendar/event', {
+          queryString : {
+            action  : 'CREATE',
+            secid   : cookie,
+            dates   : that.createDateString(from) + '/' + that.createDateString(to),
+            text    : title,
+            details : description,
+            sf      : true,
+            crm     : 'AVAILABLE',
+            icc     : 'DEFAULT',
+            output  : 'js',
+            scp     : 'ONE'
+          }
+      });
+    });
+  },
+
+  createDateString: function(date) {
+    var y = date.getFullYear().toString();
+    var m = (date.getMonth() + 1).toString();
+    if (m.length === 1) {
+      m = '0' + m;
+    }
+    var d = date.getDate().toString();
+    if (d.length === 1) {
+      d = '0' + d;
+    }
+    return y + m + d;
+  }
+});
+
+Models.register({
   name     : 'ChromeBookmark',
   ICON     : chrome.extension.getURL('skin/chromium.ico'),
   check : function(ps){
