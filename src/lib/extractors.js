@@ -8,7 +8,7 @@ Extractors.register([
     getItem : function(ctx, getOnly){
       if(ctx.host !== 'reader.livedoor.com' && ctx.host !== 'fastladder.com')
         return null;
-      var item = $X('ancestor::div[starts-with(@id, "item_count")]', ctx.target)[0];
+      var item = $X('ancestor-or-self::div[starts-with(@id, "item_count")]', ctx.target)[0];
       if(!item)
         return null;
       var channel = $X('id("right_body")/div[@class="channel"]//a', ctx.document)[0];
