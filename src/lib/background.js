@@ -1,4 +1,4 @@
-// vim: fileencoding=utf-8
+// -*- coding: utf-8 -*-
 
 function backgroundAlert(message){
   alert(message);
@@ -238,6 +238,7 @@ function getSelected(){
 var TBRL = {
   // default config
   VERSION: '1.1.25',
+  ID: chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   Config: {
     "services": {
     },
