@@ -916,6 +916,7 @@ Models.register({
 
   getAuthCookie: function() {
     var ret = new Deferred();
+    var that = this;
     chrome.cookies.getAll({
       domain: 'www.google.com',
       name : 'secid'
@@ -923,7 +924,7 @@ Models.register({
       if (cookie.length) {
         ret.callback(cookie[cookie.length-1].value);
       } else {
-        ret.errback(new Error(getMessage('error.notLoggedin')));
+        ret.errback(new Error(chrome.i18n.getMessage('error.notLoggedin', that.name)));
       }
     });
     return ret;
@@ -966,7 +967,6 @@ Models.register({
     from = from || new Date();
     to = to || new Date(from.getTime() + (86400 * 1000));
     return this.getAuthCookie().addCallback(function(cookie) {
-      console.log("OK", cookie);
       return request('http://www.google.com/calendar/event', {
           queryString : {
             action  : 'CREATE',
