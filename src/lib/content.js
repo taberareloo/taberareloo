@@ -387,6 +387,90 @@ var onRequestHandlers = {
       }
       TBRL.share(ctx, Extractors.check(ctx)[0], true);
     }
+  },
+  contextMenusQuote: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var ctx = update({
+      document: document,
+      window: window,
+      title: document.title,
+      selection: (!!sel.raw)? sel : null,
+      target: TBRL.getTarget() || document.documentElement,
+      contextMenu: true
+    }, window.location);
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+  },
+  contextMenusLink: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var elm = $N('a', {
+      href: content.linkUrl
+    });
+    var ctx = update({
+      document: document,
+      window: window,
+      title: content.linkUrl,
+      selection: (!!sel.raw)? sel : null,
+      target: elm,
+      link: elm,
+      onLink: true,
+      contextMenu: true
+    }, window.location);
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+  },
+  contextMenusImage: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var ctx = update({
+      document: document,
+      window: window,
+      title: document.title,
+      selection: (!!sel.raw)? sel : null,
+      target: $N('img', {
+        src: content.srcUrl
+      }),
+      onImage: true,
+      contextMenu: true
+    }, window.location);
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+  },
+  contextMenusVideo: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var ctx = update({
+      document: document,
+      window: window,
+      title: document.title,
+      selection: (!!sel.raw)? sel : null,
+      target: $N('video', {
+        src: content.srcUrl
+      }),
+      onVideo: true,
+      contextMenu: true
+    }, window.location);
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+  },
+  contextMenusAudio: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var sel = createFlavoredString(window.getSelection());
+    var ctx = update({
+      document: document,
+      window: window,
+      title: document.title,
+      selection: (!!sel.raw)? sel : null,
+      target: $N('audio', {
+        src: content.srcUrl
+      }),
+      onVideo: true,
+      contextMenu: true
+    }, window.location);
+    TBRL.share(ctx, Extractors.check(ctx)[0], true);
   }
 };
 
@@ -394,4 +478,3 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
   var handler = onRequestHandlers[req.request];
   handler && handler.apply(this, arguments);
 });
-
