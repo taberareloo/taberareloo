@@ -298,8 +298,7 @@ Extractors.register([
         (this.affiliateId ? '/' + this.affiliateId + '/ref=nosim' : '');
     },
     get affiliateId() {
-      return null;
-      // return TBRL.config.entry['amazon_affiliated_id'];
+      return TBRL.config.entry['amazon_affiliate_id'];
     },
     preCheck : function(ctx) {
       return ctx.host.match(/amazon\./) && this.getAsin(ctx);

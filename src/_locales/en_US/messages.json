@@ -70,6 +70,9 @@
   "label_save": {
     "message": "Save"
   },
+  "label_amazonAffiliateId": {
+    "message": "Amazon affiliate ID"
+  },
   "label_thumbnailTemplate": {
     "message": "Link thumbnail template"
   },

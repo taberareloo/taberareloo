@@ -57,6 +57,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
   $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
   $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
+  $('label_amazonAffiliateId').appendChild($T(chrome.i18n.getMessage('label_amazonAffiliateId')));
   $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
   $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
   $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
@@ -110,6 +111,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   // multiple tumblelogs
   var tumble_check = new Check('multi_tumblelogs', !!Config.post["multi_tumblelogs"]);
   var tumble_list = new TumbleList();
+  // amazon affiliate id
+  var amazon = new Input('amazon_affiliate_id', Config.entry['amazon_affiliate_id']);
   // thumbnail template
   var thumbnail = new TemplateInput("thumbnail_template");
   // twitter template
@@ -164,6 +167,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "post_with_queue"    : queue_check.body()
         },
         'entry'    : {
+          'amazon_affiliate_id' : amazon.body(),
           'thumbnail_template' : thumbnail.body(),
           'twitter_template' : twittemp.body(),
           'trim_reblog_info'   : reblog_check.body(),
@@ -383,6 +387,19 @@ Check.prototype = {
     return this.check.checked;
   }
 };
+
+function Input(name, def) {
+  this.input = $(name+'_input');
+  if (def) {
+    this.input.value = def;
+  }
+}
+
+Input.prototype = {
+  body: function() {
+    return this.input.value;
+  }
+}
 
 // Chrome 6 does'nt implement event#dataTransfer#setDragImage
 // so now, implement dragger by the legacy way such as mouseover etc.
