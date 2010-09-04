@@ -64,14 +64,14 @@ window.addEventListener('load', function(){
   }, 1000*10);
 }, false);
 
-var post_handler = function(item, con){
+function post_handler(item, con){
   var ps = item.ps;
   var id = item.id;
   win = open(chrome.extension.getURL('quickpostform.html'), '_blank', 'alwaysRaised=yes,toolbar=no,directories=no,status=no,menubar=no,scrollbars=no,location=no,dependent=yes,z-lock=yes');
   win.QuickPostForm = {};
   win.ps = ps;
   win.Models = Models
-};
+}
 
 function request_v1(url,opt){
   opt = update({
@@ -86,7 +86,7 @@ function request_v1(url,opt){
     opt.headers.push(['Content-Type', 'application/x-www-form-urlencoded']);
   }
   return doXHR(url, opt);
-};
+}
 
 function binaryRequest(url, opt){
   return request(url, update({
@@ -97,7 +97,7 @@ function binaryRequest(url, opt){
     });
     return res;
   });
-};
+}
 
 // 2回requestすることでcharset判別する.
 function encodedRequest(url, opt){
@@ -112,15 +112,15 @@ function encodedRequest(url, opt){
       charset: 'text/html; charset='+charset
     }, opt));
   });
-};
+}
 
 // canvas request
 function canvasRequest(url){
   var canvas = document.createElement('canvas'),
       ret    = new Deferred(),
       img    = new Image();
-  img.addEventListener('load', function(res){
-    img.removeEventListener('load', arguments.callee, false);
+  img.addEventListener('load', function img_load(res){
+    img.removeEventListener('load', img_load, false);
     canvas.width  = img.naturalWidth;
     canvas.height = img.naturalHeight;
     var ctx = canvas.getContext('2d');
@@ -135,18 +135,18 @@ function canvasRequest(url){
   }, false);
   img.src = url;
   return ret;
-};
+}
 
 function getEncoding(text){
   var matched = text.match(/<meta.+?http-equiv.+?Content-Type.+?content=(["'])([^\1]+?)\1/i);
   var res = (matched && !matched[2].match(/UTF-8/i) && matched[2]);
   return (res)? getCharset(res) : false;
-};
+}
 
 function getCharset(text){
   var matched = text.match(/charset\s*=\s*(\S+)/);
   return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
-};
+}
 
 function request(url, opt){
   var req = new XMLHttpRequest(), ret = new Deferred();
@@ -233,7 +233,7 @@ function getSelected(){
     d.callback(tab);
   });
   return d;
-};
+}
 
 var TBRL = {
   // default config
@@ -492,7 +492,7 @@ var onRequestsHandlers = {
     var id = req.content;
     func(TBRL.Notification.contents[id]);
   }
-}
+};
 
 chrome.extension.onRequest.addListener(function(req, sender, func){
   var handler = onRequestsHandlers[req.request];
