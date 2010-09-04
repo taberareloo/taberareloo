@@ -1481,7 +1481,7 @@ Models.register({
 
   toSparseRomaReadings: function(s){
     var res = [];
-    for(var i = 0, roma, kana, table = this.katakana ; i < s.length ; i += kana.length){
+    for(var i = 0, roma, kana, table = this.katakana, len = s.length; i < len; i += kana.length){
       kana = s.substring(i, i+2);
       roma = table[kana];
 
