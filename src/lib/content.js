@@ -14,6 +14,7 @@ var log = function(){
 
 var TBRL = {
   target : {x:0, y:0},
+  clickTarget: {x:0, y:0},
   config : null,
   styles : {
     'div': [
@@ -91,6 +92,7 @@ var TBRL = {
   init : function(config){
     TBRL.config = config;
     document.addEventListener('mousemove', TBRL.mousehandler, false);
+    document.addEventListener('mousedown', TBRL.clickhandler, false);
     document.addEventListener('unload', TBRL.unload, false);
     window.addEventListener('Taberareloo.link', TBRL.link, false);
     window.addEventListener('Taberareloo.quote', TBRL.quote, false);
@@ -105,6 +107,7 @@ var TBRL = {
     document.removeEventListener('unload', TBRL.unload, false);
     !TBRL.config['post']['keyconfig'] && document.removeEventListener('keydown', TBRL.keyhandler, false);
     document.removeEventListener('mousemove', TBRL.mousehandler, false);
+    document.removeEventListener('mousedown', TBRL.clickhandler, false);
     window.removeEventListener('Taberareloo.link', TBRL.link, false);
     window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
     window.removeEventListener('Taberareloo.general', TBRL.general, false);
@@ -239,8 +242,15 @@ var TBRL = {
     TBRL.target.x = ev.clientX;
     TBRL.target.y = ev.clientY;
   },
+  clickhandler: function(ev) {
+    TBRL.clickTarget.x = ev.clientX;
+    TBRL.clickTarget.y = ev.clientY;
+  },
   getTarget : function(){
     return document.elementFromPoint(TBRL.target.x, TBRL.target.y);
+  },
+  getContextMenuTarget: function() {
+    return document.elementFromPoint(TBRL.clickTarget.x, TBRL.clickTarget.y);
   },
   share: function(ctx, ext, show){
     return maybeDeferred(ext.extract(ctx))
@@ -381,7 +391,7 @@ var onRequestHandlers = {
         }
         break;
     }
-    update(ctx, TBRL.createContext(query && document.querySelector(query)));
+    update(ctx, TBRL.createContext((query && document.querySelector(query)) || TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors.check(ctx)[0], true);
   },
   contextMenusQuote: function(req, sender, func) {
@@ -390,7 +400,7 @@ var onRequestHandlers = {
     var sel = createFlavoredString(window.getSelection());
     var ctx = update({
       contextMenu: true
-    }, TBRL.createContext());
+    }, TBRL.createContext(TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Quote/.test(m.name);
     })[0];
@@ -403,7 +413,7 @@ var onRequestHandlers = {
       title: content.linkUrl,
       onLink: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('a[href="'+content.linkUrl+'"]')));
+    }, TBRL.createContext(document.querySelector('a[href="'+content.linkUrl+'"]') || TBRL.getContextMenuTarget()));
     ctx.link = ctx.target;
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Link/.test(m.name);
@@ -416,7 +426,7 @@ var onRequestHandlers = {
     var ctx = update({
       onImage: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]')));
+    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Photo/.test(m.name);
     })[0];
@@ -428,7 +438,7 @@ var onRequestHandlers = {
     var ctx = update({
       onVideo: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('video[src="'+content.srcUrl+'"]')));
+    }, TBRL.createContext(document.querySelector('video[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Video/.test(m.name);
     })[0];
@@ -440,7 +450,7 @@ var onRequestHandlers = {
     var ctx = update({
       onVideo: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('audio[src="'+content.srcUrl+'"]')));
+    }, TBRL.createContext(document.querySelector('audio[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors.Audio, true);
   },
   contextMenusCapture: function(req, sender, func) {
@@ -448,7 +458,7 @@ var onRequestHandlers = {
     var content = req.content;
     var ctx = update({
       contextMenu: true
-    }, TBRL.createContext());
+    }, TBRL.createContext(TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors["Photo - Capture"], true);
   }
 };
