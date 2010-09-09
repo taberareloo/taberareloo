@@ -424,8 +424,8 @@ Extractors.register([
       });
     },
     extractByPage : function(ctx, doc){
-      return this.extractByEndpoint(ctx,
-        unescapeHTML(this.getFrameUrl(doc)).replace(/.+&pid=(.*)&rk=(.*)/, this.TUMBLR_URL+'reblog/$1/$2'));
+      var m = unescapeHTML(this.getFrameUrl(doc)).match(/.+&pid=([^&]*)&rk=([^&]*)/);
+      return this.extractByEndpoint(ctx, this.TUMBLR_URL + 'reblog/' + m[1] + '/' + m[2]);
     },
     extractByEndpoint : function(ctx, endpoint){
       var self = this;
@@ -443,7 +443,7 @@ Extractors.register([
       });
     },
     getFrameUrl : function(doc){
-      var elm = $X('//iframe[starts-with(@src, "http://www.tumblr.com/dashboard/iframe") and contains(@src, "pid=")]/@src', doc);
+      var elm = $X('//iframe[starts-with(@src, "http://assets.tumblr.com/iframe") and contains(@src, "pid=")]/@src', doc);
       if(elm.length){
         return elm[0];
       } else {
