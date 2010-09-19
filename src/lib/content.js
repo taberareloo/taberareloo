@@ -397,10 +397,16 @@ var onRequestHandlers = {
   contextMenusQuote: function(req, sender, func) {
     func({});
     var content = req.content;
-    var sel = createFlavoredString(window.getSelection());
     var ctx = update({
       contextMenu: true
     }, TBRL.createContext(TBRL.getContextMenuTarget()));
+    // pdf
+    if (!ctx.selection) {
+      ctx.selection = {
+        raw: content.selectionText,
+        html: content.selectionText,
+      };
+    }
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Quote/.test(m.name);
     })[0];
