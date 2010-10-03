@@ -581,4 +581,15 @@ chrome.extension.onRequest.addListener(function(req, sender, func){
       });
     }
   });
+  chrome.contextMenus.create({
+    title: 'Text',
+    contexts: ['all'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusText',
+        content: info
+      });
+    }
+  });
 })();

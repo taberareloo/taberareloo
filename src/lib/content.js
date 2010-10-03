@@ -466,6 +466,14 @@ var onRequestHandlers = {
       contextMenu: true
     }, TBRL.createContext(TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors["Photo - Capture"], true);
+  },
+  contextMenusText: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext(TBRL.getContextMenuTarget()));
+    TBRL.share(ctx, Extractors["Text"], true);
   }
 };
 
