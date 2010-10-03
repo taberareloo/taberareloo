@@ -253,6 +253,10 @@ var TBRL = {
     return document.elementFromPoint(TBRL.clickTarget.x, TBRL.clickTarget.y);
   },
   share: function(ctx, ext, show){
+    var canonical = $X('//link[@rel="canonical"]/@href', ctx.document)[0];
+    if (canonical) {
+      ctx.href = resolveRelativePath(ctx.href)(canonical);
+    }
     return maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
       chrome.extension.sendRequest(TBRL.id, {
@@ -339,6 +343,10 @@ var onRequestHandlers = {
         selection : (!!sel.raw)? sel : null,
         target : TBRL.getTarget() || document
       }, window.location);
+      var canonical = $X('//link[@rel="canonical"]/@href', ctx.document)[0];
+      if (canonical) {
+        ctx.href = resolveRelativePath(ctx.href)(canonical);
+      }
       if(Extractors.Quote.check(ctx)){
         var d = Extractors.Quote.extract(ctx);
       } else {
