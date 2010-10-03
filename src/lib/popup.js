@@ -219,6 +219,15 @@ Form.prototype = {
     this.toggles = [title, tags, link, desc];
     callLater(0.5, Form.resize);
   },
+  conversation: function() {
+    var ps = this.ps;
+    var title = this.savers['item'] = this.title = new Title(ps);
+    var link  = this.savers['itemUrl'] = this.link = new Link(ps, true);
+    var tags  = this.savers['tags'] = this.tags  = new Tags(ps, true);
+    var desc  = this.savers['description'] = this.desc = new Desc(ps, true);
+    this.toggles = [title, tags, link, desc];
+    callLater(0.5, Form.resize);
+  },
   audio: function(){
     var ps = this.ps;
     var title = this.savers['item'] = this.title = new Title(ps);
