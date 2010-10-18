@@ -422,11 +422,9 @@ Models.register({
           var target = $N('a', { href: url }, $N('img', {src: url}));
           target.dispatchEvent(ev);
         }.toString() + ')(' + JSON.stringify(ps.itemUrl) + ')';
-        console.log(code);
         chrome.tabs.executeScript(tab.id, {
           code: code
         }, function() {
-          console.log("OK");
           ret.callback();
         });
       });
