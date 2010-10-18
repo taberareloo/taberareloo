@@ -389,6 +389,53 @@ Models.register({
 });
 
 Models.register({
+  name : 'Local',
+  ICON : chrome.extension.getURL('skin/local.ico'),
+
+  check : function(ps) {
+    return ps.type === 'photo' && !ps.file;
+  },
+
+  post : function(ps) {
+    return this.Photo.post(ps);
+  },
+
+  append : function(file, ps) {
+    putContents(file, joinText([
+      joinText([joinText(ps.tags, ' '), ps.item, ps.itemUrl, ps.body, ps.description], '\n\n', true),
+      getContents(file)
+    ], '\n\n\n'));
+
+    return succeed();
+  },
+
+  Photo : {
+    post : function(ps) {
+      var ret = new Deferred();
+      chrome.tabs.getSelected(null, function(tab) {
+        if (ps.itemUrl.indexOf('http') !== 0) {
+          return ret.errback('ps.itemUrl is not URL');
+        }
+        var code = '(' + function download(url) {
+          var ev = document.createEvent('MouseEvents');
+          ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
+          var target = $N('a', { href: url }, $N('img', {src: url}));
+          target.dispatchEvent(ev);
+        }.toString() + ')(' + JSON.stringify(ps.itemUrl) + ')';
+        console.log(code);
+        chrome.tabs.executeScript(tab.id, {
+          code: code
+        }, function() {
+          console.log("OK");
+          ret.callback();
+        });
+      });
+      return ret;
+    }
+  }
+});
+
+Models.register({
   name : 'Hatena',
   ICON : 'http://www.hatena.ne.jp/favicon.ico',
   JSON : 'http://b.hatena.ne.jp/my.name',
