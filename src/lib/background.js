@@ -287,6 +287,7 @@ var TBRL = {
     },
     'entry': {
       'trim_reblog_info': false,
+      'append_content_source': true,
       'not_convert_text': true,
       'thumbnail_template': '',
       'twitter_template': ''

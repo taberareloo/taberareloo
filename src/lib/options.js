@@ -61,6 +61,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
   $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
   $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
+  $('label_appendContentSource').appendChild($T(chrome.i18n.getMessage('label_appendContentSource')));
   $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
   $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
   $('save').value = chrome.i18n.getMessage('label_save');
@@ -119,6 +120,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var twittemp = new TemplateInput("twitter_template");
   // trim reblog info
   var reblog_check = new Check('trim_reblog_info', !!Config.entry["trim_reblog_info"]);
+  // trim reblog info
+  var append_check = new Check('append_content_source', !!Config.entry["append_content_source"]);
   // notconvert to Text
   var notconvert_check = new Check('not_convert_text', !!Config.entry["not_convert_text"]);
   // keyconfig
@@ -171,6 +174,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'thumbnail_template' : thumbnail.body(),
           'twitter_template' : twittemp.body(),
           'trim_reblog_info'   : reblog_check.body(),
+          'append_content_source'   : append_check.body(),
           'not_convert_text'   : notconvert_check.body()
         }
       });

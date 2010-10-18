@@ -82,6 +82,9 @@
   "label_trimReblogInfo": {
     "message": "Trim reblog info"
   },
+  "label_appendContentSource": {
+    "message": "Append content source info"
+  },
   "label_notconvertText": {
     "message": "Not convert long Text post to Link"
   },
