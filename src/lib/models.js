@@ -389,6 +389,74 @@ Models.register({
 });
 
 Models.register({
+  name : 'FFFFOUND',
+  ICON : 'http://ffffound.com/favicon.ico',
+  URL  : 'http://FFFFOUND.com/',
+
+  getToken : function(){
+    return request(this.URL + 'bookmarklet.js').addCallback(function(res){
+      return res.responseText.match(/token ?= ?'(.*?)'/)[1];
+    });
+  },
+
+  check : function(ps){
+    return ps.type == 'photo' && !ps.file;
+  },
+
+  post : function(ps){
+    var self = this;
+    return this.getToken().addCallback(function(token){
+      return request(self.URL + 'add_asset', {
+        referrer : ps.pageUrl,
+        queryString : {
+          token   : token,
+          url     : ps.itemUrl,
+          referer : ps.pageUrl,
+          title   : ps.item,
+        },
+      }).addCallback(function(res){
+        if(res.responseText.match('(FAILED:|ERROR:) +(.*?)</span>'))
+          throw new Error(RegExp.$2.trim());
+
+        if(res.responseText.match('login'))
+          throw new Error(getMessage('error.notLoggedin'));
+      });
+    });
+  },
+
+  favor : function(ps){
+    return this.iLoveThis(ps.favorite.id)
+  },
+
+  remove : function(id){
+    return request(this.URL + 'gateway/in/api/remove_asset', {
+      referrer : this.URL,
+      sendContent : {
+        collection_id : id,
+      },
+    });
+  },
+
+  iLoveThis : function(id){
+    return request(this.URL + 'gateway/in/api/add_asset', {
+      referrer : this.URL,
+      sendContent : {
+        collection_id : 'i'+id,
+        inappropriate : false,
+      },
+    }).addCallback(function(res){
+      var error = res.responseText.extract(/"error":"(.*?)"/);
+      if(error == 'AUTH_FAILED')
+        throw new Error(getMessage('error.notLoggedin'));
+
+      // NOT_FOUND / EXISTS / TOO_BIG
+      if(error)
+        throw new Error(RegExp.$1.trim());
+    });
+  },
+});
+
+Models.register({
   name : 'Local',
   ICON : chrome.extension.getURL('skin/local.ico'),
 
