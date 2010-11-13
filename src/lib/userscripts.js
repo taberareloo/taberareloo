@@ -552,7 +552,7 @@ UserScripts.register({
   },
   like : function(current){
     var self = this;
-    var like = $X('./descendant-or-self::form[not(contains(@style, "none"))]/input[contains(concat(" ", @class, " "), " like_button ")]', current)[0];
+    var like = $X('./descendant-or-self::a[contains(concat(" ", normalize-space(@class), " "), " like_button ")]', current)[0];
     if(like) self.click(like);
   },
   reblogCount: function(current){
