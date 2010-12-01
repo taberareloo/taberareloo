@@ -416,17 +416,20 @@ Models.register({
         if (ps.itemUrl.indexOf('http') !== 0) {
           return ret.errback('ps.itemUrl is not URL');
         }
+
         var code = '(' + function download(url) {
           var ev = document.createEvent('MouseEvents');
           ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
           var target = $N('a', { href: url }, $N('img', {src: url}));
           target.dispatchEvent(ev);
         }.toString() + ')(' + JSON.stringify(ps.itemUrl) + ')';
+
         chrome.tabs.executeScript(tab.id, {
           code: code
         }, function() {
           ret.callback();
         });
+        return null;
       });
       return ret;
     }
@@ -689,24 +692,16 @@ Models.register({
         });
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
-        if(!doc.getElementById('title'))
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-
-        function getTags(part){
-          return $X('id("save-' + part + '-tags")//a[contains(@class, "m")]/@title', doc);
-        }
         return {
-          editPage : editPage = 'http://www.delicious.com/save?url=' + url,
+          editPage : 'http://www.delicious.com/save?url=' + url,
           form : {
-            item        : doc.getElementById('title').value,
-            description : doc.getElementById('notes').value,
-            tags        : doc.getElementById('tags').value.split(' '),
-            private     : doc.getElementById('share').checked
+            item        : doc.getElementById('saveTitle').value,
+            description : doc.getElementById('saveNotes').value,
+            tags        : doc.getElementById('saveTags').value.split(' '),
+            private     : doc.getElementById('savePrivate').checked
           },
-          duplicated : !!doc.getElementById('delete'),
-          recommended : getTags('reco'),
-          popular : getTags('pop'),
-          network : getTags('net')
+          duplicated : !!doc.getElementById('savedon'),
+          recommended : $X('id("recommendedField")//span[contains(@class, "m")]/text()', doc)
         };
       })
     };
@@ -759,11 +754,11 @@ Models.register({
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      var elmForm = doc.getElementById('saveitem');
+      var elmForm = doc.getElementById('saveForm');
       if(!elmForm)
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
-      return request('http://www.delicious.com' + $X('id("saveitem")/@action', doc)[0], {
+      return request('http://www.delicious.com' + $X('id("saveForm")/@action', doc)[0], {
         //denyRedirection: true,
         sendContent : update(formContents(elmForm), {
           description : ps.item,
