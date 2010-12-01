@@ -1,8 +1,8 @@
 = Taberareloo
 
-http://github.com/Constellation/taberareloo/raw/master/src/skin/fork64.png
+https://github.com/Constellation/taberareloo/raw/master/src/skin/fork64.png
 
-http://github.com/Constellation/taberareloo
+https://github.com/Constellation/taberareloo
 
 == DESCRIPTION
 
@@ -32,7 +32,7 @@ and others
 
 == USAGE
 
-see http://wiki.github.com/Constellation/taberareloo/
+see https://wiki.github.com/Constellation/taberareloo/
 
 == FEATURES/PROBLEMS
 
@@ -40,7 +40,7 @@ see http://wiki.github.com/Constellation/taberareloo/
 
 == VERSION
 
-2.0.4
+2.0.5
 
 == DEPENDENCIES
 
