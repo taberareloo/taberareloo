@@ -22,12 +22,13 @@ Object.defineProperties(Array.prototype, {
   uniq : {
     writable: true,
     value: function() {
-    return this.reduce(function(memo, r) {
-      if (!~memo.indexOf(r)) {
-        memo.push(r);
-      }
-      return memo;
-    }, []);
+      return this.reduce(function(memo, r) {
+        if (!~memo.indexOf(r)) {
+          memo.push(r);
+        }
+        return memo;
+      }, []);
+    }
   },
 
   last : {
@@ -273,7 +274,7 @@ String.katakana = {
   'ァ':'la','ィ':'li','ゥ':'lu','ェ':'le','ォ':'lo',
   'ヵ':'lka','ヶ':'lke','ッ':'ltu',
   'ャ':'lya','ュ':'lyu','ョ':'lyo','ヮ':'lwa',
-  '。':".",'、':",",'ー':"-",
+  '。':".",'、':",",'ー':"-"
 }
 
 update(Date, {
@@ -287,7 +288,7 @@ Math.hypot = function(x, y){
   return Math.sqrt(x*x + y*y);
 }
 
-Object.defineProperty(Number.prototype, "toHexString" {
+Object.defineProperty(Number.prototype, "toHexString", {
   writable: true,
   value: function toHexString() {
     return ('0' + this.toString(16)).slice(-2);
