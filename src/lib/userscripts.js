@@ -386,7 +386,7 @@ UserScripts.register([
     name  : 'GoogleReader + Taberareloo',
     check : function(){
       var key = TBRL.config['post']['shortcutkey_googlereader_plus_taberareloo'];
-      if(/^https?:\/\/www\.google\.[^/]+\/reader\//.test(location.href) && TBRL.config['post']['googlereader_plus_taberareloo'] && key){
+      if(/^https?:\/\/www\.google\.(?:com|co\.[^/\.]+)\/reader\//.test(location.href) && TBRL.config['post']['googlereader_plus_taberareloo'] && key){
         this.key = key;
         return true;
       } else {
