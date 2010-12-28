@@ -1,83 +1,127 @@
 // -*- coding: utf-8 -*-
 
 // Array extension
-update(Array.prototype, {
-  flatten : function(){
-    var ret = [];
-    (function(arr){
-      arr.forEach(function(e){
-        if(Array.isArray(e))
-           arguments.callee(e);
-        else
-          ret.push(e);
-      });
-    })(this);
-    return ret;
+Object.defineProperties(Array.prototype, {
+  flatten: {
+    writable: true,
+    value: function() {
+      var ret = [];
+      (function(arr) {
+        arr.forEach(function(e) {
+          if (Array.isArray(e)) {
+             arguments.callee(e);
+          } else {
+            ret.push(e);
+          }
+        });
+      })(this);
+      return ret;
+    }
   },
-  uniq : function(){
-    return this.reduce(function(memo, r){
-      if(!~memo.indexOf(r)) memo.push(r);
+
+  uniq : {
+    writable: true,
+    value: function() {
+    return this.reduce(function(memo, r) {
+      if (!~memo.indexOf(r)) {
+        memo.push(r);
+      }
       return memo;
     }, []);
   },
-  last : function(){
-    return (this.length)? this[this.length-1] : null;
-  },
-  first : function(){
-    return (this.length)? this[0] : null;
-  }
-})
 
-Function.prototype.bind = function(self){
-  // Mochikit bind
-  return bind(this, self);
-}
+  last : {
+    writable: true,
+    value: function() {
+      return (this.length)? this[this.length-1] : undefined;
+    }
+  },
+
+  first: {
+    writable: true,
+    value: function() {
+      return (this.length)? this[0] : undefined;
+    }
+  }
+});
 
 // Tombloo Code prototype
-update(String.prototype, {
-  startsWith : function(s){
-    return this.indexOf(s) == 0;
+Object.defineProperties(String.prototype, {
+  startsWith : {
+    writable: true,
+    value: function(s) {
+      return this.indexOf(s) == 0;
+    }
   },
 
-  pad :function(len, ch){
-    len = len-this.length;
-    if(len<=0) return this;
-    return (ch || ' ').repeat(len) + this;
+  pad: {
+    writable: true,
+    value: function(len, ch) {
+      len = len - this.length;
+      if (len <= 0) {
+        return this;
+      }
+      return (ch || ' ').repeat(len) + this;
+    }
   },
 
-  indent : function(num, c){
-    c = c || ' ';
-    return this.replace(/^/mg, c.repeat(num))
+  indent: {
+    writable: true,
+    value: function(num, c) {
+      c = c || ' ';
+      return this.replace(/^/mg, c.repeat(num))
+    }
   },
 
-  link: function(href){
-    return '<a href="' + href + '">' + this + '</a>';
+  link: {
+    writable: true,
+    value: function(href) {
+      return '<a href="' + href + '">' + this + '</a>';
+    }
   },
 
-  trim : function(){
-    return this.replace(/^\s+|\s+$/g, '');
+  trim: {
+    writable: true,
+    value: function() {
+      return this.replace(/^\s+|\s+$/g, '');
+    }
   },
 
-  wrap : function(c){
-    return c+this+c;
+  wrap: {
+    writable: true,
+    value: function(c) {
+      return c + this + c;
+    }
   },
 
-  repeat : function(n){
-    return new Array(n+1).join(this);
+  repeat: {
+    writable: true,
+    value: function(n) {
+      return new Array(n+1).join(this);
+    }
   },
 
-  extract : function(re, group){
-    group = group==null? 1 : group;
-    var res = this.match(re);
-    return res ? res[group] : '';
+  extract: {
+    writable: true,
+    value: function(re, group) {
+      group = group == null ? 1 : group;
+      var res = this.match(re);
+      return res ? res[group] : '';
+    }
   },
 
-  decapitalize : function(){
-    return this.substr(0, 1).toLowerCase() + this.substr(1);
+  decapitalize: {
+    writable: true,
+    value: function() {
+      return this.substr(0, 1).toLowerCase() + this.substr(1);
+    }
   },
 
-  capitalize : function(){
-    return this.substr(0, 1).toUpperCase() + this.substr(1);
+  capitalize: {
+    writable: true,
+    value: function() {
+      return this.substr(0, 1).toUpperCase() + this.substr(1);
+    }
   },
 
 /*
@@ -112,58 +156,73 @@ update(String.prototype, {
   },
 */
 
-  trimTag : function(){
-    return this.replace(/<!--[\s\S]+?-->/gm, '').replace(/<[\s\S]+?>/gm, '');
+  trimTag: {
+    writable: true,
+    value: function() {
+      return this.replace(/<!--[\s\S]+?-->/gm, '').replace(/<[\s\S]+?>/gm, '');
+    }
   },
 
-  includesFullwidth : function(){
-    return (/[^ -~｡-ﾟ]/).test(this);
+  includesFullwidth: {
+    writable: true,
+    value: function() {
+      return (/[^ -~｡-ﾟ]/).test(this);
+    }
   },
 
   // http://code.google.com/p/kanaxs/
-  toHiragana : function(){
-    var c, i = this.length, a = [];
+  toHiragana : {
+    writable: true,
+    value: function(){
+      var c, i = this.length, a = [];
 
-    while(i--){
-      c = this.charCodeAt(i);
-      a[i] = (0x30A1 <= c && c <= 0x30F6) ? c - 0x0060 : c;
-    };
+      while(i--){
+        c = this.charCodeAt(i);
+        a[i] = (0x30A1 <= c && c <= 0x30F6) ? c - 0x0060 : c;
+      };
 
-    return String.fromCharCode.apply(null, a);
-  },
-
-  toKatakana : function(){
-    var c, i = this.length, a = [];
-
-    while(i--){
-      c = this.charCodeAt(i);
-      a[i] = (0x3041 <= c && c <= 0x3096) ? c + 0x0060 : c;
-    };
-
-    return String.fromCharCode.apply(null, a);
-  },
-
-  toRoma : function(){
-    var res = '';
-    var s = this.toKatakana();
-    for(var i = 0, roma, kana, table = String.katakana ; i < s.length ; i += kana.length){
-      kana = s.substr(i, 2);
-      roma = table[kana];
-
-      if(!roma){
-        kana = s.substr(i, 1);
-        roma = table[kana];
-      }
-
-      if(!roma){
-        roma = kana;
-      }
-
-      res += roma;
+      return String.fromCharCode.apply(null, a);
     }
-    res = res.replace(/ltu(.)/g, '$1$1');
+  },
 
-    return res;
+  toKatakana: {
+    writable: true,
+    value: function(){
+      var c, i = this.length, a = [];
+
+      while(i--){
+        c = this.charCodeAt(i);
+        a[i] = (0x3041 <= c && c <= 0x3096) ? c + 0x0060 : c;
+      };
+
+      return String.fromCharCode.apply(null, a);
+    }
+  },
+
+  toRoma: {
+    writable: true,
+    value: function(){
+      var res = '';
+      var s = this.toKatakana();
+      for(var i = 0, roma, kana, table = String.katakana ; i < s.length ; i += kana.length){
+        kana = s.substr(i, 2);
+        roma = table[kana];
+
+        if(!roma){
+          kana = s.substr(i, 1);
+          roma = table[kana];
+        }
+
+        if(!roma){
+          roma = kana;
+        }
+
+        res += roma;
+      }
+      res = res.replace(/ltu(.)/g, '$1$1');
+
+      return res;
+    }
   }
 });
 
@@ -228,6 +287,9 @@ Math.hypot = function(x, y){
   return Math.sqrt(x*x + y*y);
 }
 
-Number.prototype.toHexString = function(){
-  return ('0' + this.toString(16)).slice(-2);
-};
+Object.defineProperty(Number.prototype, "toHexString" {
+  writable: true,
+  value: function toHexString() {
+    return ('0' + this.toString(16)).slice(-2);
+  }
+});
