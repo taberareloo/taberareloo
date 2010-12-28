@@ -347,6 +347,7 @@ UserScripts.register([
                 return self.reblog(current, manually);
               }
             }
+            return null;
           });
         }
       }
@@ -364,9 +365,7 @@ UserScripts.register([
           menu      : null
       }, window.location);
       var ext = Extractors['ReBlog - Dashboard'];
-      if(ext.check(ctx)){
-        return TBRL.share(ctx, ext, !!manually);
-      }
+      return (ext.check(ctx)) ? TBRL.share(ctx, ext, !!manually) : null;
     },
     notify: function(elm, hide){
       var duration = 600;
@@ -387,7 +386,7 @@ UserScripts.register([
     name  : 'GoogleReader + Taberareloo',
     check : function(){
       var key = TBRL.config['post']['shortcutkey_googlereader_plus_taberareloo'];
-      if(/^https?:\/\/www\.google\.[^/\.]+\/reader\//.test(location.href) && TBRL.config['post']['googlereader_plus_taberareloo'] && key){
+      if(/^https?:\/\/www\.google\.[^/]+\/reader\//.test(location.href) && TBRL.config['post']['googlereader_plus_taberareloo'] && key){
         this.key = key;
         return true;
       } else {
@@ -406,7 +405,9 @@ UserScripts.register([
     },
     fire  : function(ev){
       var key = keyString(ev);
-      if(key !== this.key) return null;
+      if(key !== this.key) {
+        return null;
+      }
       if(!('selectionStart' in ev.target && ev.target.disabled !== true)){
         var item = this.getCurrentItem();
         if(!item) return null;
@@ -438,6 +439,8 @@ UserScripts.register([
         addElementClass(item.parent, 'TBRL_posted');
         var ext = Extractors.check(ctx)[0];
         return TBRL.share(ctx, ext, ext.name.match(/^Link /));
+      } else {
+        return null;
       }
     },
     getCurrentItem: function(){
