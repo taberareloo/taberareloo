@@ -252,7 +252,7 @@ function getSelected() {
 
 var TBRL = {
   // default config
-  VERSION: '2.0.6',
+  VERSION: '2.0.7',
   ID: chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   Config: {
     'services': {
