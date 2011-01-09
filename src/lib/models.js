@@ -92,11 +92,26 @@ var Tumblr = {
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
       return self.getForm(endpoint).addCallback(function(form){
-        update(form, Tumblr[ps.type.capitalize()].convertToForm(ps));
+        if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
+          // convertToFormが非同期な場合
+          ret = new Deferred();
+          Tumblr[ps.type.capitalize()].convertToFormAsync(ps).addCallback(function(form2){
+            update(form, form2);
+            self.appendTags(form, ps);
+            request(endpoint, {sendContent : form}).addCallback(function(res){
+              ret.callback(res);
+            }).addErrback(function(err){
+              ret.errback(err);
+            });
+          });
+          return ret;
+        } else {
+          update(form, Tumblr[ps.type.capitalize()].convertToForm(ps));
 
-        self.appendTags(form, ps);
+          self.appendTags(form, ps);
 
-        return request(endpoint, {sendContent : form});
+          return request(endpoint, {sendContent : form});
+        }
       });
     });
   },
@@ -260,19 +275,31 @@ Tumblr.Regular = {
 };
 
 Tumblr.Photo = {
-  convertToForm : function(ps){
-    var form = {
-      'post[type]'  : ps.type,
-      't'           : ps.item,
-      'u'           : ps.pageUrl,
-      'post[two]'   : joinText([
-        (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
-        ps.description], '\n\n'),
-      'post[three]' : ps.pageUrl
-    };
-    ps.file? (form['images[o1]'] = ps.file) : (form['photo_src'] = ps.itemUrl);
+  convertToFormAsync : function(ps){
+    // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
+    var ret = new Deferred();
+    request('http://finalurl.appspot.com/api', {
+      queryString: {
+        url: ps.itemUrl
+      },
+      method: 'GET'
+    }).addCallback(function(res){
+      var finalurl = res.responseText;
 
-    return form;
+      var form = {
+        'post[type]'  : ps.type,
+        't'           : ps.item,
+        'u'           : ps.pageUrl,
+        'post[two]'   : joinText([
+          (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
+          ps.description], '\n\n'),
+        'post[three]' : ps.pageUrl
+      };
+      ps.file? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
+
+      ret.callback(form);
+    });
+    return ret;
   }
 };
 
