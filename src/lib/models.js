@@ -188,21 +188,44 @@ var Tumblr = {
   favor : function(ps){
     // メモをreblogフォームの適切なフィールドの末尾に追加する
     var form = ps.favorite.form;
-    items(Tumblr[ps.type.capitalize()].convertToForm({
-      description : ps.description
-    })).forEach(function(item){
-      var name = item[0], value = item[1];
-      if(!value)
-        return;
+    var that = this;
+    if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
+      return Tumblr[ps.type.capitalize()].convertToFormAsync({
+        description : ps.description
+      }).addCallback(function(res) {
+        items(res).forEach(function(item) {
+          var name = item[0], value = item[1];
+          if (!value) {
+            return;
+          }
+          form[name] += '\n\n' + value;
+        });
+        that.appendTags(form, ps);
+        return that.postForm(function(){
+          return request(ps.favorite.endpoint, {sendContent : form})
+        });
+      });
+    } else {
+      items(Tumblr[ps.type.capitalize()].convertToForm({
+        description : ps.description
+      })).forEach(function(item) {
+        var name = item[0], value = item[1];
+        if (!value) {
+          return;
+        }
+        if (name === "itemUrl" &&
+            value.indexOf('http://') !== 0) {
+          return;
+        }
+        form[name] += '\n\n' + value;
+      });
 
-      form[name] += '\n\n' + value;
-    });
+      this.appendTags(form, ps);
 
-    this.appendTags(form, ps);
-
-    return this.postForm(function(){
-      return request(ps.favorite.endpoint, {sendContent : form})
-    });
+      return this.postForm(function(){
+        return request(ps.favorite.endpoint, {sendContent : form})
+      });
+    }
   },
 
   /**
@@ -278,12 +301,7 @@ Tumblr.Photo = {
   convertToFormAsync : function(ps){
     // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
     var ret = new Deferred();
-    request('http://finalurl.appspot.com/api', {
-      queryString: {
-        url: ps.itemUrl
-      },
-      method: 'GET'
-    }).addCallback(function(res){
+    function callback(res) {
       var finalurl = res.responseText;
 
       var form = {
@@ -298,7 +316,17 @@ Tumblr.Photo = {
       ps.file? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
 
       ret.callback(form);
-    });
+    }
+    if (ps.itemUrl) {
+      request('http://finalurl.appspot.com/api', {
+        queryString: {
+          url: ps.itemUrl
+        },
+        method: 'GET'
+      }).addCallback(callback);
+    } else {
+      setTimeout(callback, 0, {});
+    }
     return ret;
   }
 };
