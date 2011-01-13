@@ -1224,7 +1224,7 @@ Models.register({
 Models.register({
   name     : 'Evernote',
   ICON     : 'http://www.evernote.com/favicon.ico',
-  POST_URL : 'http://www.evernote.com/clip.action',
+  POST_URL : 'https://www.evernote.com/clip.action',
   LOGIN_URL: 'https://www.evernote.com/Login.action',
   LINK     : 'http://www.evernote.com/',
 
@@ -1233,7 +1233,7 @@ Models.register({
   },
 
   post : function(ps){
-    var self = this;
+    var that = this;
     ps = update({}, ps);
     var d = succeed();
     if(ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']){
@@ -1244,9 +1244,9 @@ Models.register({
     }
 
     return d.addCallback(function(){
-      return self.getToken();// login checkも走る
+      return that.getToken();// login checkも走る
     }).addCallback(function(token){
-      return request(self.POST_URL, {
+      return request(that.POST_URL, {
         redirectionLimit : 0,
         sendContent : update(token, {
           saveQuicknote : 'save',
@@ -1264,7 +1264,7 @@ Models.register({
   },
 
   getToken : function(){
-    var self = this;
+    var that = this;
     return request(this.POST_URL, {
       sendContent: {
         format    : 'microclip',
@@ -1272,8 +1272,9 @@ Models.register({
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("login_form")', doc)[0])
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      if($X('id("login_form")', doc)[0]) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
 
       return {
         _sourcePage   : $X('//input[@name="_sourcePage"]/@value', doc)[0],
