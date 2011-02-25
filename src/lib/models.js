@@ -2079,10 +2079,10 @@ Models.register({
 Models.register({
   name    : 'bit.ly',
   ICON    : 'http://bit.ly/static/images/favicon.png',
-  URL     : 'http://api.bit.ly',
+  URL     : 'http://api.bitly.com/v3',
   API_KEY : 'R_8d078b93e8213f98c239718ced551fad',
   USER    : 'to',
-  VERSION : '2.0.1',
+  VERSION : '3.0.0',
 
   shorten : function(url){
     var self = this;
@@ -2092,16 +2092,17 @@ Models.register({
     return this.callMethod('shorten', {
       longUrl : url
     }).addCallback(function(res){
-      return res[url].shortUrl;
+      return res.url;
     });
   },
 
   expand : function(url){
     var hash = url.split('/').pop();
     return this.callMethod('expand', {
-      hash : hash
+      hash : hash,
+      shortUrl : url
     }).addCallback(function(res){
-      return res[hash].longUrl;
+      return res['expand'][0].long_url;
     });
   },
 
@@ -2109,19 +2110,19 @@ Models.register({
     var self = this;
     return request(this.URL + '/' + method, {
       queryString : update({
-        version : this.VERSION,
         login   : this.USER,
-        apiKey  : this.API_KEY
+        apiKey  : this.API_KEY,
+        format  : 'json'
       }, ps)
     }).addCallback(function(res){
       res = JSON.parse(res.responseText);
-      if(res.errorCode){
-        var error = new Error([res.statusCode, res.errorCode, res.errorMessage].join(': '))
+      if(res.status_code !== 200){
+        var error = new Error([res.status_code, res.status_txt].join(': '))
         error.detail = res;
         throw error;
       }
 
-      return res.results;
+      return res.data;
     });
   }
 });
