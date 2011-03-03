@@ -76,23 +76,6 @@ function post_handler(item, con) {
   win.Models = Models;
 }
 
-function request_v1(url, opt) {
-  opt = update({
-    method: 'GET'
-  }, opt || {});
-  if (opt.sendContent) {
-    opt.method = 'POST';
-    opt.sendContent = queryString(opt.sendContent, false);
-  }
-  if (opt.method && opt.method.toUpperCase() === 'POST') {
-    if (!opt.headers) {
-      opt.headers = [];
-    }
-    opt.headers.push(['Content-Type', 'application/x-www-form-urlencoded']);
-  }
-  return doXHR(url, opt);
-}
-
 function binaryRequest(url, opt) {
   return request(url, update({
     charset: 'text/plain; charset=x-user-defined'
