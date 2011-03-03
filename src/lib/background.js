@@ -143,87 +143,10 @@ function getCharset(text) {
   return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
 }
 
-function request_v2(url, opt) {
-  var req = new XMLHttpRequest(), ret = new Deferred();
-
-  opt = (opt) ? update({}, opt) : {};
-  var method = opt.method && opt.method.toUpperCase();
-
-  if (opt.queryString) {
-    var qs = queryString(opt.queryString, true);
-    url += qs;
-  }
-
-  if (opt.sendContent && (!method || method === 'POST')) {
-    if (!method) {
-      method = 'POST';
-    }
-    opt.sendContent = queryString(opt.sendContent, false);
-  }
-  if (!method) {
-    method = 'GET';
-  }
-
-  if ('username' in opt) {
-    req.open(method, url, true, opt.username, opt.password);
-  } else {
-    req.open(method, url, true);
-  }
-
-  if (opt.charset) {
-    req.overrideMimeType(opt.charset);
-  }
-
-  var setHeader = true;
-  if (opt.headers) {
-    if (opt.headers['Content-Type']) {
-      setHeader = false;
-    }
-    Object.keys(opt.headers).forEach(function(key) {
-      req.setRequestHeader(key, opt.headers[key]);
-    });
-  }
-  if (setHeader && opt.sendContent) {
-    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  }
-
-  var position = -1;
-  var error = false;
-
-  req.onprogress = function(e) {
-    position = e.position;
-  }
-  req.onreadystatechange = function(e) {
-    if (req.readyState === 4) {
-      var length = 0;
-      try {
-        length = parseInt(req.getResponseHeader('Content-Length'), 10);
-      } catch (e) {
-        console.log('ERROR', e);
-      }
-      // 最終時のlengthと比較
-      if (position !== length) {
-        if (opt.denyRedirection) {
-          ret.errback(req);
-          error = true;
-        }
-      }
-      if (!error) {
-        if (req.status >= 200 && req.status < 300) {
-          ret.callback(req);
-        } else {
-          req.message = chrome.i18n.getMessage('error_http' + req.status);
-          ret.errback(req);
-        }
-      }
-    }
-  }
-  req.send(opt.sendContent);
-  return ret;
-}
-
 function request(url, opt) {
-  var req = new XMLHttpRequest(), ret = new Deferred();
+  var req = new XMLHttpRequest();
+  var ret = new Deferred();
+  var data;
 
   opt = (opt) ? update({}, opt) : {};
   var method = opt.method && opt.method.toUpperCase();
@@ -233,26 +156,41 @@ function request(url, opt) {
     url += qs;
   }
 
+  // construct FormData (if required)
   if (opt.sendContent && (!method || method === 'POST')) {
+    var sendContent = opt.sendContent;
     if (!method) {
       method = 'POST';
     }
-    opt.sendContent = queryString(opt.sendContent, false);
+    data = new FormData();
+    for (var key in sendContent) {
+      data.append(key, sendContent[key]);
+    }
   }
+
+  // construct method
   if (!method) {
     method = 'GET';
   }
 
+  // open XHR
   if ('username' in opt) {
     req.open(method, url, true, opt.username, opt.password);
   } else {
     req.open(method, url, true);
   }
 
+  // construct responseType
+  if (opt.responseType) {
+    req.responseType = opt.responseType;
+  }
+
+  // construct charset
   if (opt.charset) {
     req.overrideMimeType(opt.charset);
   }
 
+  // construct headers
   var setHeader = true;
   if (opt.headers) {
     if (opt.headers['Content-Type']) {
@@ -262,9 +200,6 @@ function request(url, opt) {
       req.setRequestHeader(key, opt.headers[key]);
     });
   }
-  if (setHeader && opt.sendContent) {
-    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  }
 
   var position = -1;
   var error = false;
@@ -272,6 +207,7 @@ function request(url, opt) {
   req.onprogress = function(e) {
     position = e.position;
   }
+
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
       var length = 0;
@@ -297,7 +233,12 @@ function request(url, opt) {
       }
     }
   }
-  req.send(opt.sendContent);
+
+  if (data) {
+    req.send(data);
+  } else {
+    req.send();
+  }
   return ret;
 }
 

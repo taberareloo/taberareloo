@@ -644,5 +644,26 @@ function checkHttps(ps) {
   return ps;
 }
 
+function getTempFile(ext) {
+  ext || (ext = '');
+  var d = new Deferred();
+  requestFileSystem(TEMPORARY, 1024 * 1024, function(fs) {
+    fs.root.getDirectory('tmp', {
+      create: true
+    }, function (dir) {
+      dir.getFile(Math.random().toString(36).slice(2) + '.' + ext, {
+        create: true
+      }, function(file) {
+        d.callback(file);
+      }, function(e) {
+        d.errback(e);
+      });
+    }, function(e) {
+      d.errback(e);
+    });
+  });
+  return d;
+}
+
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 
