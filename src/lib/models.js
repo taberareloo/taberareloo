@@ -314,7 +314,6 @@ Tumblr.Photo = {
         'post[three]' : ps.pageUrl
       };
       ps.file? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
-
       ret.callback(form);
     }
     if (ps.itemUrl) {
@@ -597,7 +596,7 @@ Models.register({
   LOGIN_URL : 'https://www.hatena.ne.jp/login',
 
   check : function(ps){
-    return ps.type === 'photo';
+    return ps.type === 'photo' && ps.base64;
   },
 
   getToken : function(){
@@ -610,7 +609,7 @@ Models.register({
   post : function(ps){
     // 拡張子を指定しないとアップロードに失敗する(エラーは起きない)
     var self = this;
-    return (ps.file? succeed(ps.file) : canvasRequest(ps.itemUrl)).addCallback(function(file){
+    return (ps.base64? succeed(ps.base64) : canvasRequest(ps.itemUrl)).addCallback(function(file){
       return self.uploadWithBase64(file);
     });
   },

@@ -395,7 +395,7 @@ var Pic = function(ps, toggle){
   this.pic = $('pic');
   this.url = ps.itemUrl || '';
   this.pic.appendChild(this.image = $N('img', {
-    'src': ps.itemUrl || ps.file.binary,
+    'src': ps.itemUrl || ps.base64.binary,
     'alt': ps.item,
     'title': ps.item,
     'class': 'photo_image',

@@ -595,11 +595,12 @@ update(convertToHTMLString, {
 });
 
 function getSelectionContents(sel){
-  if(!sel)
-    return;
-  sel = (sel.getSelection)? sel.getSelection() : sel;
-  if(sel.rangeCount && !sel.isCollapsed)
-    return sel.getRangeAt(0).cloneContents();
+  if(sel) {
+    sel = (sel.getSelection)? sel.getSelection() : sel;
+    if(sel.rangeCount && !sel.isCollapsed) {
+      return sel.getRangeAt(0).cloneContents();
+    }
+  }
 }
 
 function createFlavoredString(src){

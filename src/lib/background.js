@@ -157,14 +157,29 @@ function request(url, opt) {
   }
 
   // construct FormData (if required)
+  var multipart = false;
   if (opt.sendContent && (!method || method === 'POST')) {
     var sendContent = opt.sendContent;
     if (!method) {
       method = 'POST';
     }
-    data = new FormData();
     for (var key in sendContent) {
-      data.append(key, sendContent[key]);
+      if (sendContent[key] instanceof File) {
+        multipart = true;
+        break;
+      }
+    }
+    if (multipart) {
+      data = new FormData();
+      for (var key in sendContent) {
+        var value = sendContent[key];
+        if (value === null || value === undefined) {
+          continue;
+        }
+        data.append(key, value);
+      }
+    } else {
+      data = queryString(sendContent, false);
     }
   }
 
@@ -199,6 +214,10 @@ function request(url, opt) {
     Object.keys(opt.headers).forEach(function(key) {
       req.setRequestHeader(key, opt.headers[key]);
     });
+  }
+
+  if (setHeader && opt.sendContent && !multipart) {
+    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
   }
 
   var position = -1;
@@ -240,6 +259,10 @@ function request(url, opt) {
     req.send();
   }
   return ret;
+}
+
+function constructPsInBackground(content) {
+  return succeed(content);
 }
 
 function getSelected() {
@@ -484,17 +507,18 @@ var onRequestsHandlers = {
   },
   share: function(req, sender, func) {
     getSelected().addCallback(function(tab) {
-      var ps = req.content;
-      if (req.show) {
-        TBRL.Popup.open(tab, ps);
-      } else {
-        var posters = Models.getDefaults(ps);
-        if (!posters.length) {
-          alert(chrome.i18n.getMessage('error_noPoster', ps.type.capitalize()));
+      constructPsInBackground(req.content).addCallback(function(ps) {
+        if (req.show) {
+          TBRL.Popup.open(tab, ps);
         } else {
-          TBRL.Service.post(ps, posters);
+          var posters = Models.getDefaults(ps);
+          if (!posters.length) {
+            alert(chrome.i18n.getMessage('error_noPoster', ps.type.capitalize()));
+          } else {
+            TBRL.Service.post(ps, posters);
+          }
         }
-      }
+      });
       func({});
     }).addErrback(function(e) {
     });

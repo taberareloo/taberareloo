@@ -1078,7 +1078,7 @@ Extractors.register([
         return {
           type : 'photo',
           item : ctx.title,
-          file : file
+          base64 : file
         };
       });
     },
