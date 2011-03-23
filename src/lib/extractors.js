@@ -517,7 +517,8 @@ Extractors.register([
       return Extractors.ReBlog.extractByLink(ctx, this.getLink(ctx));
     },
     getLink : function(ctx){
-      var link = $X('./ancestor-or-self::li[starts-with(normalize-space(@class), "post")]//a[@title="Permalink"]', ctx.target)[0];
+      var link = $X(
+        './ancestor-or-self::li[starts-with(normalize-space(@class), "post")]//a[starts-with(@id, "permalink_")]', ctx.target)[0];
       return link && link.href;
     }
   },
