@@ -244,9 +244,9 @@ var Tumblr = {
       } else if($X('id("posts")', doc)[0]){
         return null;
       } else {
-        if(res.responseText.match('more tomorrow'))
+        if(res.responseText.match('more tomorrow')) {
           throw new Error('You\'ve exceeded your daily post limit.');
-        else {
+        } else {
           var doc = createHTML(res.responseText);
           throw new Error(doc.getElementById('errors').textContent.trim());
         }
@@ -1466,7 +1466,7 @@ Models.register({
     return request('http://readitlaterlist.com/edit').addCallback(function(res) {
       var doc = createHTML(res.responseText);
       var form = $X('id("content")/form', doc)[0];
-      if (/login/.test(form.action)) {
+      if (/login/.test(form.getAttribute('action'))) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       } else {
         return request('http://readitlaterlist.com/edit_process.php', {
@@ -1829,7 +1829,7 @@ Models.register({
     return request(url).addCallback(function(res) {
       var doc = createHTML(res.responseText);
       var form = $X('//form', doc)[0];
-      if(form.action === '/bookmarklet/account/login'){
+      if(form.getAttribute('action') === '/bookmarklet/account/login'){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       } else {
         return formContents(form);
