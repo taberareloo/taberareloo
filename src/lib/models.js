@@ -1325,8 +1325,8 @@ Models.register({
 Models.register({
   name : 'Twitter',
   ICON : 'http://twitter.com/favicon.ico',
-  URL  : 'http://twitter.com',
-  LINK : 'http://twitter.com/',
+  URL  : 'https://twitter.com',
+  LINK : 'https://twitter.com/',
   LOGIN_URL : 'https://twitter.com/login',
   SHORTEN_SERVICE : 'bit.ly',
 
