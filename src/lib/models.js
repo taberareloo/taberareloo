@@ -73,7 +73,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.file && ((ps.type !== 'audio') || ps.suffix === '.mp3');
+    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.file && !ps.base64 && ((ps.type !== 'audio') || ps.suffix === '.mp3');
   },
 
   /**
@@ -400,7 +400,7 @@ Models.register({
   LINK : 'http://4u.straightline.jp/',
 
   check : function(ps){
-    return ps.type === 'photo' && !ps.file;
+    return ps.type === 'photo' && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -454,7 +454,7 @@ Models.register({
   },
 
   check : function(ps){
-    return ps.type == 'photo' && !ps.file;
+    return ps.type == 'photo' && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -515,7 +515,7 @@ Models.register({
   ICON : chrome.extension.getURL('skin/local.ico'),
 
   check : function(ps) {
-    return ps.type === 'photo' && !ps.file;
+    return ps.type === 'photo' && !ps.file && !ps.base64;
   },
 
   post : function(ps) {
@@ -662,7 +662,7 @@ Models.register({
   JSON_URL : 'http://b.hatena.ne.jp/my.name',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -864,7 +864,7 @@ Models.register({
   },
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -902,7 +902,7 @@ Models.register({
   LINK : 'http://clip.livedoor.com/',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -1025,7 +1025,7 @@ Models.register({
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -1087,7 +1087,7 @@ Models.register({
   ICON: 'http://calendar.google.com/googlecalendar/images/favicon.ico',
 
   check: function(ps) {
-    return /regular|link/.test(ps.type) && !ps.file;
+    return /regular|link/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   getAuthCookie: function() {
@@ -1228,7 +1228,7 @@ Models.register({
   LINK     : 'http://www.evernote.com/',
 
   check : function(ps){
-    return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -1290,7 +1290,7 @@ Models.register({
   LINK : 'http://friendfeed.com/',
   LOGIN_URL : 'https://friendfeed.com/account/login',
   check : function(ps){
-    return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
+    return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file && !ps.base64;
   },
 
   getToken : function(){
@@ -1331,7 +1331,7 @@ Models.register({
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -1690,7 +1690,7 @@ Models.register({
   LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -1763,7 +1763,7 @@ Models.register({
   LOGIN_URL : 'http://wassr.jp/',
 
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
   },
 
   post : function(ps){
@@ -1795,7 +1795,7 @@ Models.register({
   LOGIN_URL: 'http://clipp.in/account/login',
 
   check: function(ps) {
-    return /photo|quote|link|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|video/.test(ps.type) && !ps.file && !ps.base64;
   },
   post: function(ps) {
     var endpoint = this.CLIPP_URL + 'bookmarklet/add';
@@ -1965,7 +1965,7 @@ Models.register({
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
-    return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file;
+    return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file && !ps.base64;
   },
 
   getToken : function() {
