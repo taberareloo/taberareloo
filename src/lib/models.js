@@ -2024,6 +2024,39 @@ Models.register({
   }
 });
 
+Models.register({
+  name: 'Diigo',
+  ICON: 'http://www.diigo.com/favicon.ico',
+  LINK: 'http://www.diigo.com/',
+  check: function(ps) {
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+  },
+
+  post: function(ps) {
+    return this.addBookmark(ps.itemUrl, ps.item, ps.tags, joinText([ps.body, ps.description],' '),ps.private);
+  },
+
+  addBookmark: function(url, title, tags, description, priv) {
+    return request('http://www.diigo.com/item/new/bookmark').addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      var element = doc.getElementById('newBookmarkForm');
+      if (!element) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+      var form = formContents(element);
+      return request('http://www.diigo.com/item/save/bookmark', {
+        sendContent: update(form, {
+          url: url,
+          title: title,
+          tags: tags.join(' '),
+          description: description,
+          private: priv
+        })
+      });
+    });
+  }
+});
+
 // http://www.kawa.net/works/ajax/romanize/japanese.html
 Models.register({
   name : 'Kawa',
