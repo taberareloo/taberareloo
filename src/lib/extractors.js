@@ -250,7 +250,7 @@ Extractors.register([
           html : ctx.selection.html
         };
       } else {
-        var elm = ctx.document.querySelectorAll('.tweet-text')[0] || $X('(//span[@class="entry-content"])[1]')[0];
+        var elm = ctx.document.querySelector('.tweet-text-large') || ctx.document.querySelector('.entry-content');
         var sel = createFlavoredString(elm);
         res.body = sel.raw;
         res.flavors = {
