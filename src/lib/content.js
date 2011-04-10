@@ -447,6 +447,15 @@ var onRequestHandlers = {
     })[0];
     TBRL.share(ctx, ext, true);
   },
+  contextMenusImageCache: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      onImage: true,
+      contextMenu: true
+    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    TBRL.share(ctx, Extractors["Photo - Upload from Cache"], true);
+  },
   contextMenusVideo: function(req, sender, func) {
     func({});
     var content = req.content;

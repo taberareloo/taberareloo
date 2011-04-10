@@ -793,7 +793,7 @@ Extractors.register([
   },
 
   {
-    name: 'Photo - Upload from downloaded file',  // not cache... sorry
+    name: 'Photo - Upload from Cache',  // not cache... sorry
     ICON: skin + 'photo.png',
     check: function(ctx) {
       return ctx.onImage;
@@ -811,7 +811,7 @@ Extractors.register([
         return {
           type: 'photo',
           item: ctx.title,
-          itemUrl: url,
+          itemUrl: itemUrl,
           fileEntry: url
         };
       });

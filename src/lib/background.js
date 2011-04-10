@@ -263,8 +263,18 @@ function request(url, opt) {
   return ret;
 }
 
+// trap background ps construct
 function constructPsInBackground(content) {
-  return succeed(content);
+  if (content.fileEntry) {
+    var entry = GlobalFileEntryCache[content.fileEntry];
+    return getFileFromEntry(entry).addCallback(function(file) {
+      console.log(file, "OK");
+      content.file = file;
+      return content;
+    });
+  } else {
+    return succeed(content);
+  }
 }
 
 function getSelected() {
@@ -632,6 +642,17 @@ chrome.extension.onRequest.addListener(function(req, sender, func) {
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusImage',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Photo - Upload from Cache',
+    contexts: ['image'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusImageCache',
         content: info
       });
     }

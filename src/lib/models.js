@@ -73,7 +73,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.file && !ps.base64 && ((ps.type !== 'audio') || ps.suffix === '.mp3');
+    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.base64 && ((ps.type !== 'audio') || ps.suffix === '.mp3');
   },
 
   /**
@@ -313,7 +313,7 @@ Tumblr.Photo = {
           ps.description], '\n\n'),
         'post[three]' : ps.pageUrl
       };
-      ps.file? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
+      ps.file ? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
       ret.callback(form);
     }
     if (ps.itemUrl) {
