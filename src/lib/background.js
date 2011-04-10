@@ -268,7 +268,6 @@ function constructPsInBackground(content) {
   if (content.fileEntry) {
     var entry = GlobalFileEntryCache[content.fileEntry];
     return getFileFromEntry(entry).addCallback(function(file) {
-      console.log(file, "OK");
       content.file = file;
       return content;
     });
@@ -520,6 +519,28 @@ var onRequestsHandlers = {
     callLater(0.5, function() {
       chrome.tabs.captureVisibleTab(sender.tab.windowId, function(data) {
         func(data);
+      });
+    });
+  },
+  base64ToFileEntry: function(req, sender, func) {
+    var data = req.content;
+    var cut = data.replace(/^.*?,/, '');  // base64 header cut
+    var binary = window.atob(cut);
+    var buffer = new ArrayBuffer(binary.length);
+    var view = new Uint8Array(buffer);
+    var fromCharCode = String.fromCharCode;
+    for (var i = 0, len = binary.length; i < len; ++i) {
+      view[i] = binary.charCodeAt(i);
+    }
+    createFileEntryFromArrayBuffer(buffer, '').addCallback(function(entry) {
+      return getFileFromEntry(entry).addCallback(function(file) {
+        var key = getURLFromFile(file);
+        GlobalFileEntryCache[key] = entry;
+        return key;
+      }).addCallbacks(function(url) {
+        func(url);
+      }, function(e) {
+        func(e);
       });
     });
   },

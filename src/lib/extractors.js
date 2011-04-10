@@ -1103,9 +1103,9 @@ Extractors.register([
         return null;
       }).addCallback(function(file){
         return {
-          type : 'photo',
-          item : ctx.title,
-          base64 : file
+          type: 'photo',
+          item: ctx.title,
+          fileEntry: file
         };
       });
     },
@@ -1137,12 +1137,8 @@ Extractors.register([
             canvas.height = size.h = dim.h;
           }
           ctx.drawImage(img, pos.x, pos.y, dim.w, dim.h, 0, 0, size.w, size.h);
-          ret.callback({
-            contentType: 'image/png',
-            base64: true,
-            height: size.h,
-            width : size.w,
-            binary: canvas.toDataURL('image/png', '')
+          base64ToFileEntry(canvas.toDataURL('image/png', '')).addCallback(function(url) {
+            ret.callback(url);
           });
         }, false);
         img.src = res;

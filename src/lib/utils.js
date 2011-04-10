@@ -686,25 +686,29 @@ function getFileFromEntry(entry) {
 
 // this is very experimental
 function download(url, type) {
-  var d = new Deferred();
-  request(url, {
+  return request(url, {
     responseType: 'arraybuffer'
   }).addCallback(function(res) {
     var buffer = res.response;
-    var builder = new BlobBuilder();
-    builder.append(buffer);
-    return getTempFile()
-    .addCallback(function(entry) {
-      return getWriter(entry)
-      .addCallback(function(writer) {
-        writer.onwrite = function onWrite(e) {
-          d.callback(entry);
-        };
-        writer.onerror = function onError(e) {
-          d.errback(e);
-        };
-        writer.write(builder.getBlob(type));
-      });
+    return createFileEntryFromArrayBuffer(buffer, type);
+  });
+}
+
+function createFileEntryFromArrayBuffer(buffer, type) {
+  var d = new Deferred();
+  var builder = new BlobBuilder();
+  builder.append(buffer);
+  getTempFile()
+  .addCallback(function(entry) {
+    return getWriter(entry)
+    .addCallback(function(writer) {
+      writer.onwrite = function onWrite(e) {
+        d.callback(entry);
+      };
+      writer.onerror = function onError(e) {
+        d.errback(e);
+      };
+      writer.write(builder.getBlob(type));
     })
     .addErrback(function(e) {
       d.errback(e);

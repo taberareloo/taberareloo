@@ -291,7 +291,7 @@ var TBRL = {
 TBRL.getConfig().addCallback(TBRL.init);
 
 // download option added
-var request = function(url, opt){
+var request = function(url, opt) {
   var ret = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {
     request: "request",
@@ -305,6 +305,17 @@ var request = function(url, opt){
     } else {
       ret.errback(res.content);
     }
+  });
+  return ret;
+}
+
+var base64ToFileEntry = function(data) {
+  var ret = new Deferred();
+  chrome.extension.sendRequest(TBRL.id, {
+    request: "base64ToFileEntry",
+    content: data
+  }, function(res){
+    ret.callback(res);
   });
   return ret;
 }
