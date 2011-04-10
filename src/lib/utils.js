@@ -674,6 +674,16 @@ function getWriter(file) {
   return d;
 }
 
+function getFileFromEntry(entry) {
+  var d = new Deferred();
+  entry.file(function(file) {
+    d.callback(file);
+  }, function onError(e) {
+    d.errback(e);
+  });
+  return d;
+}
+
 // this is very experimental
 function download(url, type) {
   var d = new Deferred();
@@ -688,11 +698,7 @@ function download(url, type) {
       return getWriter(entry)
       .addCallback(function(writer) {
         writer.onwrite = function onWrite(e) {
-          entry.file(function(file) {
-            d.callback(file);
-          }, function onError(e) {
-            d.errback(e);
-          });
+          d.callback(entry);
         };
         writer.onerror = function onError(e) {
           d.errback(e);
@@ -706,6 +712,25 @@ function download(url, type) {
   });
   return d;
 }
+
+var getURLFromFile = (function() {
+  var err = new Error("createObjectURL is not found");
+  var get = window.createBlobURL || window.createObjectURL;
+  if (!get) {
+    var URL = window.URL || window.webkitURL;
+    if (!URL) {
+      throw err;
+    }
+    getURL = URL.createObjectURL || URL.createBlobURL;
+    if (!getURL) {
+      throw err;
+    }
+    get = function(file) {
+      return getURL.call(URL, file);
+    }
+  }
+  return get;
+})();
 
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 
