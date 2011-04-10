@@ -275,6 +275,12 @@ function getSelected() {
   return d;
 }
 
+// this is FileEntry (temp file) cacheing table
+// key: blob url
+// value: FileEntry
+var GlobalFileEntryCache = {
+};
+
 var TBRL = {
   // default config
   VERSION: '2.0.12',
@@ -536,17 +542,39 @@ var onRequestsHandlers = {
     var content = req.content,
         opt = content.opt,
         url = content.url;
-    return request(url, opt).addCallbacks(function(res) {
-      func({
-        success: true,
-        content: res
+    if (opt.download) {
+      // download option
+      // this is very experimental
+      return download(url, '').addCallback(function(entry) {
+        return getFileFromEntry(entry).addCallback(function(file) {
+          var key = getURLFromFile(file);
+          GlobalFileEntryCache[key] = entry;
+          return key;
+        }).addCallbacks(function(url) {
+          func({
+            success: true,
+            content: url
+          });
+        }, function(e) {
+          func({
+            success: false,
+            content: e
+          });
+        });
       });
-    }, function(res) {
-      func({
-        success: false,
-        content: res
+    } else {
+      return request(url, opt).addCallbacks(function(res) {
+        func({
+          success: true,
+          content: res
+        });
+      }, function(res) {
+        func({
+          success: false,
+          content: res
+        });
       });
-    });
+    }
   },
   notifications: function(req, sender, func) {
     var id = req.content;

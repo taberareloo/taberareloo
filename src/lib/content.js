@@ -290,6 +290,7 @@ var TBRL = {
 
 TBRL.getConfig().addCallback(TBRL.init);
 
+// download option added
 var request = function(url, opt){
   var ret = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {

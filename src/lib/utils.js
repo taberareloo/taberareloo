@@ -716,20 +716,18 @@ function download(url, type) {
 var getURLFromFile = (function() {
   var err = new Error("createObjectURL is not found");
   var get = window.createBlobURL || window.createObjectURL;
-  if (!get) {
-    var URL = window.URL || window.webkitURL;
-    if (!URL) {
-      throw err;
-    }
-    getURL = URL.createObjectURL || URL.createBlobURL;
-    if (!getURL) {
-      throw err;
-    }
-    get = function(file) {
-      return getURL.call(URL, file);
+  if (get) {
+    return function(file) {
+      return get(file);
     }
   }
-  return get;
+  return function(file) {
+    if (window.URL) {
+      return window.URL.createObjectURL(file);
+    } else {
+      return window.webkitURL.createObjectURL(file);
+    }
+  };
 })();
 
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';

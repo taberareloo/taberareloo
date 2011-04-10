@@ -793,6 +793,32 @@ Extractors.register([
   },
 
   {
+    name: 'Photo - Upload from downloaded file',  // not cache... sorry
+    ICON: skin + 'photo.png',
+    check: function(ctx) {
+      return ctx.onImage;
+    },
+    extract: function(ctx) {
+      var contentType = ctx.document.contentType;
+      if (contentType && contentType.match(/^image/)) {
+        ctx.title = ctx.href.split('/').pop();
+      }
+      var target = ctx.target;
+      var itemUrl = (tagName(target) === 'object') ? target.data : target.src;
+      return request(itemUrl, {
+        download: true
+      }).addCallback(function(url) {
+        return {
+          type: 'photo',
+          item: ctx.title,
+          itemUrl: url,
+          fileEntry: url
+        };
+      });
+    }
+  },
+
+  {
     name : 'Video - Vimeo',
     ICON : 'http://vimeo.com/favicon.ico',
     check : function(ctx){
