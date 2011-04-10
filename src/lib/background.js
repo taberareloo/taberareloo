@@ -573,7 +573,7 @@ var onRequestsHandlers = {
     var content = req.content,
         opt = content.opt,
         url = content.url;
-    if (opt.download) {
+    if (opt && opt.download) {
       // download option
       // this is very experimental
       return download(url, '').addCallback(function(entry) {

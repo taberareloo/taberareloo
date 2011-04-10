@@ -73,7 +73,7 @@ var Tumblr = {
    * @return {Boolean}
    */
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && !ps.base64 && ((ps.type !== 'audio') || ps.suffix === '.mp3');
+    return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && ((ps.type !== 'audio') || ps.suffix === '.mp3');
   },
 
   /**
@@ -400,7 +400,7 @@ Models.register({
   LINK : 'http://4u.straightline.jp/',
 
   check : function(ps){
-    return ps.type === 'photo' && !ps.file && !ps.base64;
+    return ps.type === 'photo' && !ps.file;
   },
 
   post : function(ps){
@@ -454,7 +454,7 @@ Models.register({
   },
 
   check : function(ps){
-    return ps.type == 'photo' && !ps.file && !ps.base64;
+    return ps.type == 'photo' && !ps.file;
   },
 
   post : function(ps){
@@ -515,7 +515,7 @@ Models.register({
   ICON : chrome.extension.getURL('skin/local.ico'),
 
   check : function(ps) {
-    return ps.type === 'photo' && !ps.file && !ps.base64;
+    return ps.type === 'photo' && !ps.file;
   },
 
   post : function(ps) {
@@ -539,7 +539,7 @@ Models.register({
           return ret.errback('ps.itemUrl is not URL');
         }
 
-        var code = '(' + function download(url) {
+        var code = '(' + function downloadFile(url) {
           var ev = document.createEvent('MouseEvents');
           ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
           var target = $N('a', { href: url }, $N('img', {src: url}));
@@ -587,7 +587,7 @@ Models.register({
   }
 });
 
-// 唯一base64 fileを受け付けます.
+// FIXME
 // thx id: secondlife & Hatena.inc
 Models.register({
   name : 'HatenaFotolife',
@@ -596,7 +596,7 @@ Models.register({
   LOGIN_URL : 'https://www.hatena.ne.jp/login',
 
   check : function(ps){
-    return ps.type === 'photo' && ps.base64;
+    return ps.type === 'photo';
   },
 
   getToken : function(){
@@ -607,10 +607,18 @@ Models.register({
   },
 
   post : function(ps){
-    // 拡張子を指定しないとアップロードに失敗する(エラーは起きない)
-    var self = this;
-    return (ps.base64? succeed(ps.base64) : canvasRequest(ps.itemUrl)).addCallback(function(file){
-      return self.uploadWithBase64(file);
+    var that = this;
+    return (ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function(entry) {
+      return getFileFromEntry(entry);
+    })).addCallback(function(file) {
+      return fileToPNGDataURL(file).addCallback(function(container) {
+        return that.uploadWithBase64(container);
+      });
+      // TODO(Constellation) extension guess
+//      return that.upload({
+//        fototitle1: ps.item || ps.page,
+//        image1: file
+//      });
     });
   },
 
@@ -662,7 +670,7 @@ Models.register({
   JSON_URL : 'http://b.hatena.ne.jp/my.name',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -864,7 +872,7 @@ Models.register({
   },
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -902,7 +910,7 @@ Models.register({
   LINK : 'http://clip.livedoor.com/',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -1025,7 +1033,7 @@ Models.register({
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -1087,7 +1095,7 @@ Models.register({
   ICON: 'http://calendar.google.com/googlecalendar/images/favicon.ico',
 
   check: function(ps) {
-    return /regular|link/.test(ps.type) && !ps.file && !ps.base64;
+    return /regular|link/.test(ps.type) && !ps.file;
   },
 
   getAuthCookie: function() {
@@ -1228,7 +1236,7 @@ Models.register({
   LINK     : 'http://www.evernote.com/',
 
   check : function(ps){
-    return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -1290,7 +1298,7 @@ Models.register({
   LINK : 'http://friendfeed.com/',
   LOGIN_URL : 'https://friendfeed.com/account/login',
   check : function(ps){
-    return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file && !ps.base64;
+    return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
   },
 
   getToken : function(){
@@ -1331,7 +1339,7 @@ Models.register({
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -1690,7 +1698,7 @@ Models.register({
   LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
   check : function(ps){
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -1763,7 +1771,7 @@ Models.register({
   LOGIN_URL : 'http://wassr.jp/',
 
   check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
@@ -1795,7 +1803,7 @@ Models.register({
   LOGIN_URL: 'http://clipp.in/account/login',
 
   check: function(ps) {
-    return /photo|quote|link|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|video/.test(ps.type) && !ps.file;
   },
   post: function(ps) {
     var endpoint = this.CLIPP_URL + 'bookmarklet/add';
@@ -1965,7 +1973,7 @@ Models.register({
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
-    return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file && !ps.base64;
+    return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file;
   },
 
   getToken : function() {
@@ -2029,7 +2037,7 @@ Models.register({
   ICON: 'http://www.diigo.com/favicon.ico',
   LINK: 'http://www.diigo.com/',
   check: function(ps) {
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file && !ps.base64;
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post: function(ps) {
