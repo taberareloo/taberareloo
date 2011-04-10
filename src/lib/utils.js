@@ -646,7 +646,7 @@ function checkHttps(ps) {
 }
 
 function getTempFile(ext) {
-  ext || (ext = '');
+  ext || (ext = 'blob');
   var d = new Deferred();
   requestFileSystem(TEMPORARY, 1024 * 1024, function(fs) {
     fs.root.getDirectory('tmp', {
@@ -660,6 +660,47 @@ function getTempFile(ext) {
         d.errback(e);
       });
     }, function(e) {
+      d.errback(e);
+    });
+  });
+  return d;
+}
+
+function getWriter(file) {
+  var d = new Deferred();
+  file.createWriter(function(writer) {
+    d.callback(writer);
+  });
+  return d;
+}
+
+// this is very experimental
+function download(url, type) {
+  var d = new Deferred();
+  request(url, {
+    responseType: 'arraybuffer'
+  }).addCallback(function(res) {
+    var buffer = res.response;
+    var builder = new BlobBuilder();
+    builder.append(buffer);
+    return getTempFile()
+    .addCallback(function(entry) {
+      return getWriter(entry)
+      .addCallback(function(writer) {
+        writer.onwrite = function onWrite(e) {
+          entry.file(function(file) {
+            d.callback(file);
+          }, function onError(e) {
+            d.errback(e);
+          });
+        };
+        writer.onerror = function onError(e) {
+          d.errback(e);
+        };
+        writer.write(builder.getBlob(type));
+      });
+    })
+    .addErrback(function(e) {
       d.errback(e);
     });
   });

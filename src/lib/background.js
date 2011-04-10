@@ -170,6 +170,8 @@ function request(url, opt) {
       }
     }
     if (multipart) {
+      // using FormData is not unstable in Yahoo Model.
+      // so, use it in multipart pattern only
       data = new FormData();
       for (var key in sendContent) {
         var value = sendContent[key];
