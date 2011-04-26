@@ -648,7 +648,8 @@ function checkHttps(ps) {
 function getTempFile(ext) {
   ext || (ext = 'blob');
   var d = new Deferred();
-  requestFileSystem(TEMPORARY, 1024 * 1024, function(fs) {
+  var req = window.requestFileSystem || window.webkitRequestFileSystem;
+  req(TEMPORARY, 1024 * 1024, function(fs) {
     fs.root.getDirectory('tmp', {
       create: true
     }, function (dir) {
