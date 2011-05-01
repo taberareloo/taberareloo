@@ -695,9 +695,16 @@ function download(url, type) {
   });
 }
 
+var getBlobBuilder = (function() {
+  var builder = window.BlobBuilder || window.WebKitBlobBuilder;
+  return function getBlobBuilder() {
+    return new builder();
+  }
+})();
+
 function createFileEntryFromArrayBuffer(buffer, type) {
   var d = new Deferred();
-  var builder = new BlobBuilder();
+  var builder = getBlobBuilder();
   builder.append(buffer);
   getTempFile()
   .addCallback(function(entry) {
