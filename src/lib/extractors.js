@@ -162,10 +162,11 @@ Extractors.register([
     },
     extract: function(ctx) {
       var link = this.getLink(ctx);
-      if(!link)
+      if (!link) {
         return {};
+      }
 
-      var self = this;
+      var that = this;
       var endpoint = this.CLIPP_URL + 'bookmarklet' + link;
       return this.getForm(endpoint).addCallback(function(form) {
         return update({
@@ -177,7 +178,7 @@ Extractors.register([
             endpoint: endpoint,
             form: form
           }
-        }, self.convertToParams(form));
+        }, that.convertToParams(form));
       });
     },
     getForm: function(url, ignoreError) {
@@ -373,30 +374,31 @@ Extractors.register([
     name : 'ReBlog',
     TUMBLR_URL : 'http://www.tumblr.com/',
     extractByLink : function(ctx, link){
-      var self = this;
+      var that = this;
       return request(link).addCallback(function(res){
         var text = res.responseText;
         var doc = createHTML(res.responseText);
         ctx.href = link;
         var m = text.match(/<title(?:\s[^>]+?)?>([\S\s]*?)<\/title\s*>/i);
         ctx.title = ((m)? m[1] : '').replace(/[\n\r]/g, '');
-        return self.extractByPage(ctx, doc);
+        return that.extractByPage(ctx, doc);
       });
     },
     getForm : function(ctx, url){
-      var self = this;
+      var that = this;
       return request(url).addCallback(function(res){
         var doc = createHTML(res.responseText);
-        var form = formContents($X('//form', doc)[1]);
+        var form = formContents($X('//form', doc)[0]);
         delete form.preview_post;
-        form.redirect_to = self.TUMBLR_URL+'dashboard';
+        form.redirect_to = that.TUMBLR_URL+'dashboard';
         if(form.reblog_post_id){
-          // self.trimReblogInfo(form);
+          // that.trimReblogInfo(form);
           // Tumblrから他サービスへポストするため画像URLを取得しておく
-          if(form['post[type]']==='photo')
+          if (form['post[type]']==='photo') {
             form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
+          }
         }
-        if(TBRL.config.entry['not_convert_text'] && form['post[type]']==='link'){
+        if(TBRL.config.entry['not_convert_text'] && form['post[type]'] === 'link'){
           var m = ctx.href.match(/^http:\/\/([^\/]+)\/post\/([^\/]+)\/?/);
           if(m){
             return request('http://'+m[1]+'/api/read', {
@@ -412,7 +414,7 @@ Extractors.register([
                   var textDoc = createHTML(res.responseText);
                   var textForm = formContents($X('//form', textDoc)[1]);
                   delete textForm.preview_post;
-                  textForm.redirect_to = self.TUMBLR_URL+'dashboard';
+                  textForm.redirect_to = that.TUMBLR_URL+'dashboard';
                   return textForm;
                 });
               } else {
@@ -429,7 +431,7 @@ Extractors.register([
       return this.extractByEndpoint(ctx, this.TUMBLR_URL + 'reblog/' + m[1] + '/' + m[2]);
     },
     extractByEndpoint : function(ctx, endpoint){
-      var self = this;
+      var that = this;
       return this.getForm(ctx, endpoint).addCallback(function(form){
         return update({
           type     : form['post[type]'],
@@ -440,7 +442,7 @@ Extractors.register([
             endpoint : endpoint,
             form     : form
           }
-        }, self.convertToParams(form));
+        }, that.convertToParams(form));
       });
     },
     getFrameUrl : function(doc){
