@@ -193,10 +193,11 @@ UserScripts.register([
       var r_flag= TBRL.config['post']['dashboard_plus_taberareloo'];
       var m_key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo_manually'];
       var m_flag= TBRL.config['post']['dashboard_plus_taberareloo_manually'];
-      if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
+      if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) ||
+          /^http:\/\/www\.tumblr\.com\/likes/.test(location.href) ||
           /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
           /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
-          /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href)     ||
+          /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href) ||
           /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
          ) && ((r_flag && r_key) ||
                (m_flag && m_key))){
