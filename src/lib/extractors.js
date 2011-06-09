@@ -19,10 +19,11 @@ Extractors.register([
         feed   : channel.textContent,
         href   : $X('(descendant-or-self::div[@class="item_info"]/a)[1]/@href', item)[0].replace(/[?&;](fr?(om)?|track|ref|FM)=(r(ss(all)?|df)|atom)([&;].*)?/,'') || channel.href
       };
+      var uri = createURI(res.href);
       if(!getOnly){
         ctx.title = res.feed + (res.title? ' - ' + res.title : '');
         ctx.href  = res.href;
-        ctx.host  = res.href.match(/http:\/\/(.*?)\//)[1];
+        ctx.host  = uri.host;
       }
       return res;
     }
