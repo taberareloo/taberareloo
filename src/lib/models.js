@@ -2193,50 +2193,50 @@ function shortenUrls(text, model){
 
 Models.copyTo(this);
 
-Models.check = function(ps){
-  return this.values.filter(function(m){
+Models.check = function(ps) {
+  return this.values.filter(function(m) {
     return (ps.favorite && ps.favorite.name === (m.typeName || m.name)) || (m.check && m.check(ps));
   });
-}
+};
 
-Models.getDefaults = function(ps){
+Models.getDefaults = function(ps) {
   var config = TBRL.Config['services'];
-  return this.check(ps).filter(function(m){
+  return this.check(ps).filter(function(m) {
     return Models.getPostConfig(config, m.name, ps, m) === 'default';
   });
-}
+};
 
-Models.getEnables = function(ps){
+Models.getEnables = function(ps) {
   var config = TBRL.Config['services'];
-  return this.check(ps).filter(function(m){
+  return this.check(ps).filter(function(m) {
     m.config = (m.config || {});
 
     var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps, m);
     return val === undefined || /default|enabled/.test(val);
   });
-}
+};
 
-Models.getConfig = function(ps, poster){
+Models.getConfig = function(ps, poster) {
   var c  = Models.getPostConfig(TBRL.Config['services'], poster.name, ps, poster);
-  if(c === 'default'){
+  if (c === 'default') {
     return 'default';
-  } else if(c === undefined || 'enabled' === c){
+  } else if (c === undefined || 'enabled' === c) {
     return 'enabled';
   } else {
     return 'disabled';
   }
-}
+};
 
-Models.getPostConfig = function(config, name, ps, model){
+Models.getPostConfig = function(config, name, ps, model) {
   var c = config[name] || {};
   return (ps.favorite && ps.favorite.name === (model.typeName || name))? c.favorite : c[ps.type];
-}
+};
 
 Models.multipleTumblelogs = [];
-Models.getMultiTumblelogs = function(){
+Models.getMultiTumblelogs = function() {
   Models.removeMultiTumblelogs();
-  return Tumblr.getTumblelogs().addCallback(function(blogs){
-    return blogs.map(function(blog){
+  return Tumblr.getTumblelogs().addCallback(function(blogs) {
+    return blogs.map(function(blog) {
       var model = update({}, Tumblr);
       model.name = 'Tumblr - ' + blog.name;
       model.typeName = 'Tumblr';
@@ -2247,14 +2247,15 @@ Models.getMultiTumblelogs = function(){
       Models.multipleTumblelogs.push(model);
       return model;
     });
-  }).addErrback(function(e){
+  }).addErrback(function(e) {
     alert('Multiple Tumblelog'+ ': ' +
       (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
-}
-Models.removeMultiTumblelogs = function(){
-  Models.multipleTumblelogs.forEach(function(model){
+};
+
+Models.removeMultiTumblelogs = function() {
+  Models.multipleTumblelogs.forEach(function(model) {
     Models.remove(model);
   });
   Models.multipleTumblelogs = [];
-}
+};

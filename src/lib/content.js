@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
 // content script space
 
-var log = function(){
+var log = function() {
   var d = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {
     request: "log",
@@ -10,7 +10,7 @@ var log = function(){
     d.callback(res);
   });
   return d;
-}
+};
 
 var TBRL = {
   target : {x:0, y:0},
@@ -286,7 +286,7 @@ var TBRL = {
     }).join(',')
     location.href = "javascript:void ("+encodeURIComponent(func.toString())+")("+args+")";
   }
-}
+};
 
 TBRL.getConfig().addCallback(TBRL.init);
 
@@ -307,7 +307,7 @@ var request = function(url, opt) {
     }
   });
   return ret;
-}
+};
 
 var base64ToFileEntry = function(data) {
   var ret = new Deferred();
@@ -318,7 +318,7 @@ var base64ToFileEntry = function(data) {
     ret.callback(res);
   });
   return ret;
-}
+};
 
 var getTitle = function(){
   function title_getter(){

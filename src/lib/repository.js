@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
 // like tombloo Repository
 
-var Repository = function(){
+var Repository = function() {
   this.list = [];
-}
+};
 
 Repository.prototype = {
   clear : function(){
@@ -78,5 +78,5 @@ Repository.prototype = {
   get size(){
     return this.values.length;
   }
-}
+};
 

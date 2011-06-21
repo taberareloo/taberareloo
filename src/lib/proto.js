@@ -275,18 +275,18 @@ String.katakana = {
   'ヵ':'lka','ヶ':'lke','ッ':'ltu',
   'ャ':'lya','ュ':'lyu','ョ':'lyo','ヮ':'lwa',
   '。':".",'、':",",'ー':"-"
-}
+};
 
 update(Date, {
   TIME_SECOND : 1000,
   TIME_MINUTE : 1000 * 60,
   TIME_HOUR   : 1000 * 60 * 60,
   TIME_DAY    : 1000 * 60 * 60 * 24
-})
+});
 
-Math.hypot = function(x, y){
+Math.hypot = function(x, y) {
   return Math.sqrt(x*x + y*y);
-}
+};
 
 Object.defineProperty(Number.prototype, "toHexString", {
   writable: true,

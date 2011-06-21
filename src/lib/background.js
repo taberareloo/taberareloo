@@ -227,7 +227,7 @@ function request(url, opt) {
 
   req.onprogress = function(e) {
     position = e.position;
-  }
+  };
 
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
@@ -253,7 +253,7 @@ function request(url, opt) {
         }
       }
     }
-  }
+  };
 
   if (data) {
     req.send(data);

@@ -462,7 +462,7 @@ var Desc = function(ps, toggle){
   this.shown = true;
   toggle && this.toggle();
   this.maxHeight = 100;
-  var count = this.count = $('count')
+  var count = this.count = $('count');
   count.appendChild($T('0'));
   var desc = this.desc = $('desc');
 

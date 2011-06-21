@@ -148,7 +148,7 @@ function addBefore(target, name, before) {
   target[name] = function() {
     before.apply(target, arguments);
     return original.apply(target, arguments);
-  }
+  };
 }
 
 /**
@@ -309,7 +309,8 @@ var KeyEvent = {
   'DOM_VK_CLOSE_BRACKET' : 221,
   'DOM_VK_QUOTE'         : 222,
   'DOM_VK_META'          : 224
-}
+};
+
 function keyString(e){
   // 初回呼び出し時にキーテーブルを作成する
   var table = [];
@@ -440,7 +441,7 @@ var $ = (function(){
   }
 })();
 
-var $DF = function(){
+function $DF() {
   return document.createDocumentFragment();
 }
 
@@ -508,10 +509,10 @@ function DeferredHash(ds){
 
 // Code from ChromeFullFeed
 // (c) id:Constellation MIT License
-function resolveRelativePath(base){
+function resolveRelativePath(base) {
   var top = base.match(/^https?:\/\/[^\/]+/)[0];
   var current = base.replace(/\/[^\/]+$/, '/');
-  return function(url){
+  return function(url) {
     if (url.match(/^https?:\/\//)) {
       return url;
     } else if (url.indexOf("/") === 0) {
@@ -528,7 +529,7 @@ function resolveRelativePath(base){
       }
       return result + url;
     }
-  }
+  };
 }
 
 // (c) id:nanto_vi
@@ -538,7 +539,7 @@ function convertToHTMLString(source, safe, hatena) {
   var range = source.getRangeAt ? source.getRangeAt(0) : null;
   var node = range ? range.cloneContents() : source.cloneNode(true);
   if (safe) {
-    var root = range && range.commonAncestorContainer.cloneNode(false)
+    var root = range && range.commonAncestorContainer.cloneNode(false);
     if (!root || root.nodeType !== root.ELEMENT_NODE)
       root = node.ownerDocument.createElement('div');
     root.appendChild(node);
