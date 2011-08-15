@@ -202,26 +202,27 @@ Extractors.register([
       return $X('./ancestor-or-self::div[contains(concat(" ", @class, " "), " item ")]//a[contains(@href, "add?reblog=")]/@href', ctx.target)[0];
     },
     convertToParams: function(form) {
-      if (form.embed_code)
+      if (form.embed_code) {
         return {
           type: 'video',
           item: form.title,
           itemUrl: form.address,
           body: form.embed_code
         };
-      else if (form.image_address)
+      } else if (form.image_address) {
         return {
           type: 'photo',
           item: form.title,
           itemUrl: form.image_address
         };
-      else if (form.quote && form.quote != '<br>')
+      } else if (form.quote && form.quote !== '<br>') {
         return {
           type: 'quote',
           item: form.title,
           itemUrl: form.address,
           body: form.quote
         };
+      }
       return {
         type: 'link',
         item: form.title,
@@ -392,39 +393,52 @@ Extractors.register([
         var form = formContents($X('//form', doc)[0]);
         delete form.preview_post;
         form.redirect_to = that.TUMBLR_URL+'dashboard';
-        if(form.reblog_post_id){
+        if (form.reblog_post_id) {
           // that.trimReblogInfo(form);
           // Tumblrから他サービスへポストするため画像URLを取得しておく
-          if (form['post[type]']==='photo') {
-            form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
+          if (form['post[type]'] === 'photo') {
+            var photoset = $X('id("current_photo")//iframe[contains(concat(" ", normalize-space(@class), " "), " photoset ")]', doc)[0];
+            if (photoset) {
+              // photo set path
+              return request(photoset.getAttribute("src")).addCallback(function(res) {
+                var doc2 = createHTML(res.responseText);
+                form.image = $X('//div[contains(concat(" ", normalize-space(@class), " "), " photoset ")]//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc2)[0];
+                return afterPhoto();
+              });
+            } else {
+              form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
+            }
           }
         }
-        if(TBRL.config.entry['not_convert_text'] && form['post[type]'] === 'link'){
-          var m = ctx.href.match(/^http:\/\/([^\/]+)\/post\/([^\/]+)\/?/);
-          if(m){
-            return request('http://'+m[1]+'/api/read', {
-              charset: 'text/plain; charset=utf-8',
-              queryString: {
-                id: m[2]
-              }
-            }).addCallback(function(res){
-              var xml = createXML(res.responseText);
-              var type = xml.getElementsByTagName('post')[0].getAttribute('type');
-              if(type === 'regular'){
-                return request(url+'/text').addCallback(function(res){
-                  var textDoc = createHTML(res.responseText);
-                  var textForm = formContents($X('//form', textDoc)[1]);
-                  delete textForm.preview_post;
-                  textForm.redirect_to = that.TUMBLR_URL+'dashboard';
-                  return textForm;
-                });
-              } else {
-                return form;
-              }
-            });
+        return succeed().addCallback(afterPhoto);
+        function afterPhoto() {
+          if(TBRL.config.entry['not_convert_text'] && form['post[type]'] === 'link'){
+            var m = ctx.href.match(/^http:\/\/([^\/]+)\/post\/([^\/]+)\/?/);
+            if(m){
+              return request('http://'+m[1]+'/api/read', {
+                charset: 'text/plain; charset=utf-8',
+                queryString: {
+                  id: m[2]
+                }
+              }).addCallback(function(res){
+                var xml = createXML(res.responseText);
+                var type = xml.getElementsByTagName('post')[0].getAttribute('type');
+                if(type === 'regular'){
+                  return request(url+'/text').addCallback(function(res){
+                    var textDoc = createHTML(res.responseText);
+                    var textForm = formContents($X('//form', textDoc)[1]);
+                    delete textForm.preview_post;
+                    textForm.redirect_to = that.TUMBLR_URL+'dashboard';
+                    return textForm;
+                  });
+                } else {
+                  return form;
+                }
+              });
+            }
           }
+          return form;
         }
-        return form;
       });
     },
     extractByPage : function(ctx, doc){
@@ -434,7 +448,7 @@ Extractors.register([
     extractByEndpoint : function(ctx, endpoint){
       var that = this;
       return this.getForm(ctx, endpoint).addCallback(function(form){
-        return update({
+        var result = update({
           type     : form['post[type]'],
           item     : ctx.title,
           itemUrl  : ctx.href,
@@ -444,6 +458,7 @@ Extractors.register([
             form     : form
           }
         }, that.convertToParams(form));
+        return result;
       });
     },
     getFrameUrl : function(doc){
