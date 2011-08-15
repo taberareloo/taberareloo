@@ -3,7 +3,7 @@
 // http://gist.github.com/198443
 // via http://github.com/hatena/hatena-bookmark-xul/blob/master/chrome/content/common/05-HTMLDocumentCreator.js
 // a little modified
-function createHTML(source){
+function createHTML(source) {
   var doc = document.implementation.createHTMLDocument ?
     document.implementation.createHTMLDocument('TABERARELOO') :
     document.implementation.createDocument(null, 'html', null);
@@ -37,14 +37,7 @@ function createHTML(source){
   return doc;
 }
 
-//function createXML(str){
-//  var xhr = new XMLHttpRequest();
-//  xhr.open("GET", str, false);
-//  xhr.send(null);
-//  return xhr.responseXML;
-//}
-
-function createXML(str){
+function createXML(str) {
   var p = new DOMParser();
   return p.parseFromString(str, "text/xml");
 }
@@ -96,7 +89,7 @@ function $X (exp, context) {
     return context.lookupNamespaceURI(prefix === defaultPrefix ? null : prefix) ||
          documentElement.namespaceURI || "";
   }
-  function value(node){
+  function value(node) {
     if(!node) return;
 
     switch(node.nodeType) {
@@ -123,14 +116,14 @@ function $X (exp, context) {
 
 // Ported from Tombloo
 // Public License
-function joinText(txts, delm, trimTag){
+function joinText(txts, delm, trimTag) {
   if(!txts) return '';
   if(!delm) delm = ',';
   txts = [].concat(txts).filter(operator.truth).flatten();
   return (trimTag? txts.map(methodcaller('trimTag')) : txts).join(delm);
 }
 
-function tagName(elm){
+function tagName(elm) {
   return elm.tagName? elm.tagName.toLowerCase() : '';
 }
 
@@ -163,27 +156,30 @@ function addBefore(target, name, before) {
  *        アドバイス。proceed、args、target、methodNameの4つの引数が渡される。
  *        proceedは対象オブジェクトにバインド済みのオリジナルのメソッド。
  */
-function addAround(target, methodNames, advice){
+function addAround(target, methodNames, advice) {
   methodNames = [].concat(methodNames);
 
   // ワイルドカードの展開
-  for(var i=0 ; i<methodNames.length ; i++){
-    if(methodNames[i].indexOf('*')==-1) continue;
+  for (var i=0 ; i<methodNames.length ; i++) {
+    if (methodNames[i].indexOf('*') === -1) {
+      continue;
+    }
 
     var hint = methodNames.splice(i, 1)[0];
     hint = new RegExp('^' + hint.replace(/\*/g, '.*'));
-    for(var prop in target) {
-      if(hint.test(prop) && typeof(target[prop]) == 'function')
+    for (var prop in target) {
+      if (hint.test(prop) && typeof(target[prop]) === 'function') {
         methodNames.push(prop);
+      }
     }
   }
 
-  methodNames.forEach(function(methodName){
+  methodNames.forEach(function(methodName) {
     var method = target[methodName];
     target[methodName] = function() {
       var self = this;
       return advice(
-        function(args){
+        function(args) {
           return method.apply(self, args);
         },
         arguments, self, methodName);
@@ -311,14 +307,16 @@ var KeyEvent = {
   'DOM_VK_META'          : 224
 };
 
-function keyString(e){
+function keyString(e) {
   // 初回呼び出し時にキーテーブルを作成する
   var table = [];
-  for(var name in KeyEvent)
-    if(name.indexOf('DOM_VK_')===0)
+  for(var name in KeyEvent) {
+    if(name.indexOf('DOM_VK_') === 0) {
       table[KeyEvent[name]] = name.substring(7);
+    }
+  }
 
-  return (keyString = function(e){
+  return (keyString = function keyString(e) {
     var code = e.keyCode;
     var res = [];
     (e.metaKey  || code===KeyEvent.DOM_VK_META)    && res.push('META');
@@ -326,29 +324,30 @@ function keyString(e){
     (e.shiftKey || code===KeyEvent.DOM_VK_SHIFT)   && res.push('SHIFT');
     (e.altKey   || code===KeyEvent.DOM_VK_ALT)     && res.push('ALT');
 
-    if((code < KeyEvent.DOM_VK_SHIFT || KeyEvent.DOM_VK_ALT < code) && code != KeyEvent.DOM_VK_META)
+    if ((code < KeyEvent.DOM_VK_SHIFT || KeyEvent.DOM_VK_ALT < code) && code != KeyEvent.DOM_VK_META) {
       res.push(table[code]);
+    }
 
     return res.join(' + ');
   })(e);
 }
 
-function stop(ev){
+function stop(ev) {
   ev.preventDefault();
   ev.stopPropagation();
 }
 var cancel = stop;
 
-function unescapeHTML(s){
+function unescapeHTML(s) {
   return s.replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 }
 
-function update(t, s){
-  if(s){
-    Object.keys(s).forEach(function(key){
+function update(t, s) {
+  if(s) {
+    Object.keys(s).forEach(function(key) {
       t[key] = s[key];
     });
   }
@@ -356,22 +355,22 @@ function update(t, s){
 }
 
 function maybeDeferred(d) {
-  return typeof(d) === 'function'?
+  return typeof(d) === 'function' ?
     MochiKit.Async.maybeDeferred(d) :
-    (d===null || !d.addCallback)?
-      succeed(d) :
-      d;
+    (d===null || !d.addCallback) ? succeed(d) : d;
 }
 
-function formContents(elm){
-  if(typeof(elm) === 'string') elm = createHTML(elm);
+function formContents(elm) {
+  if (typeof(elm) === 'string') {
+    elm = createHTML(elm);
+  }
   var form = MochiKit.DOM.formContents(elm);
   var ret = {};
-  zip(form[0], form[1]).forEach(function(arr){
+  zip(form[0], form[1]).forEach(function(arr) {
     var name = arr[0];
     var val = arr[1];
-    if(ret[name]){
-      if(ret[name] instanceof Array){
+    if (ret[name]) {
+      if (Array.isArray(ret[name])) {
         ret[name].push(val);
       } else {
         ret[name] = [ret[name], val];
@@ -383,43 +382,48 @@ function formContents(elm){
   return ret;
 }
 
-function isEmpty(obj){
-  for(var i in obj)
+function isEmpty(obj) {
+  for (var i in obj)
     return false;
   return true;
 }
 
-function queryString(params, question){
-  if(isEmpty(params)) return '';
+function queryString(params, question) {
+  if (isEmpty(params)) {
+    return '';
+  }
 
-  if(typeof(params)==='string') return params;
+  if (typeof(params) === 'string') {
+    return params;
+  }
 
   var qeries = [];
-  for(var key in params){
+  for (var key in params) {
     var value = params[key];
-    if(value===null)
+    if (value === null) {
       continue;
-    else if(value instanceof Array)
+    } else if (Array.isArray(value)) {
       value.forEach(function(val){
         qeries.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
       });
-    else
+    } else {
       qeries.push(encodeURIComponent(key) + '='+ encodeURIComponent(value));
+    }
   }
-  return (question? '?' : '') + qeries.join('&');
+  return (question ? '?' : '') + qeries.join('&');
 }
 
-function queryHash(query){
-  var hash = {};
+function queryHash(query) {
+  var hash = { };
   query = query.replace(/^\?/, '');
-  query.split('&').forEach(function(pair){
+  query.split('&').forEach(function(pair) {
     pair = pair.split('=');
-    if(pair.length === 2){
+    if (pair.length === 2) {
       var key = pair[0];
       var val = pair[1];
-      if(!hash[key]){
+      if (!hash[key]) {
         hash[key] = val;
-      } else if(hash[key] instanceof Array){
+      } else if (Array.isArray(hash[key])) {
         hash[key].push(val);
       } else {
         hash[key] = [hash[key], val];
@@ -430,13 +434,13 @@ function queryHash(query){
 }
 
 // others
-function $A(arr){
+function $A(arr) {
   return Array.prototype.slice.call(arr);
 };
 
-var $ = (function(){
+var $ = (function() {
   var hash = {};
-  return function(id){
+  return function $(id){
     return hash[id] || document.getElementById(id);
   }
 })();
@@ -445,64 +449,70 @@ function $DF() {
   return document.createDocumentFragment();
 }
 
-function $D(elm){
+function $D(elm) {
   var range = document.createRange();
   range.selectNodeContents(elm);
   range.deleteContents();
   range.detach();
 };
 
-var $N = function(name, attr, childs){
+var $N = function(name, attr, childs) {
   var ret = document.createElement(name);
-  if(attr) for (var k in attr) if (attr.hasOwnProperty(k)) {
-    ret.setAttribute(k, attr[k]);
-  }
-  switch(typeof childs){
-    case "string":
-    ret.appendChild(document.createTextNode(childs));
-    break;
-    case "object":
-    if(isArrayLike(childs)){
-      for(var i=0, len=childs.length; i<len; i++){
-        var child = childs[i];
-        if(typeof child === "string"){
-          ret.appendChild(document.createTextNode(child));
-        } else {
-          ret.appendChild(child);
-        }
+  if(attr) {
+    for (var k in attr) {
+      if (attr.hasOwnProperty(k)) {
+        ret.setAttribute(k, attr[k]);
       }
-    } else {
-      ret.appendChild(childs);
     }
+  }
+  switch (typeof childs) {
+    case "string":
+      ret.appendChild(document.createTextNode(childs));
+      break;
+    case "object":
+      if (isArrayLike(childs)) {
+        for (var i=0, len=childs.length; i<len; i++) {
+          var child = childs[i];
+          if (typeof child === "string") {
+            ret.appendChild(document.createTextNode(child));
+          } else {
+            ret.appendChild(child);
+          }
+        }
+      } else {
+        ret.appendChild(childs);
+      }
+      break;
   }
   return ret;
 };
 
-function setStyle(element, attrs){
-  Object.keys(attrs).forEach(function(key){
+function setStyle(element, attrs) {
+  Object.keys(attrs).forEach(function(key) {
     element.style[key] = attrs[key];
   });
 };
 
-var $T = function(mes){
+function $T(mes) {
   return document.createTextNode(mes);
 };
 
-var createURI = (function(){
+var createURI = (function() {
   var anchor = document.createElement('a');
-  return function(link){
+  return function createURI(link) {
     var a = anchor.cloneNode(false);
     a.href = link;
     return a;
   }
 })();
 
-function DeferredHash(ds){
+function DeferredHash(ds) {
   var props = keys(ds);
-  return new DeferredList(values(ds)).addCallback(function(results){
+  return new DeferredList(values(ds)).addCallback(function(results) {
     var res = {};
-    for (var i = 0, len=results.length; i < len; i++)
+    for (var i = 0, len=results.length; i < len; i++) {
       res[props[i]] = results[i];
+    }
     return res;
   });
 }
@@ -595,7 +605,7 @@ update(convertToHTMLString, {
   }
 });
 
-function getSelectionContents(sel){
+function getSelectionContents(sel) {
   if(sel) {
     sel = (sel.getSelection)? sel.getSelection() : sel;
     if(sel.rangeCount && !sel.isCollapsed) {
@@ -604,22 +614,22 @@ function getSelectionContents(sel){
   }
 }
 
-function createFlavoredString(src){
+function createFlavoredString(src) {
   return {
     raw  : src.textContent || src.toString(),
     html : convertToHTMLString(src, true, !!TBRL.config['post']['remove_hatena_keyword'])
   };
 }
 
-function getFlavor(ps, name){
+function getFlavor(ps, name) {
   return (!ps.body || !ps.flavors)? ps.body :
     ps.flavors[name] || ps.body;
 }
 
-function templateExtract(template, hash){
+function templateExtract(template, hash) {
   var reg = /%(%|([^\s]+?[^%\s])%)/g;
 
-  return template.replace(reg, function(m, flag, title){
+  return template.replace(reg, function(m, flag, title) {
     return (flag[0] === '%')     ? '%' :
       hash.hasOwnProperty(title) ? (hash[title] || "") : "";
   });
@@ -730,11 +740,11 @@ var getURLFromFile = (function() {
   var err = new Error("createObjectURL is not found");
   var get = window.createBlobURL || window.createObjectURL;
   if (get) {
-    return function(file) {
+    return function getURLFromFile(file) {
       return get(file);
     }
   }
-  return function(file) {
+  return function getURLFromFile(file) {
     if (window.URL) {
       return window.URL.createObjectURL(file);
     } else {
@@ -766,3 +776,190 @@ function fileToPNGDataURL(file) {
 
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 
+function request(url, opt) {
+  var req = new XMLHttpRequest();
+  var ret = new Deferred();
+  var data;
+
+  opt = (opt) ? update({}, opt) : {};
+  var method = opt.method && opt.method.toUpperCase();
+
+  if (opt.queryString) {
+    var qs = queryString(opt.queryString, true);
+    url += qs;
+  }
+
+  // construct FormData (if required)
+  var multipart = false;
+  if (opt.sendContent && (!method || method === 'POST')) {
+    var sendContent = opt.sendContent;
+    if (!method) {
+      method = 'POST';
+    }
+    for (var key in sendContent) {
+      if (sendContent[key] instanceof File) {
+        multipart = true;
+        break;
+      }
+    }
+    if (multipart) {
+      // using FormData is not unstable in Yahoo Model.
+      // so, use it in multipart pattern only
+      data = new FormData();
+      for (var key in sendContent) {
+        var value = sendContent[key];
+        if (value === null || value === undefined) {
+          continue;
+        }
+        data.append(key, value);
+      }
+    } else {
+      data = queryString(sendContent, false);
+    }
+  }
+
+  // construct method
+  if (!method) {
+    method = 'GET';
+  }
+
+  // open XHR
+  if ('username' in opt) {
+    req.open(method, url, true, opt.username, opt.password);
+  } else {
+    req.open(method, url, true);
+  }
+
+  // construct responseType
+  if (opt.responseType) {
+    req.responseType = opt.responseType;
+  }
+
+  // construct charset
+  if (opt.charset) {
+    req.overrideMimeType(opt.charset);
+  }
+
+  // construct headers
+  var setHeader = true;
+  if (opt.headers) {
+    if (opt.headers['Content-Type']) {
+      setHeader = false;
+    }
+    Object.keys(opt.headers).forEach(function(key) {
+      req.setRequestHeader(key, opt.headers[key]);
+    });
+  }
+
+  if (setHeader && opt.sendContent && !multipart) {
+    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  }
+
+  var position = -1;
+  var error = false;
+
+  req.onprogress = function(e) {
+    position = e.position;
+  };
+
+  req.onreadystatechange = function(e) {
+    if (req.readyState === 4) {
+      var length = 0;
+      try {
+        length = parseInt(req.getResponseHeader('Content-Length'), 10);
+      } catch (e) {
+        console.log('ERROR', e);
+      }
+      // 最終時のlengthと比較
+      if (position !== length) {
+        if (opt.denyRedirection) {
+          ret.errback(req);
+          error = true;
+        }
+      }
+      if (!error) {
+        if (req.status >= 200 && req.status < 300) {
+          ret.callback(req);
+        } else {
+          req.message = chrome.i18n.getMessage('error_http' + req.status);
+          ret.errback(req);
+        }
+      }
+    }
+  };
+
+  if (data) {
+    req.send(data);
+  } else {
+    req.send();
+  }
+  return ret;
+}
+
+function binaryRequest(url, opt) {
+  return request(url, update({
+    charset: 'text/plain; charset=x-user-defined'
+  }, opt)).addCallback(function(res) {
+    res.responseText = res.responseText.replace(
+      /[\u0100-\uffff]/g, function(c) {
+      return String.fromCharCode(c.charCodeAt(0) & 0xff);
+    });
+    return res;
+  });
+}
+
+function getEncoding(text) {
+  var matched = text.match(
+      /<meta.+?http-equiv.+?Content-Type.+?content=(["'])([^\1]+?)\1/i);
+  var res = (matched && !matched[2].match(/UTF-8/i) && matched[2]);
+  return (res) ? getCharset(res) : false;
+}
+
+function getCharset(text) {
+  var matched = text.match(/charset\s*=\s*(\S+)/);
+  return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
+}
+
+// 2回requestすることでcharset判別する.
+function encodedRequest(url, opt) {
+  return binaryRequest(url, opt).addCallback(function(res) {
+    var binary = res.responseText;
+    var charset = null;
+    var header = res.getResponseHeader('Content-Type');
+    if (header) {
+      charset = getCharset(header);
+    }
+    if (!charset) {
+      charset = getEncoding(binary);
+      if (!charset) {
+        charset = 'utf-8';
+      }
+    }
+    return request(url, update({
+      charset: 'text/html; charset=' + charset
+    }, opt));
+  });
+}
+
+// canvas request
+function canvasRequest(url) {
+  var canvas = document.createElement('canvas'),
+      ret = new Deferred(),
+      img = new Image();
+  img.addEventListener('load', function img_load(res) {
+    img.removeEventListener('load', img_load, false);
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    ret.callback({
+      contentType: 'image/png',
+      base64: true,
+      height: img.naturalHeight,
+      width: img.naturalWidth,
+      binary: canvas.toDataURL('image/png', '')
+    });
+  }, false);
+  img.src = url;
+  return ret;
+}

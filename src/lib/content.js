@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
 // content script space
 
-var log = function() {
+function log() {
   var d = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {
     request: "log",
@@ -290,11 +290,10 @@ var TBRL = {
 
 TBRL.getConfig().addCallback(TBRL.init);
 
-// download option added
-var request = function(url, opt) {
+function downloadFile(url, opt) {
   var ret = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {
-    request: "request",
+    request: "download",
     content: {
       "url" : url,
       "opt" : opt
@@ -309,7 +308,7 @@ var request = function(url, opt) {
   return ret;
 };
 
-var base64ToFileEntry = function(data) {
+function base64ToFileEntry(data) {
   var ret = new Deferred();
   chrome.extension.sendRequest(TBRL.id, {
     request: "base64ToFileEntry",
@@ -320,23 +319,23 @@ var base64ToFileEntry = function(data) {
   return ret;
 };
 
-var getTitle = function(){
+function getTitle() {
   function title_getter(){
     var title = document.title;
-    if(!title){
+    if (!title) {
       var elms = document.getElementsByTagName('title');
-      if(elms.length){
+      if (elms.length) {
         title = elms[0].textContent;
       }
     }
     return title;
   }
   var title = title_getter();
-  if(title){
+  if (title) {
     return succeed(title);
   } else {
     var d = new Deferred();
-    connect(document, 'onDOMContentLoaded', null, function(ev){
+    connect(document, 'onDOMContentLoaded', null, function(ev) {
       d.callback(title_getter());
     });
     return d;

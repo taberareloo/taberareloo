@@ -75,194 +75,6 @@ function post_handler(item, con) {
   win.Models = Models;
 }
 
-function binaryRequest(url, opt) {
-  return request(url, update({
-    charset: 'text/plain; charset=x-user-defined'
-  }, opt)).addCallback(function(res) {
-    res.responseText = res.responseText.replace(
-      /[\u0100-\uffff]/g, function(c) {
-      return String.fromCharCode(c.charCodeAt(0) & 0xff);
-    });
-    return res;
-  });
-}
-
-// 2回requestすることでcharset判別する.
-function encodedRequest(url, opt) {
-  return binaryRequest(url, opt).addCallback(function(res) {
-    var binary = res.responseText;
-    var charset = null;
-    var header = res.getResponseHeader('Content-Type');
-    if (header) {
-      charset = getCharset(header);
-    }
-    if (!charset) {
-      charset = getEncoding(binary);
-      if (!charset) {
-        charset = 'utf-8';
-      }
-    }
-    return request(url, update({
-      charset: 'text/html; charset=' + charset
-    }, opt));
-  });
-}
-
-// canvas request
-function canvasRequest(url) {
-  var canvas = document.createElement('canvas'),
-      ret = new Deferred(),
-      img = new Image();
-  img.addEventListener('load', function img_load(res) {
-    img.removeEventListener('load', img_load, false);
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    ret.callback({
-      contentType: 'image/png',
-      base64: true,
-      height: img.naturalHeight,
-      width: img.naturalWidth,
-      binary: canvas.toDataURL('image/png', '')
-    });
-  }, false);
-  img.src = url;
-  return ret;
-}
-
-function getEncoding(text) {
-  var matched = text.match(
-      /<meta.+?http-equiv.+?Content-Type.+?content=(["'])([^\1]+?)\1/i);
-  var res = (matched && !matched[2].match(/UTF-8/i) && matched[2]);
-  return (res) ? getCharset(res) : false;
-}
-
-function getCharset(text) {
-  var matched = text.match(/charset\s*=\s*(\S+)/);
-  return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
-}
-
-function request(url, opt) {
-  var req = new XMLHttpRequest();
-  var ret = new Deferred();
-  var data;
-
-  opt = (opt) ? update({}, opt) : {};
-  var method = opt.method && opt.method.toUpperCase();
-
-  if (opt.queryString) {
-    var qs = queryString(opt.queryString, true);
-    url += qs;
-  }
-
-  // construct FormData (if required)
-  var multipart = false;
-  if (opt.sendContent && (!method || method === 'POST')) {
-    var sendContent = opt.sendContent;
-    if (!method) {
-      method = 'POST';
-    }
-    for (var key in sendContent) {
-      if (sendContent[key] instanceof File) {
-        multipart = true;
-        break;
-      }
-    }
-    if (multipart) {
-      // using FormData is not unstable in Yahoo Model.
-      // so, use it in multipart pattern only
-      data = new FormData();
-      for (var key in sendContent) {
-        var value = sendContent[key];
-        if (value === null || value === undefined) {
-          continue;
-        }
-        data.append(key, value);
-      }
-    } else {
-      data = queryString(sendContent, false);
-    }
-  }
-
-  // construct method
-  if (!method) {
-    method = 'GET';
-  }
-
-  // open XHR
-  if ('username' in opt) {
-    req.open(method, url, true, opt.username, opt.password);
-  } else {
-    req.open(method, url, true);
-  }
-
-  // construct responseType
-  if (opt.responseType) {
-    req.responseType = opt.responseType;
-  }
-
-  // construct charset
-  if (opt.charset) {
-    req.overrideMimeType(opt.charset);
-  }
-
-  // construct headers
-  var setHeader = true;
-  if (opt.headers) {
-    if (opt.headers['Content-Type']) {
-      setHeader = false;
-    }
-    Object.keys(opt.headers).forEach(function(key) {
-      req.setRequestHeader(key, opt.headers[key]);
-    });
-  }
-
-  if (setHeader && opt.sendContent && !multipart) {
-    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  }
-
-  var position = -1;
-  var error = false;
-
-  req.onprogress = function(e) {
-    position = e.position;
-  };
-
-  req.onreadystatechange = function(e) {
-    if (req.readyState === 4) {
-      var length = 0;
-      try {
-        length = parseInt(req.getResponseHeader('Content-Length'), 10);
-      } catch (e) {
-        console.log('ERROR', e);
-      }
-      // 最終時のlengthと比較
-      if (position !== length) {
-        if (opt.denyRedirection) {
-          ret.errback(req);
-          error = true;
-        }
-      }
-      if (!error) {
-        if (req.status >= 200 && req.status < 300) {
-          ret.callback(req);
-        } else {
-          req.message = chrome.i18n.getMessage('error_http' + req.status);
-          ret.errback(req);
-        }
-      }
-    }
-  };
-
-  if (data) {
-    req.send(data);
-  } else {
-    req.send();
-  }
-  return ret;
-}
-
 // trap background ps construct
 function constructPsInBackground(content) {
   if (content.fileEntry) {
@@ -287,8 +99,7 @@ function getSelected() {
 // this is FileEntry (temp file) cacheing table
 // key: blob url
 // value: FileEntry
-var GlobalFileEntryCache = {
-};
+var GlobalFileEntryCache = { };
 
 var TBRL = {
   // default config
@@ -569,43 +380,28 @@ var onRequestsHandlers = {
     console.log.apply(console, req.content);
     func(req.content);
   },
-  request: function(req, sender, func) {
+  download: function(req, sender, func) {
     var content = req.content,
         opt = content.opt,
         url = content.url;
-    if (opt && opt.download) {
-      // download option
-      // this is very experimental
-      return download(url, '').addCallback(function(entry) {
-        return getFileFromEntry(entry).addCallback(function(file) {
-          var key = getURLFromFile(file);
-          GlobalFileEntryCache[key] = entry;
-          return key;
-        }).addCallbacks(function(url) {
-          func({
-            success: true,
-            content: url
-          });
-        }, function(e) {
-          func({
-            success: false,
-            content: e
-          });
-        });
-      });
-    } else {
-      return request(url, opt).addCallbacks(function(res) {
+    // this is very experimental
+    return download(url, '').addCallback(function(entry) {
+      return getFileFromEntry(entry).addCallback(function(file) {
+        var key = getURLFromFile(file);
+        GlobalFileEntryCache[key] = entry;
+        return key;
+      }).addCallbacks(function(url) {
         func({
           success: true,
-          content: res
+          content: url
         });
-      }, function(res) {
+      }, function(e) {
         func({
           success: false,
-          content: res
+          content: e
         });
       });
-    }
+    });
   },
   notifications: function(req, sender, func) {
     var id = req.content;

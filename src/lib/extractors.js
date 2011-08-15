@@ -808,9 +808,7 @@ Extractors.register([
       }
       var target = ctx.target;
       var itemUrl = (tagName(target) === 'object') ? target.data : target.src;
-      return request(itemUrl, {
-        download: true
-      }).addCallback(function(url) {
+      return downloadFile(itemUrl).addCallback(function(url) {
         return {
           type: 'photo',
           item: ctx.title,
