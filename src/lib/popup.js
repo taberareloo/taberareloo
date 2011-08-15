@@ -427,8 +427,8 @@ Pic.prototype = {
   },
   reset: function(ps) {
     $D(this.size);
-    this.url = ps.itemUrl;
-    this.image.src = this.url;
+    this.url = ps.itemUrl || '';
+    this.image.src = ps.fileEntry || ps.itemUrl;
   }
 };
 
