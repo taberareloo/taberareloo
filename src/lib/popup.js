@@ -706,7 +706,7 @@ var Tags = function(ps, toggle){
   connect(tags, 'oninput', this, function(ev){
     // ずらさないとselectionStartの値が正確でない
     this.refreshCheck();
-    setTimeout(function(){ that.onInput(ev) }, 0);
+    setTimeout(function(){ that.onInput(ev); }, 0);
   });
   connect(tags, 'onterminate', this, 'refreshCheck');
   connect(tags, 'onkeydown', this, function(ev){
@@ -819,7 +819,7 @@ Tags.prototype = {
   },
 
   values: function(){
-    return this.tags.value.split(this.delimiter).filter(function(i){ return i });
+    return this.tags.value.split(this.delimiter).filter(function(i) { return i; });
   },
 
   padding: function(){
@@ -920,7 +920,7 @@ Tags.prototype = {
   getCandidates: function(hint){
     var cands = [];
     var scoreFor = this.scoreFor;
-    var func = function(reading){
+    function func(reading){
       return scoreFor(reading, hint);
     }
     this.candidates.forEach(function(cand){
@@ -1213,7 +1213,7 @@ Popup.prototype = {
     index = index >= this.rowCount ? 0:
             index < 0              ? (this.rowCount - 1) : index;
     removeElementClass(this.items[this.selectedIndex], "selected");
-    this.selectedIndex = index
+    this.selectedIndex = index;
     addElementClass(this.items[this.selectedIndex], "selected");
   },
 
@@ -1231,7 +1231,7 @@ Popup.prototype = {
     }
     this.cands = cands;
     this.items = cands.map(function(item){
-      var li = this.createItem(item)
+      var li = this.createItem(item);
       this.element.appendChild(li);
       return li;
     }, this);
@@ -1243,7 +1243,7 @@ Popup.prototype = {
   rowHeight: function(){
     return 10;
     return this._rowHeight ||
-     (this._rowHeight = this.element.childNodes[0].boxObject.height)
+     (this._rowHeight = this.element.childNodes[0].boxObject.height);
   },
 
   hidePopup: function(){
