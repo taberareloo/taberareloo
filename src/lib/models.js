@@ -931,7 +931,7 @@ Models.register({
         return request(LivedoorClip.POST_URL, {
           //denyRedirection: true,
           sendContent : update(content, {
-            rate    : ps.rate? ps.rate : '',
+            rate    : ps.rate? ps.rate : '0',
             title   : ps.item,
             tags    : ps.tags? ps.tags.join(' ') : '',
             notes   : joinText([ps.body, ps.description], ' ', true),
