@@ -169,7 +169,7 @@ var Form = function(ps){
 
   this[ps.type] && this[ps.type]();
 
-  if (ps.enabledPosters.indexOf('Google+')) {
+  if (ps.enabledPosters.indexOf('Google+') !== -1) {
     this.savers['scope'] = this.streams = new Streams();
   }
 };
@@ -244,8 +244,9 @@ Form.prototype = {
   save: function(){
     Object.keys(this.savers).forEach(function(key){
       var body = this.savers[key].body();
-      if(key === 'body' && this.ps[key] !== body)
+      if (key === 'body' && this.ps[key] !== body) {
         delete ps['flavors'];
+      }
       this.ps[key] = body;
     }, this);
     background.TBRL.Popup.contents[this.ps.itemUrl] = this.ps;
