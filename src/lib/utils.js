@@ -791,7 +791,13 @@ function request(url, opt) {
 
   // construct FormData (if required)
   var multipart = false;
-  if (opt.sendContent && (!method || method === 'POST')) {
+  if (opt.sendContent && opt.mode && (opt.mode === 'raw')) {
+    data = opt.sendContent;
+    if (!method) {
+      method = 'POST';
+    }
+  }
+  else if (opt.sendContent && (!method || method === 'POST')) {
     var sendContent = opt.sendContent;
     if (!method) {
       method = 'POST';
