@@ -170,7 +170,7 @@ function Form(ps) {
   this[ps.type] && this[ps.type]();
 
   if (this.posters.hasPoster('Google+')) {
-    this.savers['scope'] = this.streams = new Streams();
+    this.savers['scope'] = this.streams = new Streams(this.posters);
   }
 }
 
@@ -526,9 +526,9 @@ Body.prototype = {
   }
 };
 
-function Streams() {
-  var buttonPost = $('post');
-  var container = $N('div', {id : 'streams'});
+function Streams(posters) {
+  this.posters = posters;
+  var container = this.container = $N('div', {id : 'streams'});
   var selectBox = this.selectBox = $N('select', {
     id    : 'scope',
     name  : 'scope',
@@ -547,7 +547,15 @@ function Streams() {
     }
     selectBox.appendChild(optGroup);
     container.appendChild(selectBox);
-    buttonPost.parentNode.insertBefore(container, buttonPost);
+    $('widgets').appendChild(container);
+    posters.hooks.push(function() {
+      if (this.body().some(function(poster) { return poster.name === 'Google+'; })) {
+        selectBox.removeAttribute('disabled');
+      } else {
+        selectBox.setAttribute('disabled', 'true');
+      }
+    });
+    posters.postCheck();
     callLater(0, Form.resize());
   });
 }
@@ -563,6 +571,7 @@ function Posters(ps) {
   this.elmButton = $('post');
   this.models = background.Models;
   this.enables = {};
+  this.hooks = [];
 
   // enabledPosters could be pre-defined by extractors
   // so, if you check a model is included, use Poster#hasPoster instead
@@ -595,12 +604,15 @@ Posters.prototype = {
   isPostable: function() {
     return !!this.body().length;
   },
-  postCheck: function(){
+  postCheck: function() {
     if (this.isPostable()) {
       this.elmButton.removeAttribute('disabled');
     } else {
       this.elmButton.setAttribute('disabled', 'true');
     }
+    this.hooks.forEach(function(hook) {
+      hook.call(this);
+    }, this);
   },
   hasPoster: function(name) {
     return this.posters.some(function(poster) {
@@ -694,14 +706,16 @@ PosterItem.prototype = {
   },
   off: function(){
     addElementClass(this.element, 'disabled');
-    if(this.gray)
+    if (this.gray) {
       this.element.src = this.gray;
+    }
     delete this.posters.enables[this.poster.name];
   },
   on: function(){
     removeElementClass(this.element, 'disabled');
-    if(this.normal)
+    if (this.normal) {
       this.element.src = this.normal;
+    }
     this.posters.enables[this.poster.name] = this.poster;
   }
 };
