@@ -259,6 +259,12 @@ var TBRL = {
     }
     return maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
+      if (!ps.body && ctx.selection) {
+        ps.body = ctx.selection.raw;
+        ps.flavors = {
+          html : ctx.selection.html
+        };
+      }
       chrome.extension.sendRequest(TBRL.id, {
         request: "share",
         show   : show,
