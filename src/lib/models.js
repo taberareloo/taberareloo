@@ -202,7 +202,7 @@ var Tumblr = {
         });
         that.appendTags(form, ps);
         return that.postForm(function(){
-          return request(ps.favorite.endpoint, {sendContent : form})
+          return request(ps.favorite.endpoint, {sendContent : form});
         });
       });
     } else {
@@ -223,7 +223,7 @@ var Tumblr = {
       this.appendTags(form, ps);
 
       return this.postForm(function(){
-        return request(ps.favorite.endpoint, {sendContent : form})
+        return request(ps.favorite.endpoint, {sendContent : form});
       });
     }
   },
@@ -280,7 +280,7 @@ var Tumblr = {
         return {
           id : opt.value,
           name: opt.textContent
-        }
+        };
       });
     });
   }
@@ -383,7 +383,7 @@ Tumblr.Audio = {
     var res = {
       'post[type]'  : ps.type,
       'post[two]'   : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n')
-    }
+    };
     if(ps.itemUrl)
       res['post[three]'] = ps.itemUrl;
     return res;
@@ -454,7 +454,7 @@ Models.register({
   },
 
   check : function(ps){
-    return ps.type == 'photo' && !ps.file;
+    return ps.type === 'photo' && !ps.file;
   },
 
   post : function(ps){
@@ -500,7 +500,7 @@ Models.register({
       },
     }).addCallback(function(res){
       var error = res.responseText.extract(/"error":"(.*?)"/);
-      if(error == 'AUTH_FAILED')
+      if(error === 'AUTH_FAILED')
         throw new Error(getMessage('error.notLoggedin'));
 
       // NOT_FOUND / EXISTS / TOO_BIG
@@ -2233,7 +2233,7 @@ Models.register({
 			for (var i = 0, len = data['aclEntries'].length ; i < len ; i+=2) {
 				var scope = data.aclEntries[i].scope;
 
-				if (scope.scopeType == 'anyone') {
+				if (scope.scopeType === 'anyone') {
 					aclEntries.push({
 						scopeType   : "anyone",
 						name        : "Anyone",
@@ -2288,11 +2288,11 @@ Models.register({
 	},
 
 	createLinkSpar : function(ps) {
-		if (ps.type == 'regular') {
+		if (ps.type === 'regular') {
 			return JSON.stringify([]);
 		}
 
-		var isYoutube = (ps.type == 'video' && ps.itemUrl.match(this.YOUTUBE_REGEX));
+		var isYoutube = (ps.type === 'video' && ps.itemUrl.match(this.YOUTUBE_REGEX));
 		var videoUrl = '';
 		var imageUrl = '//s2.googleusercontent.com/s2/favicons?domain=' + createURI(ps.pageUrl).host;
 		if (isYoutube) {
@@ -2434,7 +2434,7 @@ Models.register({
 		var self = this;
 
 		var description = ps.description;
-		if (ps.type == 'regular') {
+		if (ps.type === 'regular') {
 			description = joinText([ps.item, ps.description], "\n");
 		}
 		if (ps.upload) {
@@ -2452,7 +2452,7 @@ Models.register({
 
 		var link = this.createLinkSpar(ps);
 
-		if (ps.type == 'photo' && !ps.upload) {
+		if (ps.type === 'photo' && !ps.upload) {
 			var photo = this.craetePhotoSpar(ps);
 			spar.push(JSON.stringify([link, photo]));
 		}
@@ -2543,35 +2543,22 @@ Models.register({
 		});
 	},
 
-	upload : function(file) {
-		var self = this;
-		return fileToPNGDataURL(file).addCallback(function(container) {
-			var cut = container.binary.replace(/^.*?,/, '');  // base64 header cut
-			var binary = window.atob(cut);
-
-			var data = new ArrayBuffer(binary.length);
-			var ui8a = new Uint8Array(data, 0);
-			for (var i = 0; i < binary.length; i++) ui8a[i] = (binary.charCodeAt(i) & 0xff);
-
-			var bb = getBlobBuilder(); // doesn't exist in Firefox 4
-			bb.append(data);
-			var blob = bb.getBlob();
-
-			return self.openUploadSession(file.fileName, binary.length).addCallback(function(session) {
-				if (!session) return null;
-
-				return request(session.sessionStatus.externalFieldTransfers[0].putInfo.url, {
-					mode        : 'raw',
-					sendContent : blob
-				}).addCallback(function(res) {
-					var session = JSON.parse(res.responseText);
-					if (session.sessionStatus) {
-						return session.sessionStatus
-							.additionalInfo['uploader_service.GoogleRupioAdditionalInfo']
-							.completionInfo.customerSpecificInfo;
-					}
-					return null;
-				});
+  upload : function(file) {
+		return this.openUploadSession(file.fileName, file.length).addCallback(function(session) {
+      if (!session) {
+        return null;
+      }
+      return request(session.sessionStatus.externalFieldTransfers[0].putInfo.url, {
+        mode        : 'raw',
+        sendContent : file
+      }).addCallback(function(res) {
+        var session = JSON.parse(res.responseText);
+        if (session.sessionStatus) {
+          return session.sessionStatus
+            .additionalInfo['uploader_service.GoogleRupioAdditionalInfo']
+            .completionInfo.customerSpecificInfo;
+        }
+        return null;
 			});
 		});
 	},
@@ -2579,7 +2566,7 @@ Models.register({
 	getStreams : function() {
 		var ret = new Deferred();
 		this.getOZData().addCallback(function(oz) {
-			var presets = [], circles = [];
+			var circles = [];
 			oz[12][0].forEach(function(circle) {
 				var code, id, name, has;
 				code = circle[0][0];
@@ -2605,29 +2592,31 @@ Models.register({
 				}
 			});
 
-			presets.push([{
-				scopeType   : 'focusGroup',
-				name        : 'Your circles',
-				id          : [oz[2][0], '1c'].join('.'),
-				me          : false,
-				requiresKey : false,
-				groupType   : 'a'
-			}]);
-			presets.push([{
-				scopeType   : 'focusGroup',
-				name        : 'Extended circles',
-				id          : [oz[2][0], '1f'].join('.'),
-				me          : false,
-				requiresKey : false,
-				groupType   : 'e'
-			}]);
-			presets.push([{
-				scopeType   : 'anyone',
-				name        : 'Anyone',
-				id          : 'anyone',
-				me          : true,
-				requiresKey : false
-			}]);
+      var presets = [
+        [{
+          scopeType   : 'focusGroup',
+          name        : 'Your circles',
+          id          : [oz[2][0], '1c'].join('.'),
+          me          : false,
+          requiresKey : false,
+          groupType   : 'a'
+        }],
+			  [{
+          scopeType   : 'focusGroup',
+          name        : 'Extended circles',
+          id          : [oz[2][0], '1f'].join('.'),
+          me          : false,
+          requiresKey : false,
+          groupType   : 'e'
+        }],
+        [{
+          scopeType   : 'anyone',
+          name        : 'Anyone',
+          id          : 'anyone',
+          me          : true,
+          requiresKey : false
+        }]
+      ];
 
 			ret.callback({
 				presets : presets,

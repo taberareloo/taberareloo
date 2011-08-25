@@ -88,7 +88,7 @@ main.addCallback(function(ps){
   form = new Form(ps);
 });
 
-var Form = function(ps){
+function Form(ps) {
   this.ps = ps;
   this.posted = false;
   this.canceled = false;
@@ -108,7 +108,7 @@ var Form = function(ps){
     if(!this.posted && isPopup && !this.canceled){
       this.save();
     } else {
-      this.del();
+      this.delete();
     }
   });
 
@@ -128,7 +128,7 @@ var Form = function(ps){
     this.toggle();
   });
 
-  if(isPopup){
+  if (isPopup) {
     var cancel = $N('button', {
       'type' : 'button',
       'id'   : 'cancel',
@@ -169,10 +169,10 @@ var Form = function(ps){
 
   this[ps.type] && this[ps.type]();
 
-  if (ps.enabledPosters.indexOf('Google+') !== -1) {
+  if (this.posters.hasPoster('Google+')) {
     this.savers['scope'] = this.streams = new Streams();
   }
-};
+}
 
 Form.prototype = {
   link: function(){
@@ -251,7 +251,7 @@ Form.prototype = {
     }, this);
     background.TBRL.Popup.contents[this.ps.itemUrl] = this.ps;
   },
-  del : function(){
+  delete : function(){
     delete background.TBRL.Popup.contents[this.ps.itemUrl];
   },
   post: function(){
@@ -301,7 +301,7 @@ Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
   form.post();
 };
 
-Form.resize = function(){
+Form.resize = function() {
   if(!Form.nowResizing){
     Form.nowResizing = true;
     var root = document.body;
@@ -316,7 +316,7 @@ Form.resize = function(){
   }
 };
 
-var Title = function(ps, toggle){
+function Title(ps, toggle) {
   this.nativeToggle = toggle;
   this.container = $('title');
   toggle && this.container.setAttribute('style', 'display:none !important;');
@@ -329,7 +329,7 @@ var Title = function(ps, toggle){
   inputTitle.setAttribute('value', ps.item || "");
   connect(textTitle.parentNode, 'onclick', this, 'showInputTitle');
   connect(inputTitle, 'onblur', this, 'hideInputTitle');
-};
+}
 
 Title.prototype = {
   showInputTitle: function(ev){
@@ -365,7 +365,7 @@ Title.prototype = {
   }
 };
 
-var Link = function(ps, toggle){
+function Link(ps, toggle) {
   this.shown = true;
   this.link = $('link');
   toggle && this.toggle();
@@ -376,7 +376,7 @@ var Link = function(ps, toggle){
     autocomplete: 'off',
     value: ps.itemUrl
   }));
-};
+}
 
 Link.prototype = {
   body: function(){
@@ -395,7 +395,7 @@ Link.prototype = {
   }
 };
 
-var Pic = function(ps, toggle){
+function Pic(ps, toggle) {
   var self = this;
   this.pic = $('pic');
   this.url = ps.itemUrl || '';
@@ -422,7 +422,7 @@ var Pic = function(ps, toggle){
       Form.resize();
     });
   });
-};
+}
 
 Pic.prototype = {
   body: function(){
@@ -437,7 +437,7 @@ Pic.prototype = {
   }
 };
 
-var Audio = function(ps, toggle){
+function Audio(ps, toggle) {
   this.url = ps.itemUrl || '';
   if(this.url){
     // tumblr's audio cannot access
@@ -448,7 +448,7 @@ var Audio = function(ps, toggle){
       src     : this.url
     }));
   }
-};
+}
 
 Audio.prototype = {
   body: function(){
@@ -462,7 +462,7 @@ Audio.prototype = {
   }
 };
 
-var Desc = function(ps, toggle){
+function Desc(ps, toggle) {
   this.description = $('description');
   this.shown = true;
   toggle && this.toggle();
@@ -479,7 +479,7 @@ var Desc = function(ps, toggle){
   connect(desc, 'oninput', desc, function(){
     count.replaceChild($T(desc.value.length), count.firstChild);
   });
-};
+}
 
 Desc.prototype = {
   body: function(){
@@ -498,7 +498,7 @@ Desc.prototype = {
   }
 };
 
-var Body = function(ps, toggle){
+function Body(ps, toggle) {
   this.container = $('body');
   this.shown = true;
   toggle && this.toggle();
@@ -507,7 +507,7 @@ var Body = function(ps, toggle){
     placeholder: 'quote'
   }));
   this.bd.value = ps.body;
-};
+}
 
 Body.prototype = {
   body: function(){
@@ -526,7 +526,7 @@ Body.prototype = {
   }
 };
 
-var Streams = function() {
+function Streams() {
   var buttonPost = $('post');
   var container = $N('div', {id : 'streams'});
   var selectBox = this.selectBox = $N('select', {
@@ -547,10 +547,10 @@ var Streams = function() {
     }
     selectBox.appendChild(optGroup);
     container.appendChild(selectBox);
-    buttonPost.parentNode.insertBefore(container, buttonPost)
+    buttonPost.parentNode.insertBefore(container, buttonPost);
     callLater(0, Form.resize());
   });
-};
+}
 
 Streams.prototype = {
   body : function() {
@@ -558,26 +558,29 @@ Streams.prototype = {
   }
 };
 
-var Posters = function(ps){
-  var self = this;
+function Posters(ps) {
   this.elmPanel = $('posters');
   this.elmButton = $('post');
   this.models = background.Models;
   this.enables = {};
-  if(!ps.enabledPosters){
+
+  // enabledPosters could be pre-defined by extractors
+  // so, if you check a model is included, use Poster#hasPoster instead
+  if (!ps.enabledPosters) {
     ps.enabledPosters = [];
   }
+
   this.posters = this.models.getEnables(ps);
   var df = $DF();
   var config = Config['services'];
-  this.posterItems = this.posters.map(function(poster, index){
+  this.posterItems = this.posters.map(function(poster, index) {
     var posterItem = new PosterItem(ps, poster, index, this);
     df.appendChild(posterItem.element);
     return posterItem;
   }, this);
   this.elmPanel.appendChild(df);
   this.postCheck();
-};
+}
 
 Posters.prototype = {
   body: function(){
@@ -593,15 +596,20 @@ Posters.prototype = {
     return !!this.body().length;
   },
   postCheck: function(){
-    if(this.isPostable()){
+    if (this.isPostable()) {
       this.elmButton.removeAttribute('disabled');
     } else {
       this.elmButton.setAttribute('disabled', 'true');
     }
+  },
+  hasPoster: function(name) {
+    return this.posters.some(function(poster) {
+      return poster.name === name;
+    });
   }
 };
 
-var PosterItem = function(ps, poster, index, posters){
+function PosterItem(ps, poster, index, posters) {
   this.poster = poster;
   this.posters = posters;
   this.index = index;
@@ -656,10 +664,9 @@ var PosterItem = function(ps, poster, index, posters){
   } else {
     addElementClass(img, 'disabled');
   }
-};
+}
 
 PosterItem.prototype = {
-
   toggle: function(){
     this.checked()? this.off() : this.on();
     this.posters.postCheck();
@@ -699,7 +706,7 @@ PosterItem.prototype = {
   }
 };
 
-var Tags = function(ps, toggle){
+function Tags(ps, toggle) {
   this.container = [$('tags'), $('loading_icon'), $('suggestions')];
   this.shown = true;
   toggle && this.toggle();
@@ -786,14 +793,13 @@ var Tags = function(ps, toggle){
     }
   });
 
-  connect(tags, 'onblur', this, function(ev){
-    // FIXME タイミングしだいで失敗する可能性あり
-    setTimeout(function(){
+  connect(tags, 'onblur', this, function(ev) {
+    callLater(0.2, function(){
       that.popup.hidePopup();
-    }, 200);
+    });
   });
   connect(tags, 'onclick', this.popup, 'hidePopup');
-};
+}
 
 Tags.prototype = {
   toggle: function(){
@@ -1205,7 +1211,7 @@ Tags.prototype = {
   }
 };
 
-var Popup = function(tags){
+function Popup(tags) {
   this.element = $N('ol', {id:'listbox'});
   this.element.style.visibility = 'hidden';
   $('tag').appendChild(this.element);
@@ -1214,7 +1220,7 @@ var Popup = function(tags){
   this.tags = tags;
   this.selectedIndex = 0;
   this.cands = [];
-};
+}
 
 Popup.prototype = {
   maxRows: 20,
@@ -1300,4 +1306,3 @@ Popup.prototype = {
     }
   }
 };
-

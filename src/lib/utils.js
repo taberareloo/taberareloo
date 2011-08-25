@@ -440,9 +440,9 @@ function $A(arr) {
 
 var $ = (function() {
   var hash = {};
-  return function $(id){
+  return function $(id) {
     return hash[id] || document.getElementById(id);
-  }
+  };
 })();
 
 function $DF() {
@@ -503,7 +503,7 @@ var createURI = (function() {
     var a = anchor.cloneNode(false);
     a.href = link;
     return a;
-  }
+  };
 })();
 
 function DeferredHash(ds) {
@@ -534,7 +534,7 @@ function resolveRelativePath(base) {
         while(url.indexOf(".") === 0 && !(--count === 0)){
           if(url.substring(0, 3) === "../")
             result = result.replace(/\/[^\/]+\/$/,"/");
-          url = url.replace(/^\.+\/?/,"")
+          url = url.replace(/^\.+\/?/,"");
         }
       }
       return result + url;
@@ -572,7 +572,7 @@ function convertToHTMLString(source, safe, hatena) {
       keyword.setAttribute('class', 'keyword');
       $X('descendant-or-self::a[(@class="keyword") or (@class="okeyword")]', root).forEach(function(key){
         var r = keyword.cloneNode(false);
-        $A(key.childNodes).forEach(function(child){ r.appendChild(child.cloneNode(true)) });
+        $A(key.childNodes).forEach(function(child){ r.appendChild(child.cloneNode(true)); });
         key.parentNode.replaceChild(r, key);
       });
     }
@@ -710,7 +710,7 @@ var getBlobBuilder = (function() {
   var builder = window.BlobBuilder || window.WebKitBlobBuilder;
   return function getBlobBuilder() {
     return new builder();
-  }
+  };
 })();
 
 function createFileEntryFromArrayBuffer(buffer, type) {
@@ -742,7 +742,7 @@ var getURLFromFile = (function() {
   if (get) {
     return function getURLFromFile(file) {
       return get(file);
-    }
+    };
   }
   return function getURLFromFile(file) {
     if (window.URL) {
@@ -771,12 +771,12 @@ function request(url, opt) {
   // construct FormData (if required)
   var multipart = false;
   if (opt.sendContent && opt.mode && (opt.mode === 'raw')) {
+    // no modify, use sendContent directly
     data = opt.sendContent;
     if (!method) {
       method = 'POST';
     }
-  }
-  else if (opt.sendContent && (!method || method === 'POST')) {
+  } else if (opt.sendContent && (!method || method === 'POST')) {
     var sendContent = opt.sendContent;
     if (!method) {
       method = 'POST';
