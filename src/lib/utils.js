@@ -753,27 +753,6 @@ var getURLFromFile = (function() {
   };
 })();
 
-function fileToPNGDataURL(file) {
-  var canvas = document.createElement('canvas'),
-      ret = new Deferred(),
-      img = new Image();
-  img.addEventListener('load', function img_load(res) {
-    img.removeEventListener('load', img_load, false);
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    ret.callback({
-      contentType: 'image/png',
-      height: img.naturalHeight,
-      width: img.naturalWidth,
-      binary: canvas.toDataURL('image/png', '')
-    });
-  }, false);
-  img.src = getURLFromFile(file);
-  return ret;
-}
-
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 
 function request(url, opt) {
@@ -968,4 +947,8 @@ function canvasRequest(url) {
   }, false);
   img.src = url;
   return ret;
+}
+
+function fileToPNGDataURL(file) {
+  return canvasRequest(getURLFromFile(file));
 }
