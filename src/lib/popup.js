@@ -547,11 +547,10 @@ var Streams = function() {
     selectBox.appendChild(optGroup);
     container.appendChild(selectBox);
     buttonPost.parentNode.insertBefore(container, buttonPost)
-    wait(0).addCallback(function(){
-      Form.resize();
-    });
+    callLater(0, Form.resize());
   });
 };
+
 Streams.prototype = {
   body : function() {
     return this.selectBox.options[this.selectBox.selectedIndex].value;
