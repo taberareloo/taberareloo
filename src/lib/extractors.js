@@ -859,20 +859,24 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\?v=.*/);
     },
     extract : function(ctx){
+      // not use @rel="author"
+      // because official channel use banner image, can't get author text information by textContent.
       var author_anchor = $X('id("watch-channel-stats")/a', ctx.document)[0] || $X('id("watch-username")', ctx.document)[0];
       if (author_anchor) {
         var author = author_anchor.textContent;
+        var authorUrl = author_anchor.href;
       } else {
-        var banner = $X('id("watch-userbanner")/descendant::img')[0];
+        var banner = $X('id("watch-userbanner")')[0];
         var author = banner.title;
+        var authorUrl = banner.href;
       }
       ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',
-        item      : ctx.title.extract(/\s- (.*)/),
+        item      : ctx.title.extract(/(.*)\s-\sYouTube/),
         itemUrl   : ctx.href,
-        author    : author.textContent,
-        authorUrl : author.href
+        author    : author,
+        authorUrl : authorUrl
       };
     }
   },
