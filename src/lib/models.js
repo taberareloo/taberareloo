@@ -1346,10 +1346,12 @@ Models.register({
     var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
     var status   = '';
+    var maxlen   = 140;
     if (ps.type === 'photo') {
       ps = update({}, ps);
       ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
+      maxlen     = 119;
     }
     if (!template) {
       status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
@@ -1366,12 +1368,16 @@ Models.register({
       });
     }
     var ret = new Deferred();
-    if (status.length < 140 && !TBRL.Config['post']['always_shorten_url']) {
+    if ((status.length < maxlen) && !TBRL.Config['post']['always_shorten_url']) {
       ret.callback(status);
     } else {
       shortenUrls(status, Models[self.SHORTEN_SERVICE])
         .addCallback(function(status) {
-          ret.callback(status);
+          if (status.length < maxlen) {
+            ret.callback(status);
+          } else {
+            ret.errback('too many characters to post (' + (status.length - maxlen) + ' over)');
+          }
         });
     }
     return ret;
