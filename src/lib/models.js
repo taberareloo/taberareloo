@@ -2303,9 +2303,22 @@ Models.register({
     });
   },
 
+  getDataByKey : function(arr, key) {
+    for (var i = 0, len = arr.length ; i < len ; i++) {
+      var data = arr[i];
+      if (data[0] === key) {
+        return data;
+      }
+    }
+    return null;
+  },
+
   getDefaultScope : function(oz) {
+    var self = this;
     return this.getInitialData(oz).addCallback(function(data) {
-      data = MochiKit.Base.evalJSON(data[0][0][1]);
+      data = self.getDataByKey(data, 'idr');
+      if (!data) return JSON.stringify([]);
+      data = MochiKit.Base.evalJSON(data[1]);
       data = MochiKit.Base.evalJSON(data[11][0]);
 
       var aclEntries = [];
@@ -2365,6 +2378,29 @@ Models.register({
 
   getToken : function(oz) {
     return 'oz:' + oz[2][0] + '.' + Date.now().toString(16) + '.' + this.sequence.toString(16);
+  },
+
+  getSnippetFromURL : function(url, oz) {
+    var self = this;
+    var SNIPPET_URL = 'https://plus.google.com/_/sharebox/linkpreview/';
+    return request(SNIPPET_URL + '?' + queryString({
+      c      : url,
+      t      : 1,
+      _reqid : this.getReqid(),
+      rt     : 'j'
+    }), {
+      sendContent : {
+        at : oz[1][15]
+      }
+    }).addCallback(function(res) {
+      var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
+      var result = MochiKit.Base.evalJSON(initialData)[0];
+      var data = self.getDataByKey(result, 'lpd');
+      if (!data || !data[1]) return '';
+
+      var snippet = data[2].length ? data[2] : data[3];
+      return snippet[snippet.length - 1][21];
+    });
   },
 
   createLinkSpar : function(ps) {
@@ -2513,54 +2549,59 @@ Models.register({
   _post : function(ps, oz) {
     var self = this;
 
-    var description = ps.description;
-    if (ps.type === 'regular') {
-      description = joinText([ps.item, ps.description], "\n");
-    }
-    if (ps.upload) {
-      description = joinText([ps.description, ps.page, ps.pageUrl,
-        (ps.body) ? '"' + ps.body + '"' : ''], "\n");
-    }
+    return ((!ps.upload && !ps.body) ? this.getSnippetFromURL(ps.pageUrl, oz)
+      : succeed(ps.body)).addCallback(function(snippet) {
+      ps.body = snippet;
 
-    var spar = [];
-    spar.push(
-      description,
-      this.getToken(oz),
-      null,
-      ps.upload ? ps.upload.albumid : null,
-      null, null
-    );
-
-    var link = this.createLinkSpar(ps);
-
-    if (ps.type === 'photo' && !ps.upload) {
-      var photo = this.craetePhotoSpar(ps);
-      spar.push(JSON.stringify([link, photo]));
-    }
-    else {
-      spar.push(JSON.stringify([link]));
-    }
-
-    spar.push(null);
-    spar.push(this.createScopeSpar(ps));
-    spar.push(true, [], true, true, null, [], false, false);
-    if (ps.upload) {
-      spar.push(null, null, oz[2][0]);
-    }
-
-    spar = JSON.stringify(spar);
-
-    return request(this.POST_URL + '?' + queryString({
-      _reqid : this.getReqid(),
-      rt     : 'j'
-    }), {
-      sendContent : {
-        spar : spar,
-        at   : oz[1][15]
-      },
-      headers : {
-        Origin : self.HOME_URL
+      var description = ps.description;
+      if (ps.type === 'regular') {
+        description = joinText([ps.item, ps.description], "\n");
       }
+      if (ps.upload) {
+        description = joinText([ps.description, ps.page, ps.pageUrl,
+          (ps.body) ? '“' + getFlavor(ps, 'html') + '”' : ''], "\n");
+      }
+
+      var spar = [];
+      spar.push(
+        description,
+        self.getToken(oz),
+        null,
+        ps.upload ? ps.upload.albumid : null,
+        null, null
+      );
+
+      var link = self.createLinkSpar(ps);
+
+      if (ps.type === 'photo' && !ps.upload) {
+        var photo = self.craetePhotoSpar(ps);
+        spar.push(JSON.stringify([link, photo]));
+      }
+      else {
+        spar.push(JSON.stringify([link]));
+      }
+
+      spar.push(null);
+      spar.push(self.createScopeSpar(ps));
+      spar.push(true, [], true, true, null, [], false, false);
+      if (ps.upload) {
+        spar.push(null, null, oz[2][0]);
+      }
+
+      spar = JSON.stringify(spar);
+
+      return request(self.POST_URL + '?' + queryString({
+        _reqid : self.getReqid(),
+        rt     : 'j'
+      }), {
+        sendContent : {
+          spar : spar,
+          at   : oz[1][15]
+        },
+        headers : {
+          Origin : self.HOME_URL
+        }
+      });
     });
   },
 
