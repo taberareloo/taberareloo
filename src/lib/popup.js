@@ -14,7 +14,7 @@ function getSelected(){
   var d = new Deferred();
   var query = queryHash(location.search);
   if(query['quick']){
-    // quick post formならgetSelectedする必要がない
+    // if quick post form, not call getSelected
     var id = query['id'];
     var data = background.TBRL.Popup.data[id];
     tab = data['tab'];
@@ -183,7 +183,8 @@ Form.prototype = {
     var desc    = this.savers['description'] = this.desc = new Desc(ps);
     this.toggles = [title, link];
     tags.focus();
-    // resize timingはそれぞれ異なる場合がある(photoなどは画像がloadされたとき)
+    // resize timing depends on type.
+    // in photo type case, resize timing is when image is loaded
     callLater(0.5, Form.resize);
   },
   quote: function(){
@@ -762,7 +763,8 @@ function Tags(ps, toggle) {
   }
 
   connect(tags, 'oninput', this, function(ev){
-    // ずらさないとselectionStartの値が正確でない
+    // selectionStart value is not precise
+    // defer and take it.
     this.refreshCheck();
     setTimeout(function(){ that.onInput(ev); }, 0);
   });
