@@ -2518,7 +2518,8 @@ Models.register({
       description = joinText([ps.item, ps.description], "\n");
     }
     if (ps.upload) {
-      description = joinText([ps.description, ps.page, ps.pageUrl, ps.body], "\n");
+      description = joinText([ps.description, ps.page, ps.pageUrl,
+        (ps.body) ? '"' + ps.body + '"' : ''], "\n");
     }
 
     var spar = [];
