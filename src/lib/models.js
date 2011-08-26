@@ -1338,55 +1338,81 @@ Models.register({
   LOGIN_URL : 'https://twitter.com/login',
   SHORTEN_SERVICE : 'bit.ly',
 
-  check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+  check : function(ps) {
+    return /regular|photo|quote|link|conversation|video/.test(ps.type);
   },
 
-  post : function(ps){
+  createStatus : function(ps) {
+    var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
-    if(!template){
-      return this.update(joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' '));
-    } else {
-      return this.update(templateExtract(template,{
-        description   : ps.description,
-        description_q : (ps.description) ? '"'+ps.description+'"' : null,
-        body          : ps.body,
-        body_q        : (ps.body) ? '"'+ps.body+'"' : null,
-        title         : ps.item,
-        title_q       : (ps.item) ? '"'+ps.item+'"' : null,
-        link          : ps.itemUrl,
-        link_q        : (ps.itemUrl) ? '"'+ps.itemUrl+'"' : null
-      }));
+    var status   = '';
+    if (ps.type === 'photo') {
+      ps = update({}, ps);
+      ps.item    = ps.page;
+      ps.itemUrl = ps.pageUrl;
     }
+    if (!template) {
+      status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
+    } else {
+      status = templateExtract(template,{
+        description   : ps.description,
+        description_q : (ps.description) ? '"' + ps.description + '"' : null,
+        body          : ps.body,
+        body_q        : (ps.body) ? '"' + ps.body + '"' : null,
+        title         : ps.item,
+        title_q       : (ps.item) ? '"' + ps.item + '"' : null,
+        link          : ps.itemUrl,
+        link_q        : (ps.itemUrl) ? '"' + ps.itemUrl + '"' : null
+      });
+    }
+    var ret = new Deferred();
+    if (status.length < 140 && !TBRL.Config['post']['always_shorten_url']) {
+      ret.callback(status);
+    } else {
+      shortenUrls(status, Models[self.SHORTEN_SERVICE])
+        .addCallback(function(status) {
+          ret.callback(status);
+        });
+    }
+    return ret;
   },
 
-  update : function(status){
+  post : function(ps) {
     var self = this;
-    return maybeDeferred((status.length < 140 && !TBRL.Config['post']['always_shorten_url'])? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
-    ).addCallback(function(status){
-      return Twitter.getToken().addCallback(function(token){
-        // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
-        token.status = status;
-        return request(self.URL + '/status/update', update({
-          sendContent : token
-        }));
-      }).addCallback(function(res){
-        var msg = res.responseText.extract(/notification.setMessage\("(.*?)"\)/);
-        if(msg)
-          throw unescapeHTML(msg).trimTag();
-      });
+    return this.createStatus(ps).addCallback(function(status) {
+      if (ps.type === 'photo') {
+        return self.download(ps).addCallback(function(file) {
+          return self.upload(ps, status, file);
+        });
+      }
+      return self.update(status);
     });
   },
 
-  favor : function(ps){
+  update : function(status) {
+    var self = this;
+    return this.getToken().addCallback(function(token) {
+      // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
+      token.status = status;
+      return request(self.URL + '/status/update', update({
+        sendContent : token
+      }));
+    }).addCallback(function(res) {
+      var msg = res.responseText.extract(/notification.setMessage\("(.*?)"\)/);
+      if (msg)
+        throw unescapeHTML(msg).trimTag();
+    });
+  },
+
+  favor : function(ps) {
     return this.addFavorite(ps.favorite.id);
   },
 
-  getToken : function(){
+  getToken : function() {
     var self = this;
-    return request(this.URL + '/account/settings').addCallback(function(res){
+    return request(this.URL + '/account/settings').addCallback(function(res) {
       var html = res.responseText;
-      if(~html.indexOf('login'))
+      if (~html.indexOf('login'))
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return {
@@ -1396,9 +1422,9 @@ Models.register({
     });
   },
 
-  remove : function(id){
+  remove : function(id) {
     var self = this;
-    return Twitter.getToken().addCallback(function(ps){
+    return this.getToken().addCallback(function(ps) {
       ps._method = 'delete';
       return request(self.URL + '/status/destroy/' + id, {
         //denyRedirection: true,
@@ -1408,9 +1434,9 @@ Models.register({
     });
   },
 
-  addFavorite : function(id){
+  addFavorite : function(id) {
     var self = this;
-    return Twitter.getToken().addCallback(function(ps){
+    return this.getToken().addCallback(function(ps) {
       return request(self.URL + '/favourings/create/' + id, {
         //denyRedirection: true,
         referrer : self.URL + '/',
@@ -1419,12 +1445,60 @@ Models.register({
     });
   },
 
-  getRecipients : function(){
+  getRecipients : function() {
     var self = this;
-    return request(this.URL + '/direct_messages/recipients_list?twttr=true').addCallback(function(res){
+    return request(this.URL + '/direct_messages/recipients_list?twttr=true').addCallback(function(res) {
       return map(function(pair){
         return {id:pair[0], name:pair[1]};
       }, JSON.parse('(' + res.responseText + ')'));
+    });
+  },
+
+  download : function(ps) {
+    return (
+      ps.file ? succeed(ps.file)
+        : download(ps.itemUrl).addCallback(function(entry) {
+          return getFileFromEntry(entry);
+        })
+    );
+  },
+
+  getBinaryStringFromFile : function(file) {
+    var ret = new Deferred();
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      ret.callback(evt.target.result);
+    };
+    reader.readAsBinaryString(file);
+    return ret;
+  },
+
+  upload : function(ps, status, file) {
+    var self = this;
+    var UPLOAD_URL = 'http://upload.twitter.com/1/statuses/update_with_media.json';
+
+    return this.getToken().addCallback(function(token) {
+      return self.getBinaryStringFromFile(file).addCallback(function(binary) {
+        return request(UPLOAD_URL, {
+          sendContent : {
+            status                  : status,
+            'media_data[]'          : window.btoa(binary),
+            include_entities        : 'true',
+            post_authenticity_token : token.authenticity_token
+          },
+          headers : {
+            Referer            : 'http://upload.twitter.com/receiver.html',
+            'X-Phx'            : true,
+            'X-Requested-With' : 'XMLHttpRequest'
+          }
+        }).addCallback(function(res) {
+          var json = JSON.parse(res.responseText);
+          if (json.error) {
+            throw new Error(json.error);
+          }
+          return json;
+        });
+      });
     });
   }
 });
@@ -2176,12 +2250,12 @@ Models.register(update({}, Models['bit.ly'], {
 Models.register({
   name    : 'Google+',
   ICON    : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
-	HOME_URL : 'https://plus.google.com/',
-	INIT_URL : 'https://plus.google.com/u/0/_/initialdata',
-	POST_URL : 'https://plus.google.com/u/0/_/sharebox/post/',
-	sequence : 0,
-	OZDATA_REGEX : /<script\b[^>]*>[\s\S]*?\btick\b[\s\S]*?\bvar\s+OZ_initData\s*=\s*([{]+(?:(?:(?![}]\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>)[\s\S])*)*[}])\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>/i,
-	YOUTUBE_REGEX : /http:\/\/(?:.*\.)?youtube.com\/watch\?v=([a-zA-Z0-9_-]+)[-_.!~*'()a-zA-Z0-9;\/?:@&=+\$,%#]*/g,
+  HOME_URL : 'https://plus.google.com/',
+  INIT_URL : 'https://plus.google.com/u/0/_/initialdata',
+  POST_URL : 'https://plus.google.com/u/0/_/sharebox/post/',
+  sequence : 0,
+  OZDATA_REGEX : /<script\b[^>]*>[\s\S]*?\btick\b[\s\S]*?\bvar\s+OZ_initData\s*=\s*([{]+(?:(?:(?![}]\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>)[\s\S])*)*[}])\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>/i,
+  YOUTUBE_REGEX : /http:\/\/(?:.*\.)?youtube.com\/watch\?v=([a-zA-Z0-9_-]+)[-_.!~*'()a-zA-Z0-9;\/?:@&=+\$,%#]*/g,
 
   check: function(ps) {
     return /regular|photo|quote|link|video/.test(ps.type);
@@ -2203,348 +2277,348 @@ Models.register({
     return ret;
   },
 
-	getOZData : function() {
-		var self = this;
-		return request(this.HOME_URL).addCallback(function(res) {
-			var OZ_initData = res.responseText.match(self.OZDATA_REGEX)[1];
-			return MochiKit.Base.evalJSON(OZ_initData);
-		});
-	},
+  getOZData : function() {
+    var self = this;
+    return request(this.HOME_URL).addCallback(function(res) {
+      var OZ_initData = res.responseText.match(self.OZDATA_REGEX)[1];
+      return MochiKit.Base.evalJSON(OZ_initData);
+    });
+  },
 
-	getInitialData : function(oz) {
-		return request(this.INIT_URL + '?_reqid=' + this.getReqid() + '&rt=j', {
-			sendContent : {
-				key : 11,
-				at  : oz[1][15]
-			}
-		}).addCallback(function(res) {
-			var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-			return MochiKit.Base.evalJSON(initialData);
-		});
-	},
+  getInitialData : function(oz) {
+    return request(this.INIT_URL + '?_reqid=' + this.getReqid() + '&rt=j', {
+      sendContent : {
+        key : 11,
+        at  : oz[1][15]
+      }
+    }).addCallback(function(res) {
+      var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
+      return MochiKit.Base.evalJSON(initialData);
+    });
+  },
 
-	getDefaultScope : function(oz) {
-		return this.getInitialData(oz).addCallback(function(data) {
-			data = MochiKit.Base.evalJSON(data[0][0][1]);
-			data = MochiKit.Base.evalJSON(data[11][0]);
+  getDefaultScope : function(oz) {
+    return this.getInitialData(oz).addCallback(function(data) {
+      data = MochiKit.Base.evalJSON(data[0][0][1]);
+      data = MochiKit.Base.evalJSON(data[11][0]);
 
-			var aclEntries = [];
+      var aclEntries = [];
 
-			for (var i = 0, len = data['aclEntries'].length ; i < len ; i+=2) {
-				var scope = data.aclEntries[i].scope;
+      for (var i = 0, len = data['aclEntries'].length ; i < len ; i+=2) {
+        var scope = data.aclEntries[i].scope;
 
-				if (scope.scopeType === 'anyone') {
-					aclEntries.push({
-						scopeType   : "anyone",
-						name        : "Anyone",
-						id          : "anyone",
-						me          : true,
-						requiresKey : false
-					});
-				}
-				else if (scope.scopeType != 'user') {
-					aclEntries.push({
-						scopeType   : scope.scopeType,
-						name        : scope.name,
-						id          : scope.id,
-						me          : false,
-						requiresKey : scope.requiresKey,
-						groupType   : scope.groupType
-					});
-				}
-			}
+        if (scope.scopeType === 'anyone') {
+          aclEntries.push({
+            scopeType   : "anyone",
+            name        : "Anyone",
+            id          : "anyone",
+            me          : true,
+            requiresKey : false
+          });
+        }
+        else if (scope.scopeType != 'user') {
+          aclEntries.push({
+            scopeType   : scope.scopeType,
+            name        : scope.name,
+            id          : scope.id,
+            me          : false,
+            requiresKey : scope.requiresKey,
+            groupType   : scope.groupType
+          });
+        }
+      }
 
-			return JSON.stringify(aclEntries);
-		});
-	},
+      return JSON.stringify(aclEntries);
+    });
+  },
 
-	post : function(ps) {
-		var self = this;
-		ps = update({}, ps);
-		return this.getAuthCookie().addCallback(function(cookie) {
-			return self.getOZData().addCallback(function(oz) {
-				return (ps.file ? self.upload(ps.file) : succeed(null))
-					.addCallback(function(upload) {
-					ps.upload = upload;
-					return (ps.scope ? succeed(ps.scope) : self.getDefaultScope(oz))
-						.addCallback(function(scope) {
-						ps.scope = scope;
-						return self._post(ps, oz);
-					});
-				});
-			});
-		});
-	},
+  post : function(ps) {
+    var self = this;
+    ps = update({}, ps);
+    return this.getAuthCookie().addCallback(function(cookie) {
+      return self.getOZData().addCallback(function(oz) {
+        return (ps.file ? self.upload(ps.file) : succeed(null))
+          .addCallback(function(upload) {
+          ps.upload = upload;
+          return (ps.scope ? succeed(ps.scope) : self.getDefaultScope(oz))
+            .addCallback(function(scope) {
+            ps.scope = scope;
+            return self._post(ps, oz);
+          });
+        });
+      });
+    });
+  },
 
-	getReqid : function() {
-		var sequence = this.sequence++;
-		var now = new Date;
-		var seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-		return seconds + sequence * 1E5;
-	},
+  getReqid : function() {
+    var sequence = this.sequence++;
+    var now = new Date;
+    var seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    return seconds + sequence * 1E5;
+  },
 
-	getToken : function(oz) {
-		return 'oz:' + oz[2][0] + '.' + Date.now().toString(16) + '.' + this.sequence.toString(16);
-	},
+  getToken : function(oz) {
+    return 'oz:' + oz[2][0] + '.' + Date.now().toString(16) + '.' + this.sequence.toString(16);
+  },
 
-	createLinkSpar : function(ps) {
-		if (ps.type === 'regular') {
-			return JSON.stringify([]);
-		}
+  createLinkSpar : function(ps) {
+    if (ps.type === 'regular') {
+      return JSON.stringify([]);
+    }
 
-		var isYoutube = (ps.type === 'video' && ps.itemUrl.match(this.YOUTUBE_REGEX));
-		var videoUrl = '';
-		var imageUrl = '//s2.googleusercontent.com/s2/favicons?domain=' + createURI(ps.pageUrl).host;
-		if (isYoutube) {
-			videoUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
-					'http://www.youtube.com/v/$1&hl=en&fs=1&autoplay=1');
-			imageUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
-					'http://ytimg.googleusercontent.com/vi/$1/default.jpg');
-		}
-		if (ps.upload) {
-			imageUrl = ps.upload.url;
-		}
+    var isYoutube = (ps.type === 'video' && ps.itemUrl.match(this.YOUTUBE_REGEX));
+    var videoUrl = '';
+    var imageUrl = '//s2.googleusercontent.com/s2/favicons?domain=' + createURI(ps.pageUrl).host;
+    if (isYoutube) {
+      videoUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
+          'http://www.youtube.com/v/$1&hl=en&fs=1&autoplay=1');
+      imageUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
+          'http://ytimg.googleusercontent.com/vi/$1/default.jpg');
+    }
+    if (ps.upload) {
+      imageUrl = ps.upload.url;
+    }
 
-		var link = [];
-		link.push(
-			null, null, null,
-			ps.upload ? '' : ps.item || ps.page,
-			null,
-			isYoutube ? [null, videoUrl, 385, 640] :
-				ps.upload ? [null, ps.upload.url, ps.upload.height, ps.upload.width] : null,
-			null, null, null,
-			isYoutube ? [[null, ps.author || '', 'uploader']] : [],
-			null, null, null, null, null,
-			null, null, null, null, null, null,
-			ps.body ? '&ldquo;' + getFlavor(ps, 'html') + '&rdquo;' : '',
-			null, null
-		);
-		switch (ps.type) {
-		case 'video':
-			link.push([null, ps.pageUrl, null, 'application/x-shockwave-flash', 'video']);
-			break;
-		case 'photo':
-			if (ps.upload) {
-				link.push([null, ps.upload.photoPageUrl, null, ps.upload.mimeType, 'image']);
-			}
-			else {
-				link.push([null, ps.pageUrl, null, 'text/html', 'document']);
-			}
-			break;
-		default:
-			link.push([null, ps.itemUrl || ps.pageUrl, null, 'text/html', 'document']);
-		}
-		link.push(
-			null, null, null, null, null,
-			null, null, null, null, null,
-			null, null, null, null, null, null,
-			[
-				[null, imageUrl, null, null],
-				[null, imageUrl, null, null]
-			],
-			null, null, null, null, null
-		);
-		if (ps.upload) {
-			link.push([
-				[null, 'picasa', 'http://google.com/profiles/media/provider'],
-				[
-					null,
-					queryString({
-						albumid : ps.upload.albumid,
-						photoid : ps.upload.photoid
-					}),
-					'http://google.com/profiles/media/onepick_media_id'
-				]
-			]);
-		}
-		else {
-			link.push([
-				[
-					null,
-					isYoutube ? 'youtube' : '',
-					'http://google.com/profiles/media/provider'
-				]
-			]);
-		}
+    var link = [];
+    link.push(
+      null, null, null,
+      ps.upload ? '' : ps.item || ps.page,
+      null,
+      isYoutube ? [null, videoUrl, 385, 640] :
+        ps.upload ? [null, ps.upload.url, ps.upload.height, ps.upload.width] : null,
+      null, null, null,
+      isYoutube ? [[null, ps.author || '', 'uploader']] : [],
+      null, null, null, null, null,
+      null, null, null, null, null, null,
+      ps.body ? '&ldquo;' + getFlavor(ps, 'html') + '&rdquo;' : '',
+      null, null
+    );
+    switch (ps.type) {
+    case 'video':
+      link.push([null, ps.pageUrl, null, 'application/x-shockwave-flash', 'video']);
+      break;
+    case 'photo':
+      if (ps.upload) {
+        link.push([null, ps.upload.photoPageUrl, null, ps.upload.mimeType, 'image']);
+      }
+      else {
+        link.push([null, ps.pageUrl, null, 'text/html', 'document']);
+      }
+      break;
+    default:
+      link.push([null, ps.itemUrl || ps.pageUrl, null, 'text/html', 'document']);
+    }
+    link.push(
+      null, null, null, null, null,
+      null, null, null, null, null,
+      null, null, null, null, null, null,
+      [
+        [null, imageUrl, null, null],
+        [null, imageUrl, null, null]
+      ],
+      null, null, null, null, null
+    );
+    if (ps.upload) {
+      link.push([
+        [null, 'picasa', 'http://google.com/profiles/media/provider'],
+        [
+          null,
+          queryString({
+            albumid : ps.upload.albumid,
+            photoid : ps.upload.photoid
+          }),
+          'http://google.com/profiles/media/onepick_media_id'
+        ]
+      ]);
+    }
+    else {
+      link.push([
+        [
+          null,
+          isYoutube ? 'youtube' : '',
+          'http://google.com/profiles/media/provider'
+        ]
+      ]);
+    }
 
-		return JSON.stringify(link);
-	},
+    return JSON.stringify(link);
+  },
 
-	craetePhotoSpar : function(ps) {
-		var mime = this.getMIMEType(ps.itemUrl);
-		return JSON.stringify([
-			null, null, null, null, null,
-			[null, ps.itemUrl],
-			null, null, null,
-			[],
-			null, null, null, null, null,
-			null, null, null, null, null,
-			null, null, null, null,
-			[
-				null, ps.pageUrl, null, mime, 'photo',
-				null, null, null, null, null, null, null, null, null
-			],
-			null, null, null, null, null,
-			null, null, null, null, null,
-			null, null, null, null, null, null,
-			[
-				[null, ps.itemUrl, null, null],
-				[null, ps.itemUrl, null, null]
-			],
-			null, null, null, null, null,
-			[
-				[null, 'images', 'http://google.com/profiles/media/provider']
-			]
-		]);
-	},
+  craetePhotoSpar : function(ps) {
+    var mime = this.getMIMEType(ps.itemUrl);
+    return JSON.stringify([
+      null, null, null, null, null,
+      [null, ps.itemUrl],
+      null, null, null,
+      [],
+      null, null, null, null, null,
+      null, null, null, null, null,
+      null, null, null, null,
+      [
+        null, ps.pageUrl, null, mime, 'photo',
+        null, null, null, null, null, null, null, null, null
+      ],
+      null, null, null, null, null,
+      null, null, null, null, null,
+      null, null, null, null, null, null,
+      [
+        [null, ps.itemUrl, null, null],
+        [null, ps.itemUrl, null, null]
+      ],
+      null, null, null, null, null,
+      [
+        [null, 'images', 'http://google.com/profiles/media/provider']
+      ]
+    ]);
+  },
 
-	getMIMEType : function(url) {
-		switch (createURI(url).fileExtension) {
-		case 'bmp' : return('image/bmp');
-		case 'gif' : return('image/gif');
-		case 'jpeg': return('image/jpeg');
-		case 'jpg' : return('image/jpeg');
-		case 'png' : return('image/png');
-		}
-		return('image/jpeg');
-	},
+  getMIMEType : function(url) {
+    switch (createURI(url).fileExtension) {
+    case 'bmp' : return('image/bmp');
+    case 'gif' : return('image/gif');
+    case 'jpeg': return('image/jpeg');
+    case 'jpg' : return('image/jpeg');
+    case 'png' : return('image/png');
+    }
+    return('image/jpeg');
+  },
 
-	createScopeSpar : function(ps) {
-		var aclEntries = [];
+  createScopeSpar : function(ps) {
+    var aclEntries = [];
 
-		var scopes = JSON.parse(ps.scope);
+    var scopes = JSON.parse(ps.scope);
 
-		for (var i = 0, len = scopes.length ; i < len ; i++) {
-			aclEntries.push({
-				scope : scopes[i],
-				role  : 20
-			});
-			aclEntries.push({
-				scope : scopes[i],
-				role  : 60
-			});
-		}
+    for (var i = 0, len = scopes.length ; i < len ; i++) {
+      aclEntries.push({
+        scope : scopes[i],
+        role  : 20
+      });
+      aclEntries.push({
+        scope : scopes[i],
+        role  : 60
+      });
+    }
 
-		return JSON.stringify({
-			aclEntries : aclEntries
-		});
-	},
+    return JSON.stringify({
+      aclEntries : aclEntries
+    });
+  },
 
-	_post : function(ps, oz) {
-		var self = this;
+  _post : function(ps, oz) {
+    var self = this;
 
-		var description = ps.description;
-		if (ps.type === 'regular') {
-			description = joinText([ps.item, ps.description], "\n");
-		}
-		if (ps.upload) {
-			description = joinText([ps.page, ps.pageUrl, ps.description, ps.body], "\n");
-		}
+    var description = ps.description;
+    if (ps.type === 'regular') {
+      description = joinText([ps.item, ps.description], "\n");
+    }
+    if (ps.upload) {
+      description = joinText([ps.description, ps.page, ps.pageUrl, ps.body], "\n");
+    }
 
-		var spar = [];
-		spar.push(
-			description,
-			this.getToken(oz),
-			null,
-			ps.upload ? ps.upload.albumid : null,
-			null, null
-		);
+    var spar = [];
+    spar.push(
+      description,
+      this.getToken(oz),
+      null,
+      ps.upload ? ps.upload.albumid : null,
+      null, null
+    );
 
-		var link = this.createLinkSpar(ps);
+    var link = this.createLinkSpar(ps);
 
-		if (ps.type === 'photo' && !ps.upload) {
-			var photo = this.craetePhotoSpar(ps);
-			spar.push(JSON.stringify([link, photo]));
-		}
-		else {
-			spar.push(JSON.stringify([link]));
-		}
+    if (ps.type === 'photo' && !ps.upload) {
+      var photo = this.craetePhotoSpar(ps);
+      spar.push(JSON.stringify([link, photo]));
+    }
+    else {
+      spar.push(JSON.stringify([link]));
+    }
 
-		spar.push(null);
-		spar.push(this.createScopeSpar(ps));
-		spar.push(true, [], true, true, null, [], false, false);
-		if (ps.upload) {
-			spar.push(null, null, oz[2][0]);
-		}
+    spar.push(null);
+    spar.push(this.createScopeSpar(ps));
+    spar.push(true, [], true, true, null, [], false, false);
+    if (ps.upload) {
+      spar.push(null, null, oz[2][0]);
+    }
 
-		spar = JSON.stringify(spar);
+    spar = JSON.stringify(spar);
 
-		return request(this.POST_URL + '?' + queryString({
-			_reqid : this.getReqid(),
-			rt     : 'j'
-		}), {
-			sendContent : {
-				spar : spar,
-				at   : oz[1][15]
-			},
-			headers : {
-				Origin : self.HOME_URL
-			}
-		});
-	},
+    return request(this.POST_URL + '?' + queryString({
+      _reqid : this.getReqid(),
+      rt     : 'j'
+    }), {
+      sendContent : {
+        spar : spar,
+        at   : oz[1][15]
+      },
+      headers : {
+        Origin : self.HOME_URL
+      }
+    });
+  },
 
-	UPLOAD_URL : 'https://plus.google.com/_/upload/photos/resumable',
+  UPLOAD_URL : 'https://plus.google.com/_/upload/photos/resumable',
 
-	openUploadSession : function(fileName, fileSize) {
-		var self = this;
+  openUploadSession : function(fileName, fileSize) {
+    var self = this;
 
-		var data = {
-			protocolVersion      : '0.8',
-			createSessionRequest : {
-				fields : [
-					{
-						external : {
-							name     : 'file',
-							filename : fileName + '.png',
-							put      : {},
-							size     : fileSize
-						}
-					},
-					{
-						inlined : {
-							name        : 'batchid',
-							content     : String(Date.now()),
-							contentType : 'text/plain'
-						}
-					},
-					{
-						inlined : {
-							name        : 'disable_asbe_notification',
-							content     : 'true',
-							contentType : 'text/plain'
-						}
-					},
-					{
-						inlined : {
-							name        : 'streamid',
-							content     : 'updates',
-							contentType : 'text/plain'
-						}
-					},
-					{
-						inlined : {
-							name        : 'use_upload_size_pref',
-							content     : 'true',
-							contentType : 'text/plain'
-						}
-					}
-				]
-			}
-		};
+    var data = {
+      protocolVersion      : '0.8',
+      createSessionRequest : {
+        fields : [
+          {
+            external : {
+              name     : 'file',
+              filename : fileName + '.png',
+              put      : {},
+              size     : fileSize
+            }
+          },
+          {
+            inlined : {
+              name        : 'batchid',
+              content     : String(Date.now()),
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'disable_asbe_notification',
+              content     : 'true',
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'streamid',
+              content     : 'updates',
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'use_upload_size_pref',
+              content     : 'true',
+              contentType : 'text/plain'
+            }
+          }
+        ]
+      }
+    };
 
-		return request(this.UPLOAD_URL + '?authuser=0', {
-			sendContent : JSON.stringify(data)
-		}).addCallback(function(res) {
-			var session = JSON.parse(res.responseText);
-			if (session.sessionStatus) {
-				return session;
-			}
-			return null;
-		});
-	},
+    return request(this.UPLOAD_URL + '?authuser=0', {
+      sendContent : JSON.stringify(data)
+    }).addCallback(function(res) {
+      var session = JSON.parse(res.responseText);
+      if (session.sessionStatus) {
+        return session;
+      }
+      return null;
+    });
+  },
 
   upload : function(file) {
-		return this.openUploadSession(file.fileName, file.length).addCallback(function(session) {
+    return this.openUploadSession(file.fileName, file.length).addCallback(function(session) {
       if (!session) {
         return null;
       }
@@ -2559,38 +2633,38 @@ Models.register({
             .completionInfo.customerSpecificInfo;
         }
         return null;
-			});
-		});
-	},
+      });
+    });
+  },
 
-	getStreams : function() {
-		var ret = new Deferred();
-		this.getOZData().addCallback(function(oz) {
-			var circles = [];
-			oz[12][0].forEach(function(circle) {
-				var code, id, name, has;
-				code = circle[0][0];
-				id   = [oz[2][0], code].join('.');
-				name = circle[1][0];
-				if (code && name) {
-					has = false;
-					circles.forEach(function(c) {
-						if (!has && c[0].id === id) {
-							has = true;
-						}
-					});
-					if (!has) {
-						circles.push([{
-							scopeType   : 'focusGroup',
-							name        : name,
-							id          : id,
-							me          : false,
-							requiresKey : false,
-							groupType   : 'p'
-						}]);
-					}
-				}
-			});
+  getStreams : function() {
+    var ret = new Deferred();
+    this.getOZData().addCallback(function(oz) {
+      var circles = [];
+      oz[12][0].forEach(function(circle) {
+        var code, id, name, has;
+        code = circle[0][0];
+        id   = [oz[2][0], code].join('.');
+        name = circle[1][0];
+        if (code && name) {
+          has = false;
+          circles.forEach(function(c) {
+            if (!has && c[0].id === id) {
+              has = true;
+            }
+          });
+          if (!has) {
+            circles.push([{
+              scopeType   : 'focusGroup',
+              name        : name,
+              id          : id,
+              me          : false,
+              requiresKey : false,
+              groupType   : 'p'
+            }]);
+          }
+        }
+      });
 
       var presets = [
         [{
@@ -2601,7 +2675,7 @@ Models.register({
           requiresKey : false,
           groupType   : 'a'
         }],
-			  [{
+        [{
           scopeType   : 'focusGroup',
           name        : 'Extended circles',
           id          : [oz[2][0], '1f'].join('.'),
@@ -2618,13 +2692,13 @@ Models.register({
         }]
       ];
 
-			ret.callback({
-				presets : presets,
-				circles : circles
-			});
-		});
-		return ret;
-	}
+      ret.callback({
+        presets : presets,
+        circles : circles
+      });
+    });
+    return ret;
+  }
 });
 
 function shortenUrls(text, model){
