@@ -1481,28 +1481,35 @@ Models.register({
 
   upload : function(ps, status, file) {
     var self = this;
-    var UPLOAD_URL = 'http://upload.twitter.com/1/statuses/update_with_media.json';
+    var RECEVIER_URL = 'https://upload.twitter.com/receiver.html';
+    var UPLOAD_URL = 'https://upload.twitter.com/1/statuses/update_with_media.json';
 
     return this.getToken().addCallback(function(token) {
       return self.getBinaryStringFromFile(file).addCallback(function(binary) {
-        return request(UPLOAD_URL, {
-          sendContent : {
-            status                  : status,
-            'media_data[]'          : window.btoa(binary),
-            include_entities        : 'true',
-            post_authenticity_token : token.authenticity_token
-          },
+        return request(RECEVIER_URL, {
           headers : {
-            Referer            : 'http://upload.twitter.com/receiver.html',
-            'X-Phx'            : true,
-            'X-Requested-With' : 'XMLHttpRequest'
+            Referer : self.URL
           }
         }).addCallback(function(res) {
-          var json = JSON.parse(res.responseText);
-          if (json.error) {
-            throw new Error(json.error);
-          }
-          return json;
+          return request(UPLOAD_URL, {
+            sendContent : {
+              status                  : status,
+              'media_data[]'          : window.btoa(binary),
+              include_entities        : 'true',
+              post_authenticity_token : token.authenticity_token
+            },
+            headers : {
+              Referer            : RECEVIER_URL,
+              'X-Phx'            : true,
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
+          }).addCallback(function(res) {
+            var json = JSON.parse(res.responseText);
+            if (json.error) {
+              throw new Error(json.error);
+            }
+            return json;
+          });
         });
       });
     });
