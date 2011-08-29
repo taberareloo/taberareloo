@@ -1483,6 +1483,11 @@ Models.register({
     var self = this;
     var RECEVIER_URL = 'https://upload.twitter.com/receiver.html';
     var UPLOAD_URL = 'https://upload.twitter.com/1/statuses/update_with_media.json';
+    var SIZE_LIMIT = 3145728;
+
+    if (file.fileSize > SIZE_LIMIT) {
+      throw new Error('exceed the photo size limit (' + SIZE_LIMIT + ')');
+    }
 
     return this.getToken().addCallback(function(token) {
       return self.getBinaryStringFromFile(file).addCallback(function(binary) {
@@ -2299,9 +2304,12 @@ Models.register({
   },
 
   getInitialData : function(oz) {
-    return request(this.INIT_URL + '?_reqid=' + this.getReqid() + '&rt=j', {
+    return request(this.INIT_URL + '?' + queryString({
+      key    : 11,
+      _reqid : this.getReqid(),
+      rt     : 'j'
+    }), {
       sendContent : {
-        key : 11,
         at  : oz[1][15]
       }
     }).addCallback(function(res) {
@@ -2323,7 +2331,7 @@ Models.register({
   getDefaultScope : function(oz) {
     var self = this;
     return this.getInitialData(oz).addCallback(function(data) {
-      data = self.getDataByKey(data, 'idr');
+      data = self.getDataByKey(data[0], 'idr');
       if (!data) return JSON.stringify([]);
       data = MochiKit.Base.evalJSON(data[1]);
       data = MochiKit.Base.evalJSON(data[11][0]);
