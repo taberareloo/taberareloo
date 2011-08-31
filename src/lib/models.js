@@ -2574,7 +2574,7 @@ Models.register({
       }
       if (ps.upload) {
         description = joinText([ps.description, ps.page, ps.pageUrl,
-          (ps.body) ? '“' + getFlavor(ps, 'html') + '”' : ''], "\n");
+          (ps.body) ? '“' + ps.body + '”' : ''], "\n");
       }
 
       var spar = [];
