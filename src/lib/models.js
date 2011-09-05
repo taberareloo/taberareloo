@@ -2056,68 +2056,77 @@ Models.register({
 });
 
 Models.register({
-  name : 'PickNaver',
-  ICON : 'http://naver.jp/favicon.ico',
-  POST_URL : 'http://naver.jp/api/post/html/mainboard',
-  LOGIN_URL: 'https://ssl.naver.jp/login?fromUrl=http://pick.naver.jp/',
-  TOKEN_URL: 'http://naver.jp/api/apiToken',
-  LINK : 'http://pick.naver.jp/',
+  name     : 'Pick.Naver',
+  ICON     : 'http://naver.jp/favicon.ico',
+  POST_URL : 'http://naver.jp/api/html/post/mainboard',
+
   SHORTEN_SERVICE : 'bit.ly',
 
   check : function(ps){
     return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file;
   },
 
-  getToken : function() {
+  getAuthCookie: function() {
+    var ret = new Deferred();
     var self = this;
-    return request(this.TOKEN_URL, { headers : { 'Accept': 'application/json' }}).addCallback(function(res) {
-      var data = JSON.parse(res.responseText);
-      if (!data['apiToken']) {
-        delete self['apiToken'];
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+    chrome.cookies.getAll({
+      domain : '.naver.jp',
+      name   : 'NJID_AUT'
+    }, function(cookie) {
+      if (cookie.length) {
+        ret.callback(cookie[cookie.length-1].value);
+      } else {
+        ret.errback(new Error(chrome.i18n.getMessage('error.notLoggedin', self.name)));
       }
-      self.apiToken = data['apiToken'];
-      return self.apiToken;
     });
+    return ret;
   },
 
   post : function(ps) {
     var self = this;
-    return this.getToken().addCallback(function(ok) {
-      return self.update(joinText([ps.body, ps.description], "¥n", true), ps);
+    return this.getAuthCookie().addCallback(function(ok) {
+      var status = joinText([
+          ps.description,
+          ps.type === 'photo' ? ps.page : '',
+          ps.type === 'photo' ? ps.pageUrl : '',
+          ps.body ? '“' + ps.body + '”' : ''
+        ], "\n", true);
+      return self.update(status, ps);
     });
   },
 
   update : function(status, ps) {
     var self = this;
     return maybeDeferred(
-      (status.length < 117 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
+      (status.length < 300 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
     ).addCallback(function(status) {
       var typeCode = 'U';
       var media = {};
       if (ps.type === 'photo') {
         typeCode = 'I';
-        media.mediaUrl = ps.pageUrl;
+        media.mediaUrl = ps.itemUrl;
         media.mediaThumbnailUrl = ps.itemUrl;
       }
       else {
-        media.mediaUrl = ps.itemUrl;
+        media.mediaUrl = ps.itemUrl || ps.pageUrl;
       }
 
       return request(self.POST_URL, {
-        method : 'PUT',
+        method : 'POST',
         headers : {
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8, application/json',
-          'Api-Token': self.apiToken
+          'Content-Type' : 'application/json; charset=utf-8'
         },
         sendContent : JSON.stringify({
           serviceTypeCode: 'P',
           refererTypeCode: 'W',
           typeCode       : typeCode,
           postText       : status,
-          urlTitle       : ps.item,
-          media          : media
+          urlTitle       : ps.item || ps.page,
+          boardType      : 'mainboard',
+          media          : media,
+          pointedUser    : [],
+          group          : {'groupId': 0},
+          rnd            : new Date().getTime()
         })
       });
     })
