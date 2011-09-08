@@ -2056,8 +2056,8 @@ Models.register({
 });
 
 Models.register({
-  name     : 'Pick.Naver',
-  ICON     : 'http://naver.jp/favicon.ico',
+  name     : 'PickNaver',
+  ICON     : chrome.extension.getURL('skin/pick-naver.png'),
   POST_URL : 'http://naver.jp/api/html/post/mainboard',
 
   SHORTEN_SERVICE : 'bit.ly',
