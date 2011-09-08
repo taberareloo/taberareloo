@@ -473,7 +473,7 @@ Models.register({
           throw new Error(RegExp.$2.trim());
 
         if(res.responseText.match('login'))
-          throw new Error(getMessage('error.notLoggedin'));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       });
     });
   },
@@ -492,6 +492,7 @@ Models.register({
   },
 
   iLoveThis : function(id){
+    var self = this;
     return request(this.URL + 'gateway/in/api/add_asset', {
       referrer : this.URL,
       sendContent : {
@@ -501,7 +502,7 @@ Models.register({
     }).addCallback(function(res){
       var error = res.responseText.extract(/"error":"(.*?)"/);
       if(error === 'AUTH_FAILED')
-        throw new Error(getMessage('error.notLoggedin'));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       // NOT_FOUND / EXISTS / TOO_BIG
       if(error)
@@ -1108,7 +1109,7 @@ Models.register({
       if (cookie.length) {
         ret.callback(cookie[cookie.length-1].value);
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error.notLoggedin', that.name)));
+        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
       }
     });
     return ret;
@@ -2058,6 +2059,9 @@ Models.register({
 Models.register({
   name     : 'PickNaver',
   ICON     : chrome.extension.getURL('skin/pick-naver.png'),
+  LINK     : 'http://pick.naver.jp/',
+  LOGIN_URL: 'https://ssl.naver.jp/login?fromUrl=http://pick.naver.jp/',
+
   POST_URL : 'http://naver.jp/api/html/post/mainboard',
 
   SHORTEN_SERVICE : 'bit.ly',
@@ -2076,7 +2080,7 @@ Models.register({
       if (cookie.length) {
         ret.callback(cookie[cookie.length-1].value);
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error.notLoggedin', self.name)));
+        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', self.name)));
       }
     });
     return ret;
@@ -2275,12 +2279,17 @@ Models.register(update({}, Models['bit.ly'], {
 }));
 
 Models.register({
-  name    : 'Google+',
-  ICON    : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
+  name     : 'Google+',
+  ICON     : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
+  LINK     : 'https://plus.google.com/',
+  LOGIN_URL: 'https://plus.google.com/up/start/',
+
   HOME_URL : 'https://plus.google.com/',
   INIT_URL : 'https://plus.google.com/u/0/_/initialdata',
   POST_URL : 'https://plus.google.com/u/0/_/sharebox/post/',
+
   sequence : 0,
+
   OZDATA_REGEX : /<script\b[^>]*>[\s\S]*?\btick\b[\s\S]*?\bvar\s+OZ_initData\s*=\s*([{]+(?:(?:(?![}]\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>)[\s\S])*)*[}])\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>/i,
   YOUTUBE_REGEX : /http:\/\/(?:.*\.)?youtube.com\/watch\?v=([a-zA-Z0-9_-]+)[-_.!~*'()a-zA-Z0-9;\/?:@&=+\$,%#]*/g,
 
@@ -2298,7 +2307,7 @@ Models.register({
       if (cookie.length) {
         ret.callback(cookie[cookie.length-1].value);
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error.notLoggedin', self.name)));
+        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', self.name)));
       }
     });
     return ret;
