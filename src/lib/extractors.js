@@ -426,7 +426,7 @@ Extractors.register([
                 if(type === 'regular'){
                   return request(url+'/text').addCallback(function(res){
                     var textDoc = createHTML(res.responseText);
-                    var textForm = formContents($X('//form', textDoc)[1]);
+                    var textForm = formContents($X('//form', textDoc)[0]);
                     delete textForm.preview_post;
                     textForm.redirect_to = that.TUMBLR_URL+'dashboard';
                     return textForm;

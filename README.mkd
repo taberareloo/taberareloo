@@ -67,6 +67,7 @@ Taberareloo Dev Team
 + os0x
 + YungSang
 + hitode909
++ syoichi
 
 Tombloo Dev Team
 
