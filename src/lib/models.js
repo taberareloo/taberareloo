@@ -813,28 +813,30 @@ Models.register({
     var that = this;
     var ds = {
       tags : this.getUserTags(),
-      suggestions : this.getCurrentUser().addCallback(function(user){
-        // ブックマークレット用画面の削除リンクを使い既ブックマークを判定する
-        return request('http://www.delicious.com/save', {
-          queryString : {
-            noui : 1,
-            url  : url
-          }
-        });
-      }).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        return {
-          editPage : 'http://www.delicious.com/save?url=' + url,
-          form : {
-            item        : doc.getElementById('saveTitle').value,
-            description : doc.getElementById('saveNotes').value,
-            tags        : doc.getElementById('saveTags').value.split(','),
-            private     : doc.getElementById('savePrivate').checked
-          },
-          // duplicated : !!doc.getElementById('savedon'),
-          recommended : $X('id("recommendedField")//span[contains(@class, "m")]/text()', doc)
-        };
-      })
+      suggestions: succeed([])
+//      suggestions : this.getCurrentUser().addCallback(function(user){
+//        // ブックマークレット用画面の削除リンクを使い既ブックマークを判定する
+//        return request('http://www.delicious.com/save/confirm', {
+//          queryString : {
+//            noui : 1,
+//            url  : url,
+//            isNew: true
+//          }
+//        });
+//      }).addCallback(function(res){
+//        var doc = createHTML(res.responseText);
+//        return {
+//          editPage : 'http://www.delicious.com/save?url=' + url,
+//          form : {
+//            item        : doc.getElementById('saveTitle').value,
+//            description : doc.getElementById('saveNotes').value,
+//            tags        : doc.getElementById('saveTags').value.split(','),
+//            private     : doc.getElementById('savePrivate').checked
+//          },
+//          // duplicated : !!doc.getElementById('savedon'),
+//          recommended : $X('id("recommendedField")//span[contains(@class, "m")]/text()', doc)
+//        };
+//      })
     };
 
     return new DeferredHash(ds).addCallback(function(ress){
@@ -886,10 +888,11 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request('http://www.delicious.com/save', {
+    return request('http://www.delicious.com/save/confirm', {
       queryString :  {
         title : ps.item,
-        url   : ps.itemUrl
+        url   : ps.itemUrl,
+        isNew : true
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
@@ -905,12 +908,11 @@ Models.register({
       return request('http://www.delicious.com/save', {
         //denyRedirection: true,
         sendContent : update(form, {
-          url         : ps.itemUrl,
           title       : ps.item,
+          url         : ps.itemUrl,
           notes       : joinText([ps.body, ps.description], ' ', true),
           tags        : ps.tags? ps.tags.join(',') : '',
-          stack_id    : '',
-          private     : ps.private? 'true' : 'false'
+          private     : ps.private
         })
       });
     });
