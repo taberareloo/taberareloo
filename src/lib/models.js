@@ -857,18 +857,26 @@ Models.register({
     } else if(this.currentUser){
       return succeed(this.currentUser);
     } else {
-      var self = this;
-      return request("http://www.delicious.com/save").addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        var match = res.responseText.match(/Delicious\.Config\.set\('LoggedInUsername', '([^']+)'\);/);
-        if(match){
-          var user = match[1];
-          self.currentUser = user;
-          return user;
+      var that = this;
+      var ret = new Deferred();
+      chrome.cookies.getAll({
+        domain: 'delicious.com',
+        name : '_user'
+      }, function(cookie) {
+        if (cookie.length) {
+          var username = extractUsername(cookie[0].value);
+        }
+        if (username) {
+          ret.callback(username);
         } else {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
         }
       });
+      return ret;
+    }
+    function extractUsername(username) {
+      var matched = decodeURIComponent(username).match(/user=(.*?) /);
+      return (matched) ? matched[1] : null;
     }
   },
 
@@ -886,8 +894,9 @@ Models.register({
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       var elmForm = doc.getElementById('saveForm');
-      if(!elmForm)
+      if (!elmForm) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
 
       return request('http://www.delicious.com' + $X('id("saveForm")/@action', doc)[0], {
         //denyRedirection: true,
