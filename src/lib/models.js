@@ -886,26 +886,31 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request('http://www.delicious.com/post/', {
+    return request('http://www.delicious.com/save', {
       queryString :  {
         title : ps.item,
         url   : ps.itemUrl
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      var elmForm = doc.getElementById('saveForm');
-      if (!elmForm) {
+      var elmForms = doc.getElementsByClassName('saveConfirm');
+      if (!elmForms.length) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-
-      return request('http://www.delicious.com' + $X('id("saveForm")/@action', doc)[0], {
+      var tmp = MochiKit.DOM.formContents(elmForms[0]);
+      var form = {};
+      tmp[0].forEach(function(name, index) {
+        form[name] = tmp[1][index];
+      });
+      return request('http://www.delicious.com/save', {
         //denyRedirection: true,
-        sendContent : update(formContents(elmForm), {
-          description : ps.item,
-          jump        : 'no',
+        sendContent : update(form, {
+          url         : ps.itemUrl,
+          title       : ps.item,
           notes       : joinText([ps.body, ps.description], ' ', true),
-          tags        : ps.tags? ps.tags.join(' ') : '',
-          share       : ps.private? 'no' : ''
+          tags        : ps.tags? ps.tags.join(',') : '',
+          stack_id    : '',
+          private     : ps.private? 'true' : 'false'
         })
       });
     });
