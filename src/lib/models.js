@@ -810,7 +810,7 @@ Models.register({
    * @return {Object}
    */
   getSuggestions : function(url){
-    var self = this;
+    var that = this;
     var ds = {
       tags : this.getUserTags(),
       suggestions : this.getCurrentUser().addCallback(function(user){
@@ -828,10 +828,10 @@ Models.register({
           form : {
             item        : doc.getElementById('saveTitle').value,
             description : doc.getElementById('saveNotes').value,
-            tags        : doc.getElementById('saveTags').value.split(' '),
+            tags        : doc.getElementById('saveTags').value.split(','),
             private     : doc.getElementById('savePrivate').checked
           },
-          duplicated : !!doc.getElementById('savedon'),
+          // duplicated : !!doc.getElementById('savedon'),
           recommended : $X('id("recommendedField")//span[contains(@class, "m")]/text()', doc)
         };
       })
@@ -875,7 +875,7 @@ Models.register({
       return ret;
     }
     function extractUsername(username) {
-      var matched = decodeURIComponent(username).match(/user=(.*?) /);
+      var matched = decodeURIComponent(username).match(/^(.*?) /);
       return (matched) ? matched[1] : null;
     }
   },
