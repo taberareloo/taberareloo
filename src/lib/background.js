@@ -134,7 +134,8 @@ var TBRL = {
       'tumblr_default_quote': false,
       'always_shorten_url': false,
       'multi_tumblelogs': false,
-      'post_with_queue': false
+      'post_with_queue': false,
+      'ignore_canonical': 'twitter\\.com'
     },
     'entry': {
       'trim_reblog_info': false,

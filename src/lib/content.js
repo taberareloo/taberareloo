@@ -254,9 +254,10 @@ var TBRL = {
   },
   share: function(ctx, ext, show){
     var canonical = $X('//link[@rel="canonical"]/@href', ctx.document)[0];
-    if (canonical) {
+    if (canonical && !new RegExp(TBRL.config['post']['ignore_canonical']).test(ctx.href)) {
       ctx.href = resolveRelativePath(ctx.href)(canonical);
     }
+    ctx.href = ctx.href.replace(/\/#!\//, '/');
     return maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
       if (!ps.body && ctx.selection) {
