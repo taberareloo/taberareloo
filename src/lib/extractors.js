@@ -873,7 +873,7 @@ Extractors.register([
       ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',
-        item      : ctx.title.extract(/(.*)\s-\sYouTube/),
+        item      : $X('//meta[@property="og:title"]/@content')[0] || ctx.title.extract(/(.*) - /),
         itemUrl   : ctx.href,
         author    : author,
         authorUrl : authorUrl
