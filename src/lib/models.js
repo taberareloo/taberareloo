@@ -982,24 +982,36 @@ Models.register({
   },
 
   getCurrentUser : function(defaultUser){
-    if(defaultUser){
+    if (defaultUser) {
       return succeed(defaultUser);
-    } else if(this.currentUser){
+    } else if (this.currentUser) {
       return succeed(this.currentUser);
     } else {
       var that = this;
-      return getCookies('delicious.com', '_user').addCallback(function(cookies) {
-        var cookie = cookies[0];
-        if (!cookie) {
+      return getCookies('.delicious.com', 'deluser').addCallback(function(cookies) {
+        if (!cookies.length) {
+          console.log(cookies);
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
-        return extractUsername(cookie.value);
+        return that.getInfo().addCallback(function(info) {
+          console.log(info);
+          if (!info.is_logged_in) {
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+          }
+          return info.logged_in_username;
+        });
       });
     }
     function extractUsername(username) {
       var matched = decodeURIComponent(username).match(/^(.*?) /);
       return (matched) ? matched[1] : null;
     }
+  },
+
+  getInfo : function(){
+    return request('http://delicious.com/save/quick', {method : 'POST'}).addCallback(function(res) {
+      return JSON.parse(res.responseText);
+    });
   },
 
   check : function(ps){
