@@ -990,11 +990,9 @@ Models.register({
       var that = this;
       return getCookies('.delicious.com', 'deluser').addCallback(function(cookies) {
         if (!cookies.length) {
-          console.log(cookies);
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
         return that.getInfo().addCallback(function(info) {
-          console.log(info);
           if (!info.is_logged_in) {
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
           }
@@ -1272,19 +1270,14 @@ Models.register({
   },
 
   getAuthCookie: function() {
-    var ret = new Deferred();
     var that = this;
-    chrome.cookies.getAll({
-      domain: 'www.google.com',
-      name : 'secid'
-    }, function(cookie) {
-      if (cookie.length) {
-        ret.callback(cookie[cookie.length-1].value);
+    return getCookies('www.google.com', 'secid').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
-    return ret;
   },
 
   post: function(ps) {
@@ -2243,19 +2236,14 @@ Models.register({
   },
 
   getAuthCookie: function() {
-    var ret = new Deferred();
-    var self = this;
-    chrome.cookies.getAll({
-      domain : '.naver.jp',
-      name   : 'NJID_AUT'
-    }, function(cookie) {
-      if (cookie.length) {
-        ret.callback(cookie[cookie.length-1].value);
+    var that = this;
+    return getCookies('.naver.jp', 'NJID_AUT').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', self.name)));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
-    return ret;
   },
 
   post : function(ps) {
@@ -2470,19 +2458,14 @@ Models.register({
   },
 
   getAuthCookie: function() {
-    var ret = new Deferred();
-    var self = this;
-    chrome.cookies.getAll({
-      domain : '.google.com',
-      name   : 'SSID'
-    }, function(cookie) {
-      if (cookie.length) {
-        ret.callback(cookie[cookie.length-1].value);
+    var that = this;
+    return getCookies('.google.com', 'SSID').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', self.name)));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
-    return ret;
   },
 
   getOZData : function() {
