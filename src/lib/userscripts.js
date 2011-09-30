@@ -216,9 +216,6 @@ UserScripts.register([
       style.href = chrome.extension.getURL('styles/dashboard.css');
       document.head.appendChild(style);
 
-      // id:os0x
-      location.href="javascript:window.key_commands_are_suspended = true;void 0;";
-
       // copied from FLASH KEY (c) id:brazil
       // http://userscripts.org/scripts/show/11996
       // slightly modified.
@@ -573,16 +570,19 @@ UserScripts.register({
 });
 
 UserScripts.register({
-  name : 'Disable Default Tumblr j/k Keybind',
+  name : 'Disable Tumblr default Keybind',
   check : function(ctx) {
-    return (/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) ||
-            /^http:\/\/www\.tumblr\.com\/likes/.test(location.href) ||
-            /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
-            /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
-            /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href) ||
-            /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href));
+    if (TBRL.config['post']['disable_tumblr_default_keybind']) {
+      return (/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) ||
+              /^http:\/\/www\.tumblr\.com\/likes/.test(location.href) ||
+              /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
+              /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
+              /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href) ||
+              /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href));
+    }
   },
   exec  : function(){
+    // thx id:os0x, id:bardiche, id:syoichi
     var script = $N('script', { type: 'text/javascript' });
     script.textContent = "javascript:window.key_commands_are_suspended = true;void 0;";
     document.head.appendChild(script);

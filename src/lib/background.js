@@ -103,7 +103,7 @@ var GlobalFileEntryCache = { };
 
 var TBRL = {
   // default config
-  VERSION: '2.0.30',
+  VERSION: '2.0.31',
   ID: chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   Config: {
     'services': {
@@ -112,6 +112,7 @@ var TBRL = {
       'tag_provider': 'HatenaBookmark',
       'tag_auto_complete': true,
       'ldr_plus_taberareloo': false,
+      'disable_tumblr_default_keybind': false,
       'dashboard_plus_taberareloo': false,
       'dashboard_plus_taberareloo_manually': false,
       'googlereader_plus_taberareloo': false,

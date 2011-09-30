@@ -78,6 +78,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
     return Shortcutkey.keyString2LDR(key);
   });
   // Dashboard + Taberareloo
+  var disable_keybind_check = new Check('disable_tumblr_default_keybind', !!Config.post['disable_tumblr_default_keybind']);
   var dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post["dashboard_plus_taberareloo"]);
   var dashboard_short = new Shortcutkey("shortcutkey_dashboard_plus_taberareloo", true);
   var dashboard_manually_check = new Check('dashboard_plus_taberareloo_manually', !!Config.post["dashboard_plus_taberareloo_manually"]);
@@ -145,6 +146,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'tag_provider'     : provider.body(),
           'tag_auto_complete': tag_check.body(),
           'ldr_plus_taberareloo': ldr_check.body(),
+          'disable_tumblr_default_keybind': disable_keybind_check.body(),
           'dashboard_plus_taberareloo': dashboard_check.body(),
           'dashboard_plus_taberareloo_manually': dashboard_manually_check.body(),
           'googlereader_plus_taberareloo': gr_check.body(),
