@@ -474,7 +474,6 @@ UserScripts.register([
       return UserScripts['GoogleReader + Taberareloo'].fire(ev);
     }
   },
-
 ]);
 
 UserScripts.register({
@@ -508,10 +507,6 @@ UserScripts.register({
     }
   },
   exec : function(){
-    // id:os0x
-    // TODO: タイミングの点. 及び複数回実行の点
-    //       次で, 単体UserScript(optionなし)に分離します.
-    location.href="javascript:window.key_commands_are_suspended = true;void 0;";
     document.addEventListener('keydown', this.wrap, false);
   },
   fire : function(ev){
@@ -574,5 +569,22 @@ UserScripts.register({
   },
   wrap  : function(ev){
     return UserScripts['Play on Tumblr'].fire(ev);
+  }
+});
+
+UserScripts.register({
+  name : 'Disable Default Tumblr j/k Keybind',
+  check : function(ctx) {
+    return (/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) ||
+            /^http:\/\/www\.tumblr\.com\/likes/.test(location.href) ||
+            /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
+            /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
+            /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href) ||
+            /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href));
+  },
+  exec  : function(){
+    var script = $N('script', { type: 'text/javascript' });
+    script.textContent = "javascript:window.key_commands_are_suspended = true;void 0;";
+    document.head.appendChild(script);
   }
 });
