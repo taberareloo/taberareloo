@@ -789,8 +789,11 @@ Models.register({
         return request('http://feeds.delicious.com/v2/json/tags/' + user);
       }).addCallback(function(res){
         var tags = JSON.parse(res.responseText);
+        if (!tags) {
+          return tags;
+        }
         return Object.keys(tags).reduce(function(memo, tag){
-          if(tag){
+          if (tag) {
             memo.push({
               name      : tag,
               frequency : tags[tag]
@@ -813,40 +816,40 @@ Models.register({
     var that = this;
     var ds = {
       tags : this.getUserTags(),
-      suggestions: succeed([])
-//      suggestions : this.getCurrentUser().addCallback(function(user){
-//        // ブックマークレット用画面の削除リンクを使い既ブックマークを判定する
-//        return request('http://www.delicious.com/save/confirm', {
-//          queryString : {
-//            noui : 1,
-//            url  : url,
-//            isNew: true
-//          }
-//        });
-//      }).addCallback(function(res){
-//        var doc = createHTML(res.responseText);
-//        return {
-//          editPage : 'http://www.delicious.com/save?url=' + url,
-//          form : {
-//            item        : doc.getElementById('saveTitle').value,
-//            description : doc.getElementById('saveNotes').value,
-//            tags        : doc.getElementById('saveTags').value.split(','),
-//            private     : doc.getElementById('savePrivate').checked
-//          },
-//          // duplicated : !!doc.getElementById('savedon'),
-//          recommended : $X('id("recommendedField")//span[contains(@class, "m")]/text()', doc)
-//        };
-//      })
+      suggestions : this.getCurrentUser().addCallback(function() {
+        // フォームを開いた時点でブックマークを追加し過去のデータを修正可能にするか?
+        // 過去データが存在すると、お勧めタグは取得できない
+        // (現時点で保存済みか否かを確認する手段がない)
+        return (TBRL.Config['model']['delicious']['prematureSave']) ?
+          request('http://www.delicious.com/save', {
+            queryString : {
+              url : url,
+            }
+          }) :
+          request('http://www.delicious.com/save/confirm', {
+            queryString : {
+              url   : url,
+              isNew : true,
+            }
+          });
+      }).addCallback(function(res){
+        var doc = createHTML(res.responseText);
+        return {
+          editPage : 'http://www.delicious.com/save?url=' + url,
+          form : {
+            item        : doc.getElementById('saveTitle').value,
+            description : doc.getElementById('saveNotes').value,
+            tags        : doc.getElementById('saveTags').value.split(','),
+            private     : doc.getElementById('savePrivate').checked,
+          },
+
+          duplicated : !!doc.querySelector('.saveFlag'),
+          recommended : $X('id("recommendedField")//a[contains(@class, "m")]/text()', doc)
+        }
+      })
     };
 
     return new DeferredHash(ds).addCallback(function(ress){
-      // エラーチェック
-      values(ress).forEach(function(pair){
-        var success = pair[0], res = pair[1];
-        if(!success)
-          throw res;
-      });
-
       var res = ress.suggestions[1];
       res.tags = ress.tags[1];
       return res;
@@ -887,7 +890,7 @@ Models.register({
   },
 
   post : function(ps){
-    var self = this;
+    var that = this;
     return request('http://www.delicious.com/save/confirm', {
       queryString :  {
         title : ps.item,
@@ -896,23 +899,17 @@ Models.register({
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      var elmForms = doc.getElementsByClassName('saveConfirm');
-      if (!elmForms.length) {
+      var elmForm = doc.getElementsByClassName('saveConfirm')[0];
+      if (!elmForm) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-      var tmp = MochiKit.DOM.formContents(elmForms[0]);
-      var form = {};
-      tmp[0].forEach(function(name, index) {
-        form[name] = tmp[1][index];
-      });
       return request('http://www.delicious.com/save', {
-        //denyRedirection: true,
-        sendContent : update(form, {
+        sendContent : update(formContents(elmForm, true), {
           title       : ps.item,
           url         : ps.itemUrl,
           notes       : joinText([ps.body, ps.description], ' ', true),
-          tags        : ps.tags? ps.tags.join(',') : '',
-          private     : ps.private
+          tags        : joinText(ps.tags, ','),
+          private     : !!ps.private
         })
       });
     });
@@ -1048,21 +1045,23 @@ Models.register({
   ICON : 'https://www.google.com/bookmarks/api/static/images/favicon.ico',
   LINK : 'http://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
+  POST_URL : 'https://www.google.com/bookmarks/mark',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
-    var self = this;
-    return request('https://www.google.com/bookmarks/mark', {
+    var that = this;
+    return request(this.POST_URL, {
       queryString :  {
-        op : 'add'
+        op : 'edit',
+        output : 'popup'
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(doc.getElementById('gaia_loginform'))
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
       var fs = formContents(form);
@@ -1078,32 +1077,60 @@ Models.register({
     });
   },
 
-  getSuggestions : function(url){
-    // url に対してのrecommended tagsはない
-    // duplicatedは判定不可
-    var self = this;
-    if(this.tags){
-      return succeed({
-        duplicated: false,
-        recommended: [],
-        tags: this.tags
-      });
-    } else {
-      return request('http://www.google.com/bookmarks').addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        self.tags = $X('descendant::a[starts-with(normalize-space(@id), "lbl_m_") and number(substring(normalize-space(@id), 7)) >= 0]/text()', doc).map(function(tag){
-          return {
-            name      : tag,
-            frequency : -1
-          };
-        });
+  getEntry : function(url){
+    return request(this.POST_URL, {
+      queryString : {
+        op     : 'edit',
+        output : 'popup',
+        bkmk   : url
+      }
+    }).addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      var form = formContents(doc);
+      return {
+        saved       : (/(edit|編集)/i).test($X('//h1/text()', doc)[0]),
+        item        : form.title,
+        tags        : form.labels.split(/,/).map(methodcaller('trim')),
+        description : form.annotation
+      };
+    });
+  },
+
+  getUserTags : function() {
+    return request('https://www.google.com/bookmarks/api/bookmark', {
+      queryString : {
+        op : 'LIST_LABELS'
+      }
+    }).addCallback(function(res){
+      var data = JSON.parse(res.responseText);
+      return zip(data['labels'], data['counts']).map(function(pair){
         return {
-          duplicated: false,
-          recommended: [],
-          tags: self.tags
+          name      : pair[0],
+          frequency : pair[1]
         };
       });
-    }
+    });
+  },
+
+  getSuggestions : function(url){
+    var that = this;
+    return new DeferredHash({
+      tags  : that.getUserTags(),
+      entry : that.getEntry(url)
+    }).addCallback(function(ress){
+      var entry = ress.entry[1];
+      var tags = ress.tags[1];
+      return {
+        form        : entry.saved? entry : null,
+        tags        : tags,
+        duplicated  : entry.saved,
+        recommended : [],
+        editPage    : that.POST_URL + '?' + queryString({
+          op   : 'edit',
+          bkmk : url
+        })
+      };
+    });
   }
 });
 

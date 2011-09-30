@@ -360,26 +360,28 @@ function maybeDeferred(d) {
     (d===null || !d.addCallback) ? succeed(d) : d;
 }
 
-function formContents(elm) {
+function formContents(elm, nomultiple) {
   if (typeof(elm) === 'string') {
     elm = createHTML(elm);
   }
-  var form = MochiKit.DOM.formContents(elm);
-  var ret = {};
-  zip(form[0], form[1]).forEach(function(arr) {
-    var name = arr[0];
-    var val = arr[1];
+  return zip.apply(null, MochiKit.DOM.formContents(elm)).reduce(function(ret, pair) {
+    var name = pair[0];
+    var val = pair[1];
     if (ret[name]) {
-      if (Array.isArray(ret[name])) {
-        ret[name].push(val);
+      if (nomultiple) {
+        ret[name] = val;
       } else {
-        ret[name] = [ret[name], val];
+        if (Array.isArray(ret[name])) {
+          ret[name].push(val);
+        } else {
+          ret[name] = [ret[name], val];
+        }
       }
     } else {
       ret[name] = val;
     }
-  });
-  return ret;
+    return ret;
+  }, {});
 }
 
 function isEmpty(obj) {
@@ -389,12 +391,12 @@ function isEmpty(obj) {
 }
 
 function queryString(params, question) {
-  if (isEmpty(params)) {
-    return '';
-  }
-
   if (typeof(params) === 'string') {
     return params;
+  }
+
+  if (isEmpty(params)) {
+    return '';
   }
 
   var qeries = [];

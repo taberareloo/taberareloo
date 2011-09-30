@@ -143,6 +143,11 @@ var TBRL = {
       'not_convert_text': true,
       'thumbnail_template': '',
       'twitter_template': ''
+    },
+    'model': {
+      'delicious': {
+        'prematureSave': false
+      }
     }
   },
   Service: {
