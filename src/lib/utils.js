@@ -362,7 +362,7 @@ function maybeDeferred(d) {
 
 function formContents(elm, nomultiple) {
   if (typeof(elm) === 'string') {
-    elm = createHTML(elm);
+    elm = createHTML(elm).forms[0];
   }
   return zip.apply(null, MochiKit.DOM.formContents(elm)).reduce(function(ret, pair) {
     var name = pair[0];
@@ -953,4 +953,15 @@ function canvasRequest(url) {
 
 function fileToPNGDataURL(file) {
   return canvasRequest(getURLFromFile(file));
+}
+
+function getCookies(domain, name) {
+  var ret = new Deferred();
+  chrome.cookies.getAll({
+    domain: domain,
+    name: name
+  }, function(cookie) {
+    ret.callback(cookie);
+  });
+  return ret;
 }

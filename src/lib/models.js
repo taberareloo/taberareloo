@@ -771,6 +771,131 @@ Models.register({
 });
 
 Models.register({
+  name : 'Pinboard',
+  ICON : 'http://pinboard.in/favicon.ico',
+
+  check : function(ps){
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+  },
+
+  getCurrentUser : function(){
+    var that = this;
+    return getCookies('pinboard.in', 'login').addCallback(function(cookies) {
+      var cookie = cookies[0];
+      if (!cookie) {
+        new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
+      return cookie.value;
+    });
+  },
+
+  post : function(ps){
+    var that = this;
+    return succeed().addCallback(function(){
+      return that.getCurrentUser().addCallback(function() {
+        return request('https://pinboard.in/add', {
+          queryString : {
+            title : ps.item,
+            url   : ps.itemUrl,
+          }
+        });
+      });
+    }).addCallback(function(res) {
+      var form = formContents(res.responseText, true);
+      console.log(form);
+      return request('https://pinboard.in/add', {
+        sendContent : update(form, {
+          title       : ps.item,
+          url         : ps.itemUrl,
+          description : joinText([ps.body, ps.description], ' ', true),
+          tags        : joinText(ps.tags, ' '),
+          private     :
+            (ps.private == null)? form.private :
+            (ps.private)? 'on' : '',
+        }),
+      });
+    });
+  },
+
+  getUserTags : function(){
+    var that = this;
+    return succeed().addCallback(function(){
+      return that.getCurrentUser().addCallback(function(username) {
+        return request('https://pinboard.in/u:' + username, {
+          queryString: {
+            mode: 'list',
+            floor: 1
+          }
+        });
+      });
+    }).addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      return $X('id("tag_cloud")//a[contains(@class, "tag")]/text()', doc).map(function(tag) {
+        return {
+          name: tag,
+          frequency: 0
+        };
+      });
+    });
+  },
+
+  getRecommendedTags : function(url){
+    return request('https://pinboard.in/ajax_suggest', {
+      queryString : {
+        url : url,
+      }
+    }).addCallback(function(res){
+      // 空配列ではなく、空文字列が返ることがある
+      return res.responseText?
+        JSON.parse(res.responseText).map(function(tag){
+          // 数字のみのタグが数値型になるのを避ける
+          return '' + tag;
+        }) : [];
+    });
+  },
+
+  getSuggestions : function(url){
+    var that = this;
+    var ds = {
+      tags        : this.getUserTags(),
+      recommended : this.getRecommendedTags(url),
+      suggestions : succeed().addCallback(function(){
+        return that.getCurrentUser().addCallback(function() {
+          return request('https://pinboard.in/add', {
+            queryString : {
+              url : url,
+            }
+          });
+        });
+      }).addCallback(function(res){
+        var form = formContents(res.responseText);
+        return {
+          editPage : 'https://pinboard.in/add?url=' + url,
+          form : {
+            item        : form.title,
+            description : form.description,
+            tags        : form.tags.split(' '),
+            private     : !!form.private,
+          },
+
+          // 入力の有無で簡易的に保存済みをチェックする
+          // (submitボタンのラベルやalertの有無でも判定できる)
+          duplicated : !!(form.tags || form.description),
+        }
+      })
+    };
+
+    return new DeferredHash(ds).addCallback(function(ress){
+      var res = ress.suggestions[1];
+      res.recommended = ress.recommended[1];
+      res.tags = ress.tags[1];
+
+      return res;
+    });
+  }
+});
+
+Models.register({
   name : 'Delicious',
   ICON : 'http://www.delicious.com/favicon.ico',
   LINK : 'http://www.delicious.com/',
@@ -863,21 +988,13 @@ Models.register({
       return succeed(this.currentUser);
     } else {
       var that = this;
-      var ret = new Deferred();
-      chrome.cookies.getAll({
-        domain: 'delicious.com',
-        name : '_user'
-      }, function(cookie) {
-        if (cookie.length) {
-          var username = extractUsername(cookie[0].value);
+      return getCookies('delicious.com', '_user').addCallback(function(cookies) {
+        var cookie = cookies[0];
+        if (!cookie) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
-        if (username) {
-          ret.callback(username);
-        } else {
-          ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
-        }
+        return extractUsername(cookie.value);
       });
-      return ret;
     }
     function extractUsername(username) {
       var matched = decodeURIComponent(username).match(/^(.*?) /);
