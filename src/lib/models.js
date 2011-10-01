@@ -802,7 +802,6 @@ Models.register({
       });
     }).addCallback(function(res) {
       var form = formContents(res.responseText, true);
-      console.log(form);
       return request('https://pinboard.in/add', {
         sendContent : update(form, {
           title       : ps.item,
@@ -944,7 +943,6 @@ Models.register({
       suggestions : this.getRecommendedTags(url)
     };
     return new DeferredHash(ds).addCallback(function(ress){
-      console.log(ress);
       var res = ress.suggestions[1];
       res.tags = ress.tags[1];
       return res;
