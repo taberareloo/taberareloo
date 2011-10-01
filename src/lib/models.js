@@ -941,43 +941,25 @@ Models.register({
     var that = this;
     var ds = {
       tags : this.getUserTags(),
-      suggestions : this.getCurrentUser().addCallback(function() {
-        // フォームを開いた時点でブックマークを追加し過去のデータを修正可能にするか?
-        // 過去データが存在すると、お勧めタグは取得できない
-        // (現時点で保存済みか否かを確認する手段がない)
-        return (TBRL.Config['model']['delicious']['prematureSave']) ?
-          request('http://www.delicious.com/save', {
-            queryString : {
-              url : url,
-            }
-          }) :
-          request('http://www.delicious.com/save/confirm', {
-            queryString : {
-              url   : url,
-              isNew : true,
-            }
-          });
-      }).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        return {
-          editPage : 'http://www.delicious.com/save?url=' + url,
-          form : {
-            item        : doc.getElementById('saveTitle').value,
-            description : doc.getElementById('saveNotes').value,
-            tags        : doc.getElementById('saveTags').value.split(','),
-            private     : doc.getElementById('savePrivate').checked,
-          },
-
-          duplicated : !!doc.querySelector('.saveFlag'),
-          recommended : $X('id("recommendedField")//a[contains(@class, "m")]/text()', doc)
-        }
-      })
+      suggestions : this.getRecommendedTags(url)
     };
-
     return new DeferredHash(ds).addCallback(function(ress){
+      console.log(ress);
       var res = ress.suggestions[1];
       res.tags = ress.tags[1];
       return res;
+    });
+  },
+
+  getRecommendedTags: function(url) {
+    return request('http://feeds.delicious.com/v2/json/urlinfo/' + MD5.hex_md5(url)).addCallback(function(res){
+      var result = JSON.parse(res.responseText);
+      var top_tags = result[0].top_tags;
+      // get top_tags
+      return {
+        recommended : Object.keys(top_tags),
+        duplicated : false,
+      };
     });
   },
 
@@ -1026,7 +1008,7 @@ Models.register({
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      var elmForm = doc.getElementsByClassName('saveConfirm')[0];
+      var elmForm = doc.body;
       if (!elmForm) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
