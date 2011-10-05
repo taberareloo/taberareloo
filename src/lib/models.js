@@ -712,15 +712,15 @@ Models.register({
    * @return {Object}
    */
   getSuggestions : function(url){
-    var self = this;
+    var that = this;
     return this.getToken().addCallback(function(set){
       return DeferredHash({
-        tags: self.getUserTags(set['name']),
-        data: self.getURLData(url)
+        tags: that.getUserTags(set['name']),
+        data: that.getURLData(url)
       });
     }).addCallback(function(resses){
       if(!resses['tags'][0] || !resses['data'][0]){
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       var data = resses['data'][1];
       return {
@@ -732,18 +732,18 @@ Models.register({
   },
 
   getUserTags: function(user){
-    var self = this;
-    var tags = self.tags;
-    if(tags){
+    var that = this;
+    var tags = that.tags;
+    if (tags) {
       return succeed(tags);
     } else {
       return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function(res){
         try{
           tags = JSON.parse(res.responseText)['tags'];
         } catch(e) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
-        return self.tags = items(tags).map(function(pair){
+        return that.tags = items(tags).map(function(pair){
           return {
             name      : pair[0],
             frequency : pair[1].count
@@ -754,7 +754,7 @@ Models.register({
   },
 
   getURLData: function(url){
-    var self = this;
+    var that = this;
     return request('http://b.hatena.ne.jp/my.entry', {
       queryString : {
         url  : url
@@ -763,7 +763,7 @@ Models.register({
       try{
         var json = JSON.parse(res.responseText);
       } catch(e) {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       return json;
     });
@@ -943,6 +943,9 @@ Models.register({
       suggestions : this.getRecommendedTags(url)
     };
     return new DeferredHash(ds).addCallback(function(ress){
+      if(!ress['tags'][0] || !ress['suggestions'][0]){
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
       var res = ress.suggestions[1];
       res.tags = ress.tags[1];
       return res;
@@ -952,11 +955,19 @@ Models.register({
   getRecommendedTags: function(url) {
     return request('http://feeds.delicious.com/v2/json/urlinfo/' + MD5.hex_md5(url)).addCallback(function(res){
       var result = JSON.parse(res.responseText);
-      var top_tags = result[0].top_tags;
-      // get top_tags
+      if (result.length) {
+        var top_tags = result[0].top_tags;
+        if (top_tags) {
+          // get top_tags
+          return {
+            recommended : Object.keys(top_tags),
+            duplicated : false,
+          };
+        }
+      }
       return {
-        recommended : Object.keys(top_tags),
-        duplicated : false,
+        recommended: [],
+        duplicated: false
       };
     });
   },
@@ -1006,15 +1017,15 @@ Models.register({
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      var elmForm = doc.body;
+      var elmForm = doc.getElementById('main');
       if (!elmForm) {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       return request('http://www.delicious.com/save', {
         sendContent : update(formContents(elmForm, true), {
           title       : ps.item,
           url         : ps.itemUrl,
-          notes       : joinText([ps.body, ps.description], ' ', true),
+          note        : joinText([ps.body, ps.description], ' ', true),
           tags        : joinText(ps.tags, ','),
           private     : !!ps.private
         })
@@ -1222,9 +1233,12 @@ Models.register({
   getSuggestions : function(url){
     var that = this;
     return new DeferredHash({
-      tags  : that.getUserTags(),
-      entry : that.getEntry(url)
+      tags  : this.getUserTags(),
+      entry : this.getEntry(url)
     }).addCallback(function(ress){
+      if (!ress['tags'][0] || !ress['entry'][0]) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
       var entry = ress.entry[1];
       var tags = ress.tags[1];
       return {
@@ -1279,7 +1293,7 @@ Models.register({
       }).addCallback(function(res) {
         // form.secidはクッキー内のsecidとは異なる
         var doc = createHTML(res.responseText);
-        var form = formContents($X('//form', doc)[0]);
+        var form = formContents(doc);
         return request(endpoint, {
           redirectionLimit : 0,
           sendContent: {

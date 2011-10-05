@@ -362,7 +362,10 @@ function maybeDeferred(d) {
 
 function formContents(elm, nomultiple) {
   if (typeof(elm) === 'string') {
-    elm = createHTML(elm).body;
+    elm = createHTML(elm);
+  }
+  if (elm.nodeType === Node.DOCUMENT_NODE) {
+    elm = elm.body;
   }
   return zip.apply(null, MochiKit.DOM.formContents(elm)).reduce(function(ret, pair) {
     var name = pair[0];
