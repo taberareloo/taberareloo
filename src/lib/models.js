@@ -1008,27 +1008,24 @@ Models.register({
   },
 
   post : function(ps){
-    var that = this;
-    return request('http://www.delicious.com/save/confirm', {
-      queryString :  {
-        title : ps.item,
-        url   : ps.itemUrl,
-        isNew : true
-      }
-    }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
-      var elmForm = doc.getElementById('main');
-      if (!elmForm) {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-      }
-      return request('http://www.delicious.com/save', {
-        sendContent : update(formContents(elmForm, true), {
-          title       : ps.item,
-          url         : ps.itemUrl,
-          note        : joinText([ps.body, ps.description], ' ', true),
-          tags        : joinText(ps.tags, ','),
-          private     : !!ps.private
-        })
+    return this.getCurrentUser().addCallback(function(user) {
+      return request('http://www.delicious.com/save/confirm', {
+        queryString :  {
+          title : ps.item,
+          url   : ps.itemUrl,
+          isNew : true
+        }
+      }).addCallback(function(res){
+        var doc = createHTML(res.responseText);
+        return request('http://www.delicious.com/save', {
+          sendContent : update(formContents(doc, true), {
+            title       : ps.item,
+            url         : ps.itemUrl,
+            note        : joinText([ps.body, ps.description], ' ', true),
+            tags        : joinText(ps.tags, ','),
+            private     : !!ps.private
+          })
+        });
       });
     });
   }
