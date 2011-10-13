@@ -252,12 +252,14 @@ var TBRL = {
   getContextMenuTarget: function() {
     return document.elementFromPoint(TBRL.clickTarget.x, TBRL.clickTarget.y);
   },
-  share: function(ctx, ext, show){
+  share: function(ctx, ext, show) {
     var canonical = $X('//link[@rel="canonical"]/@href', ctx.document)[0];
     if (canonical && !new RegExp(TBRL.config['post']['ignore_canonical']).test(ctx.href)) {
       ctx.href = resolveRelativePath(ctx.href)(canonical);
     }
-    ctx.href = ctx.href.replace(/\/#!\//, '/');
+    if (Extractors['Quote - Twitter'].check(ctx)) {
+      ctx.href = ctx.href.replace(/\/#!\//, '/');
+    }
     return maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
       if (!ps.body && ctx.selection) {
