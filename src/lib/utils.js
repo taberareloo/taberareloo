@@ -711,6 +711,17 @@ function download(url, type) {
   });
 }
 
+function downloadBlob(url, type) {
+  return request(url, {
+    responseType: 'arraybuffer'
+  }).addCallback(function(res) {
+    var buffer = res.response;
+    var builder = getBlobBuilder();
+    builder.append(buffer);
+    return builder.getBlob(type);
+  });
+}
+
 var getBlobBuilder = (function() {
   var builder = window.BlobBuilder || window.WebKitBlobBuilder;
   return function getBlobBuilder() {
@@ -741,6 +752,18 @@ function createFileEntryFromArrayBuffer(buffer, type) {
   return d;
 }
 
+var getURLObject = (function() {
+  var url = null;
+  if (window.URL) {
+    url = window.URL;
+  } else {
+    url = window.webkitURL;
+  }
+  return function getURLObject() {
+    return url;
+  };
+})();
+
 var getURLFromFile = (function() {
   var err = new Error("createObjectURL is not found");
   var get = window.createBlobURL || window.createObjectURL;
@@ -750,13 +773,13 @@ var getURLFromFile = (function() {
     };
   }
   return function getURLFromFile(file) {
-    if (window.URL) {
-      return window.URL.createObjectURL(file);
-    } else {
-      return window.webkitURL.createObjectURL(file);
-    }
+    return getURLObject().createObjectURL(file);
   };
 })();
+
+function revokeObjectURL(url) {
+  getURLObject().revokeObjectURL(url);
+}
 
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
 
@@ -956,6 +979,52 @@ function canvasRequest(url) {
 
 function fileToPNGDataURL(file) {
   return canvasRequest(getURLFromFile(file));
+}
+
+function fileToDataURL(file) {
+  var ret = new Deferred();
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    ret.callback(ev.target.result);
+  };
+  reader.onerror = function(ev) {
+    ret.errback(ev);
+  };
+  reader.readAsDataURL(file);
+  return ret;
+}
+
+function fileToBinaryString(file) {
+  var ret = new Deferred();
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    ret.callback(ev.target.result);
+  };
+  reader.onerror = function(e) {
+    ret.errback(e);
+  };
+  reader.readAsBinaryString(file);
+  return ret;
+}
+
+function cutBase64Header(data) {
+  return data.replace(/^.*?,/, '');
+}
+
+function base64ToBlob(data, type, cutHeader) {
+  if (cutHeader) {
+    data = cutBase64Header(data);
+  }
+  var binary = window.atob(data);
+  var buffer = new ArrayBuffer(binary.length);
+  var view = new Uint8Array(buffer);
+  var fromCharCode = String.fromCharCode;
+  for (var i = 0, len = binary.length; i < len; ++i) {
+    view[i] = binary.charCodeAt(i);
+  }
+  var builder = getBlobBuilder();
+  builder.append(buffer);
+  return builder.getBlob(type);
 }
 
 function getCookies(domain, name) {

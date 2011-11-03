@@ -342,7 +342,7 @@ var onRequestsHandlers = {
   },
   base64ToFileEntry: function(req, sender, func) {
     var data = req.content;
-    var cut = data.replace(/^.*?,/, '');  // base64 header cut
+    var cut = cutBase64Header(data);
     var binary = window.atob(cut);
     var buffer = new ArrayBuffer(binary.length);
     var view = new Uint8Array(buffer);
@@ -379,6 +379,14 @@ var onRequestsHandlers = {
       func({});
     }).addErrback(function(e) {
     });
+  },
+  search: function(req, sender, func) {
+    // currently, used for GoogleImageSearch
+    func({});
+    var ps = req.content;
+    if (Models.GoogleImage.checkSearch(ps)) {
+      Models.GoogleImage.search(ps);
+    }
   },
   config: function(req, sender, func) {
     func(TBRL.Config);
@@ -510,6 +518,17 @@ chrome.extension.onRequest.addListener(function(req, sender, func) {
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusCapture',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Photo - Search - GoogleImage',
+    contexts: ['image'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusSearchGoogleImage',
         content: info
       });
     }

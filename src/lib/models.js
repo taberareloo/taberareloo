@@ -648,16 +648,12 @@ Models.register({
           rkm  : rkm,
           ext  : 'png',
           model: 'capture',
-          image: self.cutBase64(file.binary),
+          image: cutBase64Header(file.binary),
           fotosize: Math.max(file.height, file.width),
           folder  : ''
       }
       });
     });
-  },
-
-  cutBase64 : function(data){
-    return data.replace(/^.*?,/, '');
   }
 });
 
@@ -1340,6 +1336,27 @@ Models.register({
 });
 
 Models.register({
+  name : 'GoogleImage',
+  ICON :  Models.Google.ICON,
+  checkSearch : function(ps) {
+    return ps.type === 'photo' && !ps.file;
+  },
+  search: function(ps) {
+    // search by itemUrl
+    var ret = new Deferred();
+    var url = "http://www.google.co.jp/searchbyimage" + queryString({
+      image_url: ps.itemUrl
+    }, true);
+    chrome.tabs.create({
+      url: url
+    }, function() {
+      ret.callback();
+    });
+    return ret;
+  }
+});
+
+Models.register({
   name     : 'ChromeBookmark',
   ICON     : chrome.extension.getURL('skin/chromium.ico'),
   check : function(ps){
@@ -1626,16 +1643,6 @@ Models.register({
     );
   },
 
-  getBinaryStringFromFile : function(file) {
-    var ret = new Deferred();
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-      ret.callback(evt.target.result);
-    };
-    reader.readAsBinaryString(file);
-    return ret;
-  },
-
   upload : function(ps, status, file) {
     var self = this;
     var RECEVIER_URL = 'https://upload.twitter.com/receiver.html';
@@ -1647,7 +1654,7 @@ Models.register({
     }
 
     return this.getToken().addCallback(function(token) {
-      return self.getBinaryStringFromFile(file).addCallback(function(binary) {
+      return fileToBinaryString(file).addCallback(function(binary) {
         return request(RECEVIER_URL, {
           headers : {
             Referer : self.URL
