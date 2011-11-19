@@ -252,11 +252,18 @@ var TBRL = {
   getContextMenuTarget: function() {
     return document.elementFromPoint(TBRL.clickTarget.x, TBRL.clickTarget.y);
   },
-  share: function(ctx, ext, show){
+  cleanUpContext: function(ctx) {
     var canonical = $X('//link[@rel="canonical"]/@href', ctx.document)[0];
-    if (canonical) {
+    if (canonical && !new RegExp(TBRL.config['post']['ignore_canonical']).test(ctx.href)) {
       ctx.href = resolveRelativePath(ctx.href)(canonical);
     }
+    if (Extractors['Quote - Twitter'].check(ctx)) {
+      ctx.href = ctx.href.replace(/\/#!\//, '/');
+    }
+    return ctx;
+  },
+  extract: function(ctx, ext) {
+    this.cleanUpContext(ctx);
     return maybeDeferred(ext.extract(ctx))
     .addCallback(function(ps){
       if (!ps.body && ctx.selection) {
@@ -265,6 +272,11 @@ var TBRL = {
           html : ctx.selection.html
         };
       }
+      return ps;
+    });
+  },
+  share: function(ctx, ext, show) {
+    this.extract(ctx, ext).addCallback(function(ps) {
       chrome.extension.sendRequest(TBRL.id, {
         request: "share",
         show   : show,
@@ -500,6 +512,27 @@ var onRequestHandlers = {
       contextMenu: true
     }, TBRL.createContext(TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors["Photo - Capture"], true);
+  },
+  contextMenusSearchGoogleImage: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      onImage: true,
+      contextMenu: true
+    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    var ext = Extractors.check(ctx).filter(function(m){
+      return /^Photo/.test(m.name);
+    })[0];
+    TBRL.extract(ctx, ext).addCallback(function(ps) {
+      chrome.extension.sendRequest(TBRL.id, {
+        request: "search",
+        show   : false,
+        content: update({
+          page    : ctx.title,
+          pageUrl : ctx.href
+        }, ps)
+      }, function(res){ });
+    });
   },
   contextMenusText: function(req, sender, func) {
     func({});

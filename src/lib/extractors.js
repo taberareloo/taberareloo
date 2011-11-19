@@ -426,7 +426,7 @@ Extractors.register([
                 if(type === 'regular'){
                   return request(url+'/text').addCallback(function(res){
                     var textDoc = createHTML(res.responseText);
-                    var textForm = formContents($X('//form', textDoc)[1]);
+                    var textForm = formContents($X('//form', textDoc)[0]);
                     delete textForm.preview_post;
                     textForm.redirect_to = that.TUMBLR_URL+'dashboard';
                     return textForm;
@@ -873,7 +873,7 @@ Extractors.register([
       ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
       return {
         type      : 'video',
-        item      : ctx.title.extract(/(.*)\s-\sYouTube/),
+        item      : $X('//meta[@property="og:title"]/@content')[0] || ctx.title.extract(/(.*) - /),
         itemUrl   : ctx.href,
         author    : author,
         authorUrl : authorUrl

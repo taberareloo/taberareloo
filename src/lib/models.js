@@ -648,16 +648,12 @@ Models.register({
           rkm  : rkm,
           ext  : 'png',
           model: 'capture',
-          image: self.cutBase64(file.binary),
+          image: cutBase64Header(file.binary),
           fotosize: Math.max(file.height, file.width),
           folder  : ''
       }
       });
     });
-  },
-
-  cutBase64 : function(data){
-    return data.replace(/^.*?,/, '');
   }
 });
 
@@ -712,15 +708,15 @@ Models.register({
    * @return {Object}
    */
   getSuggestions : function(url){
-    var self = this;
+    var that = this;
     return this.getToken().addCallback(function(set){
       return DeferredHash({
-        tags: self.getUserTags(set['name']),
-        data: self.getURLData(url)
+        tags: that.getUserTags(set['name']),
+        data: that.getURLData(url)
       });
     }).addCallback(function(resses){
       if(!resses['tags'][0] || !resses['data'][0]){
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       var data = resses['data'][1];
       return {
@@ -732,18 +728,18 @@ Models.register({
   },
 
   getUserTags: function(user){
-    var self = this;
-    var tags = self.tags;
-    if(tags){
+    var that = this;
+    var tags = that.tags;
+    if (tags) {
       return succeed(tags);
     } else {
       return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function(res){
         try{
           tags = JSON.parse(res.responseText)['tags'];
         } catch(e) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
-        return self.tags = items(tags).map(function(pair){
+        return that.tags = items(tags).map(function(pair){
           return {
             name      : pair[0],
             frequency : pair[1].count
@@ -754,7 +750,7 @@ Models.register({
   },
 
   getURLData: function(url){
-    var self = this;
+    var that = this;
     return request('http://b.hatena.ne.jp/my.entry', {
       queryString : {
         url  : url
@@ -763,9 +759,133 @@ Models.register({
       try{
         var json = JSON.parse(res.responseText);
       } catch(e) {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       return json;
+    });
+  }
+});
+
+Models.register({
+  name : 'Pinboard',
+  ICON : 'http://pinboard.in/favicon.ico',
+
+  check : function(ps){
+    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+  },
+
+  getCurrentUser : function(){
+    var that = this;
+    return getCookies('pinboard.in', 'login').addCallback(function(cookies) {
+      var cookie = cookies[0];
+      if (!cookie) {
+        new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
+      return cookie.value;
+    });
+  },
+
+  post : function(ps){
+    var that = this;
+    return succeed().addCallback(function(){
+      return that.getCurrentUser().addCallback(function() {
+        return request('https://pinboard.in/add', {
+          queryString : {
+            title : ps.item,
+            url   : ps.itemUrl,
+          }
+        });
+      });
+    }).addCallback(function(res) {
+      var form = formContents(res.responseText, true);
+      return request('https://pinboard.in/add', {
+        sendContent : update(form, {
+          title       : ps.item,
+          url         : ps.itemUrl,
+          description : joinText([ps.body, ps.description], ' ', true),
+          tags        : joinText(ps.tags, ' '),
+          private     :
+            (ps.private == null)? form.private :
+            (ps.private)? 'on' : '',
+        }),
+      });
+    });
+  },
+
+  getUserTags : function(){
+    var that = this;
+    return succeed().addCallback(function(){
+      return that.getCurrentUser().addCallback(function(username) {
+        return request('https://pinboard.in/u:' + username, {
+          queryString: {
+            mode: 'list',
+            floor: 1
+          }
+        });
+      });
+    }).addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      return $X('id("tag_cloud")//a[contains(@class, "tag")]/text()', doc).map(function(tag) {
+        return {
+          name: tag,
+          frequency: 0
+        };
+      });
+    });
+  },
+
+  getRecommendedTags : function(url){
+    return request('https://pinboard.in/ajax_suggest', {
+      queryString : {
+        url : url,
+      }
+    }).addCallback(function(res){
+      // 空配列ではなく、空文字列が返ることがある
+      return res.responseText?
+        JSON.parse(res.responseText).map(function(tag){
+          // 数字のみのタグが数値型になるのを避ける
+          return '' + tag;
+        }) : [];
+    });
+  },
+
+  getSuggestions : function(url){
+    var that = this;
+    var ds = {
+      tags        : this.getUserTags(),
+      recommended : this.getRecommendedTags(url),
+      suggestions : succeed().addCallback(function(){
+        return that.getCurrentUser().addCallback(function() {
+          return request('https://pinboard.in/add', {
+            queryString : {
+              url : url,
+            }
+          });
+        });
+      }).addCallback(function(res){
+        var form = formContents(res.responseText);
+        return {
+          editPage : 'https://pinboard.in/add?url=' + url,
+          form : {
+            item        : form.title,
+            description : form.description,
+            tags        : form.tags.split(' '),
+            private     : !!form.private,
+          },
+
+          // 入力の有無で簡易的に保存済みをチェックする
+          // (submitボタンのラベルやalertの有無でも判定できる)
+          duplicated : !!(form.tags || form.description),
+        }
+      })
+    };
+
+    return new DeferredHash(ds).addCallback(function(ress){
+      var res = ress.suggestions[1];
+      res.recommended = ress.recommended[1];
+      res.tags = ress.tags[1];
+
+      return res;
     });
   }
 });
@@ -789,8 +909,11 @@ Models.register({
         return request('http://feeds.delicious.com/v2/json/tags/' + user);
       }).addCallback(function(res){
         var tags = JSON.parse(res.responseText);
+        if (!tags) {
+          return tags;
+        }
         return Object.keys(tags).reduce(function(memo, tag){
-          if(tag){
+          if (tag) {
             memo.push({
               name      : tag,
               frequency : tags[tag]
@@ -810,66 +933,70 @@ Models.register({
    * @return {Object}
    */
   getSuggestions : function(url){
-    var self = this;
+    var that = this;
     var ds = {
       tags : this.getUserTags(),
-      suggestions : this.getCurrentUser().addCallback(function(user){
-        // ブックマークレット用画面の削除リンクを使い既ブックマークを判定する
-        return request('http://www.delicious.com/save', {
-          queryString : {
-            noui : 1,
-            url  : url
-          }
-        });
-      }).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        return {
-          editPage : 'http://www.delicious.com/save?url=' + url,
-          form : {
-            item        : doc.getElementById('saveTitle').value,
-            description : doc.getElementById('saveNotes').value,
-            tags        : doc.getElementById('saveTags').value.split(' '),
-            private     : doc.getElementById('savePrivate').checked
-          },
-          duplicated : !!doc.getElementById('savedon'),
-          recommended : $X('id("recommendedField")//span[contains(@class, "m")]/text()', doc)
-        };
-      })
+      suggestions : this.getRecommendedTags(url)
     };
-
     return new DeferredHash(ds).addCallback(function(ress){
-      // エラーチェック
-      values(ress).forEach(function(pair){
-        var success = pair[0], res = pair[1];
-        if(!success)
-          throw res;
-      });
-
+      if(!ress['tags'][0] || !ress['suggestions'][0]){
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
       var res = ress.suggestions[1];
       res.tags = ress.tags[1];
       return res;
     });
   },
 
+  getRecommendedTags: function(url) {
+    return request('http://feeds.delicious.com/v2/json/urlinfo/' + MD5.hex_md5(url)).addCallback(function(res){
+      var result = JSON.parse(res.responseText);
+      if (result.length) {
+        var top_tags = result[0].top_tags;
+        if (top_tags) {
+          // get top_tags
+          return {
+            recommended : Object.keys(top_tags),
+            duplicated : false,
+          };
+        }
+      }
+      return {
+        recommended: [],
+        duplicated: false
+      };
+    });
+  },
+
   getCurrentUser : function(defaultUser){
-    if(defaultUser){
+    if (defaultUser) {
       return succeed(defaultUser);
-    } else if(this.currentUser){
+    } else if (this.currentUser) {
       return succeed(this.currentUser);
     } else {
-      var self = this;
-      return request("http://www.delicious.com/save").addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        var match = res.responseText.match(/Delicious\.Config\.set\('LoggedInUsername', '([^']+)'\);/);
-        if(match){
-          var user = match[1];
-          self.currentUser = user;
-          return user;
-        } else {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      var that = this;
+      return getCookies('.delicious.com', 'deluser').addCallback(function(cookies) {
+        if (!cookies.length) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
+        return that.getInfo().addCallback(function(info) {
+          if (!info.is_logged_in) {
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+          }
+          return info.logged_in_username;
+        });
       });
     }
+    function extractUsername(username) {
+      var matched = decodeURIComponent(username).match(/^(.*?) /);
+      return (matched) ? matched[1] : null;
+    }
+  },
+
+  getInfo : function(){
+    return request('http://delicious.com/save/quick', {method : 'POST'}).addCallback(function(res) {
+      return JSON.parse(res.responseText);
+    });
   },
 
   check : function(ps){
@@ -877,27 +1004,24 @@ Models.register({
   },
 
   post : function(ps){
-    var self = this;
-    return request('http://www.delicious.com/post/', {
-      queryString :  {
-        title : ps.item,
-        url   : ps.itemUrl
-      }
-    }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
-      var elmForm = doc.getElementById('saveForm');
-      if(!elmForm)
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-
-      return request('http://www.delicious.com' + $X('id("saveForm")/@action', doc)[0], {
-        //denyRedirection: true,
-        sendContent : update(formContents(elmForm), {
-          description : ps.item,
-          jump        : 'no',
-          notes       : joinText([ps.body, ps.description], ' ', true),
-          tags        : ps.tags? ps.tags.join(' ') : '',
-          share       : ps.private? 'no' : ''
-        })
+    return this.getCurrentUser().addCallback(function(user) {
+      return request('http://www.delicious.com/save/confirm', {
+        queryString :  {
+          title : ps.item,
+          url   : ps.itemUrl,
+          isNew : true
+        }
+      }).addCallback(function(res){
+        var doc = createHTML(res.responseText);
+        return request('http://www.delicious.com/save', {
+          sendContent : update(formContents(doc, true), {
+            title       : ps.item,
+            url         : ps.itemUrl,
+            note        : joinText([ps.body, ps.description], ' ', true),
+            tags        : joinText(ps.tags, ','),
+            private     : !!ps.private
+          })
+        });
       });
     });
   }
@@ -1032,21 +1156,23 @@ Models.register({
   ICON : 'https://www.google.com/bookmarks/api/static/images/favicon.ico',
   LINK : 'http://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
+  POST_URL : 'https://www.google.com/bookmarks/mark',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
   post : function(ps){
-    var self = this;
-    return request('https://www.google.com/bookmarks/mark', {
+    var that = this;
+    return request(this.POST_URL, {
       queryString :  {
-        op : 'add'
+        op : 'edit',
+        output : 'popup'
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(doc.getElementById('gaia_loginform'))
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
       var fs = formContents(form);
@@ -1062,32 +1188,63 @@ Models.register({
     });
   },
 
-  getSuggestions : function(url){
-    // url に対してのrecommended tagsはない
-    // duplicatedは判定不可
-    var self = this;
-    if(this.tags){
-      return succeed({
-        duplicated: false,
-        recommended: [],
-        tags: this.tags
-      });
-    } else {
-      return request('http://www.google.com/bookmarks').addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        self.tags = $X('descendant::a[starts-with(normalize-space(@id), "lbl_m_") and number(substring(normalize-space(@id), 7)) > 0]/text()', doc).map(function(tag){
-          return {
-            name      : tag,
-            frequency : -1
-          };
-        });
+  getEntry : function(url){
+    return request(this.POST_URL, {
+      queryString : {
+        op     : 'edit',
+        output : 'popup',
+        bkmk   : url
+      }
+    }).addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      var form = formContents(doc);
+      return {
+        saved       : (/(edit|編集)/i).test($X('//h1/text()', doc)[0]),
+        item        : form.title,
+        tags        : form.labels.split(/,/).map(methodcaller('trim')),
+        description : form.annotation
+      };
+    });
+  },
+
+  getUserTags : function() {
+    return request('https://www.google.com/bookmarks/api/bookmark', {
+      queryString : {
+        op : 'LIST_LABELS'
+      }
+    }).addCallback(function(res){
+      var data = JSON.parse(res.responseText);
+      return zip(data['labels'], data['counts']).map(function(pair){
         return {
-          duplicated: false,
-          recommended: [],
-          tags: self.tags
+          name      : pair[0],
+          frequency : pair[1]
         };
       });
-    }
+    });
+  },
+
+  getSuggestions : function(url){
+    var that = this;
+    return new DeferredHash({
+      tags  : this.getUserTags(),
+      entry : this.getEntry(url)
+    }).addCallback(function(ress){
+      if (!ress['tags'][0] || !ress['entry'][0]) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      }
+      var entry = ress.entry[1];
+      var tags = ress.tags[1];
+      return {
+        form        : entry.saved? entry : null,
+        tags        : tags,
+        duplicated  : entry.saved,
+        recommended : [],
+        editPage    : that.POST_URL + '?' + queryString({
+          op   : 'edit',
+          bkmk : url
+        })
+      };
+    });
   }
 });
 
@@ -1100,19 +1257,14 @@ Models.register({
   },
 
   getAuthCookie: function() {
-    var ret = new Deferred();
     var that = this;
-    chrome.cookies.getAll({
-      domain: 'www.google.com',
-      name : 'secid'
-    }, function(cookie) {
-      if (cookie.length) {
-        ret.callback(cookie[cookie.length-1].value);
+    return getCookies('www.google.com', 'secid').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
-    return ret;
   },
 
   post: function(ps) {
@@ -1134,7 +1286,7 @@ Models.register({
       }).addCallback(function(res) {
         // form.secidはクッキー内のsecidとは異なる
         var doc = createHTML(res.responseText);
-        var form = formContents($X('//form', doc)[0]);
+        var form = formContents(doc);
         return request(endpoint, {
           redirectionLimit : 0,
           sendContent: {
@@ -1180,6 +1332,27 @@ Models.register({
       d = '0' + d;
     }
     return y + m + d;
+  }
+});
+
+Models.register({
+  name : 'GoogleImage',
+  ICON :  Models.Google.ICON,
+  checkSearch : function(ps) {
+    return ps.type === 'photo' && !ps.file;
+  },
+  search: function(ps) {
+    // search by itemUrl
+    var ret = new Deferred();
+    var url = "http://www.google.co.jp/searchbyimage" + queryString({
+      image_url: ps.itemUrl
+    }, true);
+    chrome.tabs.create({
+      url: url
+    }, function() {
+      ret.callback();
+    });
+    return ret;
   }
 });
 
@@ -1470,16 +1643,6 @@ Models.register({
     );
   },
 
-  getBinaryStringFromFile : function(file) {
-    var ret = new Deferred();
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-      ret.callback(evt.target.result);
-    };
-    reader.readAsBinaryString(file);
-    return ret;
-  },
-
   upload : function(ps, status, file) {
     var self = this;
     var RECEVIER_URL = 'https://upload.twitter.com/receiver.html';
@@ -1491,7 +1654,7 @@ Models.register({
     }
 
     return this.getToken().addCallback(function(token) {
-      return self.getBinaryStringFromFile(file).addCallback(function(binary) {
+      return fileToBinaryString(file).addCallback(function(binary) {
         return request(RECEVIER_URL, {
           headers : {
             Referer : self.URL
@@ -2071,19 +2234,14 @@ Models.register({
   },
 
   getAuthCookie: function() {
-    var ret = new Deferred();
-    var self = this;
-    chrome.cookies.getAll({
-      domain : '.naver.jp',
-      name   : 'NJID_AUT'
-    }, function(cookie) {
-      if (cookie.length) {
-        ret.callback(cookie[cookie.length-1].value);
+    var that = this;
+    return getCookies('.naver.jp', 'NJID_AUT').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', self.name)));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
-    return ret;
   },
 
   post : function(ps) {
@@ -2298,19 +2456,14 @@ Models.register({
   },
 
   getAuthCookie: function() {
-    var ret = new Deferred();
-    var self = this;
-    chrome.cookies.getAll({
-      domain : '.google.com',
-      name   : 'SSID'
-    }, function(cookie) {
-      if (cookie.length) {
-        ret.callback(cookie[cookie.length-1].value);
+    var that = this;
+    return getCookies('.google.com', 'SSID').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
       } else {
-        ret.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', self.name)));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
     });
-    return ret;
   },
 
   getOZData : function() {

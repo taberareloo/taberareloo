@@ -238,11 +238,11 @@ pre#message {
   visibility: collapse;
 }
 pre#message.shown {
-  font-size: 11pt;
+  font-size: 9pt;
   color: #333;
   margin-top: 20px;
   padding: 10px;
-  min-height: 100px;
+  height: 100px;
   visibility: visible;
   background: #FFFF99;
   border: 1px solid #F0D67C;
