@@ -2448,7 +2448,6 @@ Models.register({
 
   sequence : 0,
 
-  OZDATA_REGEX : /<script\b[^>]*>[\s\S]*?\btick\b[\s\S]*?\bvar\s+OZ_initData\s*=\s*([{]+(?:(?:(?![}]\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>)[\s\S])*)*[}])\s*;[\s\S]{0,24}\btick\b[\s\S]{0,12}<\/script>/i,
   YOUTUBE_REGEX : /http:\/\/(?:.*\.)?youtube.com\/watch\?v=([a-zA-Z0-9_-]+)[-_.!~*'()a-zA-Z0-9;\/?:@&=+\$,%#]*/g,
 
   check: function(ps) {
@@ -2468,24 +2467,26 @@ Models.register({
 
   getOZData : function() {
     var self = this;
-    return request(this.HOME_URL).addCallback(function(res) {
-      var OZ_initData = res.responseText.match(self.OZDATA_REGEX)[1];
-      return MochiKit.Base.evalJSON(OZ_initData);
-    });
+    return this.getInitialData(1).addCallback(function(oz1) {
+      return self.getInitialData(2).addCallback(function(oz2) {
+        return {'1': oz1, '2': oz2};
+      });
+   });
   },
 
-  getInitialData : function(oz) {
+  getInitialData : function(key) {
+    var self = this;
     return request(this.INIT_URL + '?' + queryString({
-      key    : 11,
+      key    : key,
       _reqid : this.getReqid(),
       rt     : 'j'
-    }), {
-      sendContent : {
-        at  : oz[1][15]
-      }
-    }).addCallback(function(res) {
+    })).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      return MochiKit.Base.evalJSON(initialData);
+      var data = MochiKit.Base.evalJSON(initialData);
+      data = self.getDataByKey(data[0], 'idr');
+      if (!data) return null;
+      data = MochiKit.Base.evalJSON(data[1]);
+      return data[key];
     });
   },
 
@@ -2499,13 +2500,11 @@ Models.register({
     return null;
   },
 
-  getDefaultScope : function(oz) {
+  getDefaultScope : function() {
     var self = this;
-    return this.getInitialData(oz).addCallback(function(data) {
-      data = self.getDataByKey(data[0], 'idr');
+    return this.getInitialData(11).addCallback(function(data) {
       if (!data) return JSON.stringify([]);
-      data = MochiKit.Base.evalJSON(data[1]);
-      data = MochiKit.Base.evalJSON(data[11][0]);
+      data = MochiKit.Base.evalJSON(data[0]);
 
       var aclEntries = [];
 
@@ -2872,63 +2871,68 @@ Models.register({
   },
 
   getStreams : function() {
+    var self = this;
     var ret = new Deferred();
     this.getOZData().addCallback(function(oz) {
-      var circles = [];
-      oz[12][0].forEach(function(circle) {
-        var code, id, name, has;
-        code = circle[0][0];
-        id   = [oz[2][0], code].join('.');
-        name = circle[1][0];
-        if (code && name) {
-          has = false;
-          circles.forEach(function(c) {
-            if (!has && c[0].id === id) {
-              has = true;
+      self.getInitialData(12).addCallback(function(data) {
+        var circles = [];
+        if (data) {
+          data[0].forEach(function(circle) {
+            var code, id, name, has;
+            code = circle[0][0];
+            id   = [oz[2][0], code].join('.');
+            name = circle[1][0];
+            if (code && name) {
+              has = false;
+              circles.forEach(function(c) {
+                if (!has && c[0].id === id) {
+                  has = true;
+                }
+              });
+              if (!has) {
+                circles.push([{
+                  scopeType   : 'focusGroup',
+                  name        : name,
+                  id          : id,
+                  me          : false,
+                  requiresKey : false,
+                  groupType   : 'p'
+                }]);
+              }
             }
           });
-          if (!has) {
-            circles.push([{
-              scopeType   : 'focusGroup',
-              name        : name,
-              id          : id,
-              me          : false,
-              requiresKey : false,
-              groupType   : 'p'
-            }]);
-          }
         }
-      });
 
-      var presets = [
-        [{
-          scopeType   : 'focusGroup',
-          name        : 'Your circles',
-          id          : [oz[2][0], '1c'].join('.'),
-          me          : false,
-          requiresKey : false,
-          groupType   : 'a'
-        }],
-        [{
-          scopeType   : 'focusGroup',
-          name        : 'Extended circles',
-          id          : [oz[2][0], '1f'].join('.'),
-          me          : false,
-          requiresKey : false,
-          groupType   : 'e'
-        }],
-        [{
-          scopeType   : 'anyone',
-          name        : 'Anyone',
-          id          : 'anyone',
-          me          : true,
-          requiresKey : false
-        }]
-      ];
+        var presets = [
+          [{
+            scopeType   : 'focusGroup',
+            name        : 'Your circles',
+            id          : [oz[2][0], '1c'].join('.'),
+            me          : false,
+            requiresKey : false,
+            groupType   : 'a'
+          }],
+          [{
+            scopeType   : 'focusGroup',
+            name        : 'Extended circles',
+            id          : [oz[2][0], '1f'].join('.'),
+            me          : false,
+            requiresKey : false,
+            groupType   : 'e'
+          }],
+          [{
+            scopeType   : 'anyone',
+            name        : 'Anyone',
+            id          : 'anyone',
+            me          : true,
+            requiresKey : false
+          }]
+        ];
 
-      ret.callback({
-        presets : presets,
-        circles : circles
+        ret.callback({
+          presets : presets,
+          circles : circles
+        });
       });
     });
     return ret;
