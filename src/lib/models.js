@@ -2438,7 +2438,7 @@ Models.register(update({}, Models['bit.ly'], {
 
 Models.register({
   name       : 'Google+',
-  ICON       : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
+  ICON       : 'http://ssl.gstatic.com/s2/oz/images/faviconr.ico',
   LINK       : 'https://plus.google.com/',
   LOGIN_URL  : 'https://plus.google.com/up/start/',
 
@@ -2751,7 +2751,8 @@ Models.register({
   _post : function(ps, oz) {
     var self = this;
 
-    return ((!ps.upload && !ps.body) ? this.getSnippetFromURL(ps.pageUrl, oz)
+    return ((!ps.upload && !ps.body && (ps.type === 'link'))
+      ? this.getSnippetFromURL(ps.pageUrl, oz)
       : succeed(ps.body)).addCallback(function(snippet) {
       ps.body = snippet;
 
@@ -2760,8 +2761,10 @@ Models.register({
         description = joinText([ps.item, ps.description], "\n");
       }
       if (ps.upload) {
-        description = joinText([ps.description, ps.page, ps.pageUrl,
+        description = joinText([
+          (ps.page) ? '*' + ps.page + '*' : '', ps.pageUrl,
           (ps.body) ? '“' + ps.body + '”' : ''], "\n");
+        description = joinText([ps.description, description], "\n\n");
       }
 
       var spar = [];
