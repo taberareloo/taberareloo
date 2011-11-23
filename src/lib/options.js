@@ -57,6 +57,16 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
   $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
   $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
+
+  // Google+ Pages
+  $('label_GooglePlusPages').appendChild(
+    $T(chrome.i18n.getMessage('label_GooglePlusPages'))
+  );
+  $('label_enableGooglePlusPages').appendChild(
+    $T(chrome.i18n.getMessage('label_enable'))
+  );
+  $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
+
   $('label_amazonAffiliateId').appendChild($T(chrome.i18n.getMessage('label_amazonAffiliateId')));
   $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
   $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
@@ -113,6 +123,13 @@ connect(document, 'onDOMContentLoaded', document, function(){
   // multiple tumblelogs
   var tumble_check = new Check('multi_tumblelogs', !!Config.post["multi_tumblelogs"]);
   var tumble_list = new TumbleList();
+
+  // Google+ Pages
+  var enableGooglePlusPages_check = new Check(
+    'enableGooglePlusPages', !!Config.post["enable_google_plus_pages"]
+  );
+  var googlePlusPages_list = new GooglePlusPagesList();
+
   // amazon affiliate id
   var amazon = new Input('amazon_affiliate_id', Config.entry['amazon_affiliate_id']);
   // thumbnail template
@@ -139,6 +156,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
     var qk = quote_quick_short.body();
     var k = quick_short.body();
     var tcheck = tumble_check.body();
+    var gcheck = enableGooglePlusPages_check.body();
     if(!Shortcutkey.isConflict(lk, qk, k)){
       background.TBRL.configSet({
         'services' : services.body(),
@@ -169,7 +187,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "shortcutkey_quickpost" : k,
           "always_shorten_url" : shorten_check.body(),
           "multi_tumblelogs"   : tcheck,
-          "post_with_queue"    : queue_check.body()
+          "post_with_queue"    : queue_check.body(),
+          "enable_google_plus_pages" : gcheck
         },
         'entry'    : {
           'amazon_affiliate_id' : amazon.body(),
@@ -182,6 +201,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
       });
       if(!tcheck){
         tumble_list.remove();
+      }
+      if(!gcheck){
+        googlePlusPages_list.remove();
       }
       this.close();
     } else {
@@ -629,6 +651,47 @@ TumbleList.prototype = {
   },
   remove: function(){
     background.Models.removeMultiTumblelogs();
+  }
+};
+
+function GooglePlusPagesList() {
+  var self = this;
+  this.field = $("list_GooglePlusPages");
+  this.button = $("getGooglePlusPages_button");
+  connect(this.button, 'onclick', this, 'clicked');
+  var df = $DF();
+  background.Models.googlePlusPages.forEach(function(model){
+    df.appendChild(self.createElement(model));
+  });
+  this.field.appendChild(df);
+}
+
+GooglePlusPagesList.prototype = {
+  clicked : function(ev) {
+    var self = this;
+    $D(this.field);
+	  background.Models.getGooglePlusPages().addCallback(function(models) {
+      var df = $DF();
+      models.forEach(function(model) {
+        df.appendChild(self.createElement(model));
+      });
+      self.field.appendChild(df);
+    });
+  },
+  createElement : function(model) {
+    var img = $N('img', {
+      src   : model.ICON,
+      class : 'tumblelog_icon'
+    });
+    var label = $N('p', {
+      class : 'tumblelog_text'
+    }, model.name);
+    return $N('div', {
+      'class' : 'tumblelog'
+    }, [img, label]);
+  },
+  remove: function(){
+    background.Models.removeGooglePlusPages();
   }
 };
 

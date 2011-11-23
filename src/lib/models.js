@@ -2437,14 +2437,19 @@ Models.register(update({}, Models['bit.ly'], {
 }));
 
 Models.register({
-  name     : 'Google+',
-  ICON     : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
-  LINK     : 'https://plus.google.com/',
-  LOGIN_URL: 'https://plus.google.com/up/start/',
+  name       : 'Google+',
+  ICON       : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
+  LINK       : 'https://plus.google.com/',
+  LOGIN_URL  : 'https://plus.google.com/up/start/',
 
-  HOME_URL : 'https://plus.google.com/',
-  INIT_URL : 'https://plus.google.com/u/0/_/initialdata',
-  POST_URL : 'https://plus.google.com/u/0/_/sharebox/post/',
+  HOME_URL   : 'https://plus.google.com/',
+  BASE_URL   : 'u/0/',
+  INIT_URL   : '_/initialdata',
+  POST_URL   : '_/sharebox/post/',
+  UPLOAD_URL : '_/upload/photos/resumable',
+  SNIPPET_URL: '_/sharebox/linkpreview/',
+
+  is_pages : false,
 
   sequence : 0,
 
@@ -2476,7 +2481,8 @@ Models.register({
 
   getInitialData : function(key) {
     var self = this;
-    return request(this.INIT_URL + '?' + queryString({
+    var url = this.HOME_URL + this.BASE_URL + this.INIT_URL;
+    return request(url + '?' + queryString({
       key    : key,
       _reqid : this.getReqid(),
       rt     : 'j'
@@ -2541,7 +2547,7 @@ Models.register({
     ps = update({}, ps);
     return this.getAuthCookie().addCallback(function(cookie) {
       return self.getOZData().addCallback(function(oz) {
-        return (ps.file ? self.upload(ps.file) : succeed(null))
+        return (ps.file ? self.upload(ps.file, oz) : succeed(null))
           .addCallback(function(upload) {
           ps.upload = upload;
           return (ps.scope ? succeed(ps.scope) : self.getDefaultScope(oz))
@@ -2567,8 +2573,7 @@ Models.register({
 
   getSnippetFromURL : function(url, oz) {
     var self = this;
-    var SNIPPET_URL = 'https://plus.google.com/_/sharebox/linkpreview/';
-    return request(SNIPPET_URL + '?' + queryString({
+    return request(this.HOME_URL + this.SNIPPET_URL + '?' + queryString({
       c      : url,
       t      : 1,
       _reqid : this.getReqid(),
@@ -2710,10 +2715,22 @@ Models.register({
     return('image/jpeg');
   },
 
-  createScopeSpar : function(ps) {
+  createScopeSpar : function(ps, oz) {
     var aclEntries = [];
 
-    var scopes = JSON.parse(ps.scope);
+    if (this.is_pages) {
+      var scopes = [{
+        scopeType   : 'focusGroup',
+        name        : 'Your circles',
+        id          : [oz[2][0], '1c'].join('.'),
+        me          : false,
+        requiresKey : false,
+        groupType   : 'a'
+      }];
+    }
+    else {
+      var scopes = JSON.parse(ps.scope);
+    }
 
     for (var i = 0, len = scopes.length ; i < len ; i++) {
       aclEntries.push({
@@ -2767,7 +2784,7 @@ Models.register({
       }
 
       spar.push(null);
-      spar.push(self.createScopeSpar(ps));
+      spar.push(self.createScopeSpar(ps, oz));
       spar.push(true, [], true, true, null, [], false, false);
       if (ps.upload) {
         spar.push(null, null, oz[2][0]);
@@ -2775,7 +2792,8 @@ Models.register({
 
       spar = JSON.stringify(spar);
 
-      return request(self.POST_URL + '?' + queryString({
+      var url = self.HOME_URL + self.BASE_URL + self.POST_URL;
+      return request(url + '?' + queryString({
         _reqid : self.getReqid(),
         rt     : 'j'
       }), {
@@ -2790,9 +2808,7 @@ Models.register({
     });
   },
 
-  UPLOAD_URL : 'https://plus.google.com/_/upload/photos/resumable',
-
-  openUploadSession : function(fileName, fileSize) {
+  openUploadSession : function(fileName, fileSize, oz) {
     var self = this;
 
     var data = {
@@ -2839,7 +2855,25 @@ Models.register({
       }
     };
 
-    return request(this.UPLOAD_URL + '?authuser=0', {
+    if (this.is_pages) {
+      data.createSessionRequest.fields.push({
+        inlined : {
+          name        : 'effective_id',
+          content     : oz[2][0],
+          contentType : 'text/plain'
+        }
+      });
+      data.createSessionRequest.fields.push({
+        inlined : {
+          name        : 'owner_name',
+          content     : oz[2][0],
+          contentType : 'text/plain'
+        }
+      });
+    }
+
+    var url = this.HOME_URL + this.UPLOAD_URL;
+    return request(url + '?authuser=0', {
       sendContent : JSON.stringify(data)
     }).addCallback(function(res) {
       var session = JSON.parse(res.responseText);
@@ -2850,8 +2884,8 @@ Models.register({
     });
   },
 
-  upload : function(file) {
-    return this.openUploadSession(file.fileName, file.length).addCallback(function(session) {
+  upload : function(file, oz) {
+    return this.openUploadSession(file.fileName, file.length, oz).addCallback(function(session) {
       if (!session) {
         return null;
       }
@@ -2936,6 +2970,34 @@ Models.register({
       });
     });
     return ret;
+  },
+
+  getPages : function() {
+    var self = this;
+    var url = 'https://plus.google.com/u/0/_/pages/getidentities/';
+    return request(url + '?'
+      + queryString({
+        _reqid : this.getReqid(),
+        rt     : 'j'
+      })
+    ).addCallback(function(res) {
+      var text = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
+      var json = MochiKit.Base.evalJSON(text);
+      var data = self.getDataByKey(json[0], 'ope.gmir');
+      var pages = [];
+      if (data) {
+        data[1].forEach(function(page) {
+          if (page[1]) {
+            pages.push({
+              id   : page[30],
+              name : page[4][3],
+              icon : page[3]
+            });
+          }
+        });
+      }
+      return pages;
+    });
   }
 });
 
@@ -3024,4 +3086,33 @@ Models.removeMultiTumblelogs = function() {
     Models.remove(model);
   });
   Models.multipleTumblelogs = [];
+};
+
+// Google+ Pages
+Models.googlePlusPages = [];
+Models.getGooglePlusPages = function() {
+  Models.removeGooglePlusPages();
+  return Models['Google+'].getPages().addCallback(function(pages) {
+    return pages.map(function(page) {
+      var model = update({}, Models['Google+']);
+      model.name     = 'Google+ Page - ' + page.name;
+      model.ICON     = 'http:' + page.icon;
+      model.typeName = 'Google+';
+      model.BASE_URL = 'b/' + page.id + '/';
+      model.is_pages = true;
+      Models.register(model, 'Google+', true);
+      Models.googlePlusPages.push(model);
+      return model;
+    });
+  }).addErrback(function(e) {
+    alert('Google+ Pages'+ ': ' +
+      (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+  });
+};
+
+Models.removeGooglePlusPages = function() {
+  Models.googlePlusPages.forEach(function(model) {
+    Models.remove(model);
+  });
+  Models.googlePlusPages = [];
 };
