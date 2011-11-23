@@ -618,11 +618,10 @@ function TumbleList(){
   this.field = $("multi_tumble_field");
   this.button = $("multi_tumblelogs_button");
   connect(this.button, 'onclick', this, 'clicked');
-  var df = $DF();
-  background.Models.multipleTumblelogs.forEach(function(model){
+  this.field.appendChild(background.Models.multipleTumblelogs.reduce(function(df, model) {
     df.appendChild(self.createElement(model));
-  });
-  this.field.appendChild(df);
+    return df;
+  }, $DF()));
 };
 
 TumbleList.prototype = {
@@ -630,23 +629,22 @@ TumbleList.prototype = {
     var self = this;
     $D(this.field);
     background.Models.getMultiTumblelogs().addCallback(function(models){
-      var df = $DF();
-      models.forEach(function(model){
+      self.field.appendChild(models.reduce(function(df, model) {
         df.appendChild(self.createElement(model));
-      });
-      self.field.appendChild(df);
+        return df;
+      }, $DF()));
     });
   },
   createElement: function(model){
     var img = $N('img', {
       src: model.ICON,
-      class: 'tumblelog_icon'
+      class: 'list_icon'
     });
     var label = $N('p', {
-      class: 'tumblelog_text'
+      class: 'list_text'
     }, model.name);
     return $N('div', {
-      'class': 'tumblelog'
+      'class': 'list'
     }, [img, label]);
   },
   remove: function(){
@@ -659,35 +657,33 @@ function GooglePlusPagesList() {
   this.field = $("list_GooglePlusPages");
   this.button = $("getGooglePlusPages_button");
   connect(this.button, 'onclick', this, 'clicked');
-  var df = $DF();
-  background.Models.googlePlusPages.forEach(function(model){
+  this.field.appendChild(background.Models.multipleTumblelogs.reduce(function(df, model) {
     df.appendChild(self.createElement(model));
-  });
-  this.field.appendChild(df);
+    return df;
+  }, $DF()));
 }
 
 GooglePlusPagesList.prototype = {
   clicked : function(ev) {
     var self = this;
     $D(this.field);
-	  background.Models.getGooglePlusPages().addCallback(function(models) {
-      var df = $DF();
-      models.forEach(function(model) {
+    background.Models.getGooglePlusPages().addCallback(function(models) {
+      self.field.appendChild(models.reduce(function(df, model) {
         df.appendChild(self.createElement(model));
-      });
-      self.field.appendChild(df);
+        return df;
+      }, $DF()));
     });
   },
   createElement : function(model) {
     var img = $N('img', {
       src   : model.ICON,
-      class : 'tumblelog_icon'
+      class : 'list_icon'
     });
     var label = $N('p', {
-      class : 'tumblelog_text'
+      class : 'list_text'
     }, model.name);
     return $N('div', {
-      'class' : 'tumblelog'
+      'class' : 'list'
     }, [img, label]);
   },
   remove: function(){

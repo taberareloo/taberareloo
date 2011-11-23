@@ -135,31 +135,32 @@ label.tag_provider_set > * {
   margin: 3px;
 }
 img.tag_provider_icon,
-img.tumblelog_icon {
+img.list_icon {
   display: inline-block;
-  margin: 3px 3px 0px 3px;
+  margin: 3px 3px 3px 3px;
   width: 16px;
   height: 16px;
 }
 p.tag_provider_text {
   display: inline-block;
 }
-div.tumblelog {
+div.list {
   height: 20px;
 }
-div.tumblelog:nth-of-type(odd) {
+div.list:nth-of-type(odd) {
   background-color: #F1F1F1;
 }
-div.tumblelog:nth-of-type(even) {
+div.list:nth-of-type(even) {
   background-color: white;
 }
-div.tumblelog > *{
+div.list > *{
   margin-left: 3px;
   margin-right: 3px;
   display: inline-block;
 }
-p.tumblelog_text {
+p.list_text {
   margin-top : 0px;
+  vertical-align: middle;
 }
 input.text_input {
   width : 100%;
