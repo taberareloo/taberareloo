@@ -2438,7 +2438,7 @@ Models.register(update({}, Models['bit.ly'], {
 
 Models.register({
   name       : 'Google+',
-  ICON       : 'http://ssl.gstatic.com/s2/oz/images/favicon.ico',
+  ICON       : 'http://ssl.gstatic.com/s2/oz/images/faviconr.ico',
   LINK       : 'https://plus.google.com/',
   LOGIN_URL  : 'https://plus.google.com/up/start/',
 
