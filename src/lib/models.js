@@ -2550,7 +2550,8 @@ Models.register({
         return (ps.file ? self.upload(ps.file, oz) : succeed(null))
           .addCallback(function(upload) {
           ps.upload = upload;
-          return (ps.scope ? succeed(ps.scope) : self.getDefaultScope(oz))
+          return ((!self.is_pages && ps.scope)
+            ? succeed(ps.scope) : self.getDefaultScope(oz))
             .addCallback(function(scope) {
             ps.scope = scope;
             return self._post(ps, oz);
@@ -2715,31 +2716,10 @@ Models.register({
     return('image/jpeg');
   },
 
-  createScopeSpar : function(ps, oz) {
+  createScopeSpar : function(ps) {
     var aclEntries = [];
 
-    if (this.is_pages) {
-/*
-      var scopes = [{
-        scopeType   : 'focusGroup',
-        name        : 'Your circles',
-        id          : [oz[2][0], '1c'].join('.'),
-        me          : false,
-        requiresKey : false,
-        groupType   : 'a'
-      }];
-*/
-      var scopes = [{
-        scopeType   : 'anyone',
-        name        : 'Anyone',
-        id          : 'anyone',
-        me          : true,
-        requiresKey : false
-      }];
-    }
-    else {
-      var scopes = JSON.parse(ps.scope);
-    }
+    var scopes = JSON.parse(ps.scope);
 
     for (var i = 0, len = scopes.length ; i < len ; i++) {
       aclEntries.push({
@@ -2796,7 +2776,7 @@ Models.register({
       }
 
       spar.push(null);
-      spar.push(self.createScopeSpar(ps, oz));
+      spar.push(self.createScopeSpar(ps));
       spar.push(true, [], true, true, null, [], false, false);
       if (ps.upload) {
         spar.push(null, null, oz[2][0]);
