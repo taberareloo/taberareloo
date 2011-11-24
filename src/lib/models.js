@@ -2719,6 +2719,7 @@ Models.register({
     var aclEntries = [];
 
     if (this.is_pages) {
+/*
       var scopes = [{
         scopeType   : 'focusGroup',
         name        : 'Your circles',
@@ -2726,6 +2727,14 @@ Models.register({
         me          : false,
         requiresKey : false,
         groupType   : 'a'
+      }];
+*/
+      var scopes = [{
+        scopeType   : 'anyone',
+        name        : 'Anyone',
+        id          : 'anyone',
+        me          : true,
+        requiresKey : false
       }];
     }
     else {
