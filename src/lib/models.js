@@ -2764,7 +2764,7 @@ Models.register({
 
       var spar = [];
       if (ps.reshare) {
-        description = ps.description.replace(ps.favorite.saved_desc, '').trim();
+        description = ps.description;
         spar.push(
           description,
           self.getToken(oz),
