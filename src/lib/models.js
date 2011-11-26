@@ -2561,6 +2561,12 @@ Models.register({
     });
   },
 
+  favor : function(ps) {
+    ret = this.post(update({reshare : true}, ps));
+    ps.description = ps.favorite.description + (ps.description && ('\n\n<p>' + ps.description + '</p>'));
+    return ret;
+  },
+
   getReqid : function() {
     var sequence = this.sequence++;
     var now = new Date;
@@ -2757,22 +2763,34 @@ Models.register({
       }
 
       var spar = [];
-      spar.push(
-        description,
-        self.getToken(oz),
-        null,
-        ps.upload ? ps.upload.albumid : null,
-        null, null
-      );
-
-      var link = self.createLinkSpar(ps);
-
-      if (ps.type === 'photo' && !ps.upload) {
-        var photo = self.craetePhotoSpar(ps);
-        spar.push(JSON.stringify([link, photo]));
+      if (ps.reshare) {
+        description = ps.description.replace(ps.favorite.saved_desc, '').trim();
+        spar.push(
+          description,
+          self.getToken(oz),
+          ps.favorite.id,
+          null, null, null
+        );
+        spar.push(JSON.stringify([]));
       }
       else {
-        spar.push(JSON.stringify([link]));
+        spar.push(
+          description,
+          self.getToken(oz),
+          null,
+          ps.upload ? ps.upload.albumid : null,
+          null, null
+        );
+
+        var link = self.createLinkSpar(ps);
+
+        if (ps.type === 'photo' && !ps.upload) {
+          var photo = self.craetePhotoSpar(ps);
+          spar.push(JSON.stringify([link, photo]));
+        }
+        else {
+          spar.push(JSON.stringify([link]));
+        }
       }
 
       spar.push(null);
