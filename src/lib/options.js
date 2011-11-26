@@ -46,6 +46,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   = $('shortcutkey_play_on_tumblr_play_clear').value
   = $('shortcutkey_play_on_tumblr_like_clear').value
   = $('shortcutkey_play_on_tumblr_count_clear').value
+  = $('shortcutkey_taberareloo_on_google_plus_clear').value
   = chrome.i18n.getMessage('label_clear');
   $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
   $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
@@ -130,6 +131,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
   );
   var googlePlusPages_list = new GooglePlusPagesList();
 
+  var enableGooglePlusKey_check = new Check('taberareloo_on_google_plus', !!Config.post["taberareloo_on_google_plus"]);
+  var googlePlusKey_short = new Shortcutkey("shortcutkey_taberareloo_on_google_plus", true);
+
   // amazon affiliate id
   var amazon = new Input('amazon_affiliate_id', Config.entry['amazon_affiliate_id']);
   // thumbnail template
@@ -188,7 +192,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "always_shorten_url" : shorten_check.body(),
           "multi_tumblelogs"   : tcheck,
           "post_with_queue"    : queue_check.body(),
-          "enable_google_plus_pages" : gcheck
+          "enable_google_plus_pages" : gcheck,
+          'taberareloo_on_google_plus' : enableGooglePlusKey_check.body(),
+          "shortcutkey_taberareloo_on_google_plus" : googlePlusKey_short.body()
         },
         'entry'    : {
           'amazon_affiliate_id' : amazon.body(),
