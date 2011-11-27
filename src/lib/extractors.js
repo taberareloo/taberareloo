@@ -1025,7 +1025,8 @@ Extractors.register([
           type        : 'link',
           item        : ctx.title,
           itemUrl     : ctx.href,
-          description : desc,
+          body        : desc,
+          description : '',
           favorite    : {
             name      : 'Google\\+',
             id        : id
@@ -1039,11 +1040,7 @@ Extractors.register([
               type        : 'video',
               item        : attachment[3],
               itemUrl     : ctx.href = attachment[24][1],
-              body        : attachment[5] && attachment[5][1],
-              description : joinText([
-                attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
-                desc
-              ], "\n\n")
+              body        : attachment[5] && attachment[5][1]
             });
           }
           else if ((attachment[24][4] === 'image')
@@ -1051,9 +1048,9 @@ Extractors.register([
             result = update(result, {
               type        : 'photo',
               itemUrl     : attachment[5] && attachment[5][1],
-              body        : attachment[21],
-              description : joinText([
+              body        : joinText([
                 attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
+                attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
                 desc
               ], "\n\n")
            });
@@ -1065,8 +1062,7 @@ Extractors.register([
               result = update(result, {
                 type        :'photo',
                 itemUrl     : attachment2[5] && attachment2[5][1],
-                body        : attachment[21],
-                description : joinText([
+                body        : joinText([
                   attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
                   attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
                   desc
@@ -1075,11 +1071,13 @@ Extractors.register([
             }
             else if (attachment[21]) {
               result = update(result, {
-                type        : 'quote',
+                type        : 'link',
                 item        : attachment[3],
                 itemUrl     : ctx.href = attachment[24][1],
-                body        : attachment[21],
-                description : desc
+                body        : joinText([
+                  attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
+                  desc
+                ], "\n\n")
               });
             }
             else {
@@ -1087,16 +1085,11 @@ Extractors.register([
                 type        : 'link',
                 item        : attachment[3],
                 itemUrl     : ctx.href = attachment[24][1],
-                body        : attachment[21],
-                description : desc
+                body        : desc
               });
             }
           }
         }
-        result.favorite = update(result.favorite, {
-          description : result.description
-        });
-        result.description = '';
         return result;
       });
     },

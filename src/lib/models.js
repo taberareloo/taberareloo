@@ -2562,9 +2562,7 @@ Models.register({
   },
 
   favor : function(ps) {
-    ret = this.post(update({reshare : true}, ps));
-    ps.description = ps.favorite.description + (ps.description && ('\n\n<p>' + ps.description + '</p>'));
-    return ret;
+    return this.post(update({reshare : true}, ps));
   },
 
   getReqid : function() {

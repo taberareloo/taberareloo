@@ -160,20 +160,10 @@ var TBRL = {
       posters.forEach(function(p) {
         models[p.name] = p;
         try {
-          if (ps.favorite &&
-            RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) {
-            ds[p.name] = p.favor(ps);
-          }
-        } catch (e) {
-          ds[p.name] = fail(e);
-        }
-      });
-      posters.forEach(function(p) {
-        try {
-          if (!ps.favorite ||
-            !RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) {
-            ds[p.name] = p.post(ps);
-          }
+          ds[p.name] =
+        (ps.favorite &&
+         RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ?
+            p.favor(ps) : p.post(ps);
         } catch (e) {
           ds[p.name] = fail(e);
         }
