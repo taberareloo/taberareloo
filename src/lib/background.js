@@ -331,6 +331,7 @@ if (window.localStorage.options) {
 if (TBRL.Config.post['multi_tumblelogs']) {
   Models.getMultiTumblelogs();
 }
+// Google+ Pages
 if (TBRL.Config.post['enable_google_plus_pages']) {
   Models.getGooglePlusPages();
 }

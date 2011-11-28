@@ -2561,6 +2561,10 @@ Models.register({
     });
   },
 
+  favor : function(ps) {
+    return this.post(update({reshare : true}, ps));
+  },
+
   getReqid : function() {
     var sequence = this.sequence++;
     var now = new Date;
@@ -2757,22 +2761,34 @@ Models.register({
       }
 
       var spar = [];
-      spar.push(
-        description,
-        self.getToken(oz),
-        null,
-        ps.upload ? ps.upload.albumid : null,
-        null, null
-      );
-
-      var link = self.createLinkSpar(ps);
-
-      if (ps.type === 'photo' && !ps.upload) {
-        var photo = self.craetePhotoSpar(ps);
-        spar.push(JSON.stringify([link, photo]));
+      if (ps.reshare) {
+        description = ps.description;
+        spar.push(
+          description,
+          self.getToken(oz),
+          ps.favorite.id,
+          null, null, null
+        );
+        spar.push(JSON.stringify([]));
       }
       else {
-        spar.push(JSON.stringify([link]));
+        spar.push(
+          description,
+          self.getToken(oz),
+          null,
+          ps.upload ? ps.upload.albumid : null,
+          null, null
+        );
+
+        var link = self.createLinkSpar(ps);
+
+        if (ps.type === 'photo' && !ps.upload) {
+          var photo = self.craetePhotoSpar(ps);
+          spar.push(JSON.stringify([link, photo]));
+        }
+        else {
+          spar.push(JSON.stringify([link]));
+        }
       }
 
       spar.push(null);
@@ -3101,7 +3117,6 @@ Models.getGooglePlusPages = function() {
       (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
 };
-
 Models.removeGooglePlusPages = function() {
   Models.googlePlusPages.forEach(function(model) {
     Models.remove(model);
