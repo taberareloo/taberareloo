@@ -3117,7 +3117,6 @@ Models.getGooglePlusPages = function() {
       (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
 };
-
 Models.removeGooglePlusPages = function() {
   Models.googlePlusPages.forEach(function(model) {
     Models.remove(model);

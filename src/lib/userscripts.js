@@ -594,7 +594,8 @@ UserScripts.register({
   timer : null,
   check : function(ctx) {
     return TBRL.config['post']['taberareloo_on_google_plus']
-      || (/^https:\/\/plus\.google\.com\//.test(location.href));
+      && TBRL.config['post']['shortcutkey_taberareloo_on_google_plus']
+      && (/^https:\/\/plus\.google\.com\//.test(location.href));
   },
   exec : function() {
     var self = this;

@@ -658,17 +658,17 @@ TumbleList.prototype = {
   }
 };
 
+// Google+ Pages
 function GooglePlusPagesList() {
   var self = this;
   this.field = $("list_GooglePlusPages");
   this.button = $("getGooglePlusPages_button");
   connect(this.button, 'onclick', this, 'clicked');
-  this.field.appendChild(background.Models.multipleTumblelogs.reduce(function(df, model) {
+  this.field.appendChild(background.Models.googlePlusPages.reduce(function(df, model) {
     df.appendChild(self.createElement(model));
     return df;
   }, $DF()));
 }
-
 GooglePlusPagesList.prototype = {
   clicked : function(ev) {
     var self = this;
