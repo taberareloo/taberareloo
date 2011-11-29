@@ -612,6 +612,14 @@ UserScripts.register({
     });
   },
   fire : function(ev) {
+    var elem = ev.target;
+    var tag  = tagName(elem);
+    if ((tag === 'input') || (tag === 'textarea')
+      || MochiKit.DOM.hasElementClass(elem, 'editable')
+      || MochiKit.DOM.getNodeAttribute(elem, 'g_editable')
+      || MochiKit.DOM.getNodeAttribute(elem, 'contenteditable')) {
+      return null;
+    }
     var key = TBRL.config['post']['shortcutkey_taberareloo_on_google_plus'];
     if (key == keyString(ev)) {
       stop(ev);
@@ -620,7 +628,7 @@ UserScripts.register({
         document  : document,
         window    : window,
         selection : (!!sel.raw)? sel : null,
-        target    : ev.target,
+        target    : elem,
         event     : {},
         title     : null,
         mouse     : null,
