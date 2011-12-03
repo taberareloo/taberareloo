@@ -982,11 +982,12 @@ Extractors.register([
       var id   = this.getActivityId(ctx);
       return request(url + '?' + queryString({
         updateId : id,
-        hl       : 'en'
+        hl       : 'en',
+        rt       : 'j'
       })).addCallback(function(res) {
         var data = res.responseText.substr(5).replace(/(\\n|\n)/g, '');
         var data = MochiKit.Base.evalJSON(data);
-        data = self.getDataByKey([data], 'os.u');
+        data = self.getDataByKey(data[0], 'os.u');
         if (!data) return null;
         item = data[1];
 
