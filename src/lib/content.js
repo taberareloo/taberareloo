@@ -230,8 +230,8 @@ var TBRL = {
       selection : (!!sel.raw)? sel : null,
       target : target || TBRL.getTarget() || document.documentElement
     }, window.location);
-    if(ctx.target){
-      ctx.link    = $X('./ancestor-or-self::a', ctx.target)[0];
+    if (ctx.target) {
+      ctx.link    = $X('./ancestor-or-self::a[@href]', ctx.target)[0];
       ctx.onLink  = !!ctx.link;
       ctx.onImage = ctx.target instanceof HTMLImageElement;
     }
@@ -456,8 +456,7 @@ var onRequestHandlers = {
       title: content.linkUrl,
       onLink: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('a[href="'+content.linkUrl+'"]') || TBRL.getContextMenuTarget()));
-    ctx.link = ctx.target;
+    }, TBRL.createContext(document.querySelector('a[href='+JSON.stringify(content.linkUrl)+']') || TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Link/.test(m.name);
     })[0];
