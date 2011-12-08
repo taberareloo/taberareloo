@@ -922,10 +922,8 @@ function binaryRequest(url, opt) {
 }
 
 function getEncoding(text) {
-  var matched = text.match(
-      /<meta.+?http-equiv.+?Content-Type.+?content=(["'])([^\1]+?)\1/i);
-  var res = (matched && !matched[2].match(/UTF-8/i) && matched[2]);
-  return (res) ? getCharset(res) : false;
+  var matched = text.match(/<meta[^<]+charset\s*=\s*(\S+)/);
+  return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
 }
 
 function getCharset(text) {
