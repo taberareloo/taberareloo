@@ -3,6 +3,7 @@
 // http://gist.github.com/198443
 // via http://github.com/hatena/hatena-bookmark-xul/blob/master/chrome/content/common/05-HTMLDocumentCreator.js
 // a little modified
+
 function createHTML(source) {
   var doc = document.implementation.createHTMLDocument ?
     document.implementation.createHTMLDocument('TABERARELOO') :
@@ -922,12 +923,12 @@ function binaryRequest(url, opt) {
 }
 
 function getEncoding(text) {
-  var matched = text.match(/<meta[^<]+charset\s*=\s*(['"]?)(\S+)\1/);
+  var matched = text.match(/<\s*meta\b[^>]*?charset\s*=\s*(["'])?([^\s"'>\/]+)\1[^>]*>/i);
   return (matched && !matched[2].match(/UTF-8/i) && matched[2]);
 }
 
 function getCharset(text) {
-  var matched = text.match(/charset\s*=\s*(['"]?)(\S+)\1/);
+  var matched = text.match(/charset\s*=\s*(["'])?([^\s"'>\/]+)\1[^>]*>/i);
   return (matched && !matched[2].match(/UTF-8/i) && matched[2]);
 }
 
