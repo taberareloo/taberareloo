@@ -922,13 +922,13 @@ function binaryRequest(url, opt) {
 }
 
 function getEncoding(text) {
-  var matched = text.match(/<meta[^<]+charset\s*=\s*(\S+)/);
-  return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
+  var matched = text.match(/<meta[^<]+charset\s*=\s*(['"]?)(\S+)\1/);
+  return (matched && !matched[2].match(/UTF-8/i) && matched[2]);
 }
 
 function getCharset(text) {
-  var matched = text.match(/charset\s*=\s*(\S+)/);
-  return (matched && !matched[1].match(/UTF-8/i) && matched[1]);
+  var matched = text.match(/charset\s*=\s*(['"]?)(\S+)\1/);
+  return (matched && !matched[2].match(/UTF-8/i) && matched[2]);
 }
 
 // 2回requestすることでcharset判別する.
