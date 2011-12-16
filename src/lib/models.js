@@ -1005,7 +1005,7 @@ Models.register({
 
   post : function(ps){
     return this.getCurrentUser().addCallback(function(user) {
-      return request('http://www.delicious.com/save/confirm', {
+      return request('http://www.delicious.com/save', {
         queryString :  {
           title : ps.item,
           url   : ps.itemUrl,
@@ -1013,6 +1013,7 @@ Models.register({
         }
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
+        console.log(formContents(doc, true));
         return request('http://www.delicious.com/save', {
           sendContent : update(formContents(doc, true), {
             title       : ps.item,
