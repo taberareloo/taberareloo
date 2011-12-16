@@ -1013,7 +1013,6 @@ Models.register({
         }
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
-        console.log(formContents(doc, true));
         return request('http://www.delicious.com/save', {
           sendContent : update(formContents(doc, true), {
             title       : ps.item,
