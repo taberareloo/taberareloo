@@ -857,17 +857,16 @@ Extractors.register([
     ICON : 'http://youtube.com/favicon.ico',
     check : function(ctx){
       if (ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\.*/)) {
-        var query = queryHash(createURI(ctx.href).search);
-        return query.v;
+        return queryHash(createURI(ctx.href).search).v;
       }
       return false;
     },
     extract : function(ctx){
       // not use @rel="author"
       // because official channel use banner image, can't get author text information by textContent.
-      var author_anchor = $X('id("watch-channel-stats")/a', ctx.document)[0] || $X('id("watch-username")', ctx.document)[0];
+      var author_anchor = $X('id("watch-channel-stats")/a', ctx.document)[0] || $X('id("watch-username")', ctx.document)[0] || $X('id("watch-uploader-info")/descendant::a[contains(concat(" ", normalize-space(@rel), " "), " author ")]')[0];
       if (author_anchor) {
-        var author = author_anchor.textContent;
+        var author = author_anchor.textContent.trim();
         var authorUrl = author_anchor.href;
       } else {
         var banner = $X('id("watch-userbanner")')[0];
