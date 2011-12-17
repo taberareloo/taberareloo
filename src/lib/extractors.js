@@ -856,7 +856,11 @@ Extractors.register([
     name : 'Video - YouTube',
     ICON : 'http://youtube.com/favicon.ico',
     check : function(ctx){
-      return ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\?v=.*/);
+      if (ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\.*/)) {
+        var query = queryHash(createURI(ctx.href).search);
+        return query.v;
+      }
+      return false;
     },
     extract : function(ctx){
       // not use @rel="author"
