@@ -4,12 +4,10 @@ var background = chrome.extension.getBackgroundPage();
 var form = null;
 var ps = null, tab = null;
 var Config  = background.TBRL.Config;
-var isPopup = false;
 
-function getSelected(){
+function getSelected(query){
   var d = new Deferred();
-  var query = queryHash(location.search);
-  if(query['quick']){
+  if (query.quick) {
     // if quick post form, not call getSelected
     var id = query['id'];
     var data = background.TBRL.Popup.data[id];
@@ -20,7 +18,6 @@ function getSelected(){
       d.callback(tab);
     }, 0);
   } else {
-    isPopup = true;
     chrome.tabs.getSelected(null, function(tab){
       if(background.TBRL.Service.isEnableSite(tab.url)){
         tab = tab;
@@ -50,24 +47,22 @@ function getPsInfo(tab){
 
 var main = new Deferred();
 connect(window, 'onDOMContentLoaded', window, function(ev){
-  getSelected().addCallback(function(tab){
+  var query = queryHash(location.search);
+  getSelected(query).addCallback(function(tab){
+    var isPopup = !query.quick;
     if(isPopup && background.TBRL.Popup.contents[tab.url]){
-      main.callback(background.TBRL.Popup.contents[tab.url]);
+      form = new Form(background.TBRL.Popup.contents[tab.url], isPopup);
     } else if(isPopup){
       getPsInfo(tab).addCallback(function(ps){
-        main.callback(ps);
+        form = new Form(ps, isPopup);
       });
     } else {
-      main.callback(ps);
+      form = new Form(ps, isPopup);
     }
   });
 });
 
-main.addCallback(function(ps){
-  form = new Form(ps);
-});
-
-function Form(ps) {
+function Form(ps, isPopup) {
   this.ps = ps;
   this.posted = false;
   this.canceled = false;
