@@ -2,64 +2,45 @@
 
 var background = chrome.extension.getBackgroundPage();
 var form = null;
-var ps = null, tab = null;
 var Config  = background.TBRL.Config;
 
-function getSelected(query){
+function getPs(query) {
   var d = new Deferred();
   if (query.quick) {
     // if quick post form, not call getSelected
     var id = query['id'];
     var data = background.TBRL.Popup.data[id];
-    tab = data['tab'];
-    ps = data['ps'];
+    var tab = data['tab'];
+    var ps = data['ps'];
     delete background.TBRL.Popup.data[id];
-    setTimeout(function(){
-      d.callback(tab);
-    }, 0);
+    setTimeout(function() { d.callback(ps); }, 0);
   } else {
     chrome.tabs.getSelected(null, function(tab){
-      if(background.TBRL.Service.isEnableSite(tab.url)){
-        tab = tab;
-        d.callback(tab);
+      if (background.TBRL.Service.isEnableSite(tab.url)) {
+        if (background.TBRL.Popup.contents[tab.url]) {
+          d.callback(background.TBRL.Popup.contents[tab.url]);
+        } else {
+          chrome.tabs.sendRequest(tab.id, {
+            request: 'popup',
+            content: {
+              title: tab.title,
+              url  : tab.url
+            }
+          }, function(ps){
+            d.callback(ps);
+          });
+        }
       } else {
         window.close();
       }
     });
   }
   return d;
-};
+}
 
-function getPsInfo(tab){
-  var d = new Deferred();
-  chrome.tabs.sendRequest(tab.id, {
-    request: 'popup',
-    content: {
-      title: tab.title,
-      url  : tab.url
-    }
-  }, function(res){
-    ps = res;
-    d.callback(res);
-  });
-  return d;
-};
-
-var main = new Deferred();
 connect(window, 'onDOMContentLoaded', window, function(ev){
   var query = queryHash(location.search);
-  getSelected(query).addCallback(function(tab){
-    var isPopup = !query.quick;
-    if(isPopup && background.TBRL.Popup.contents[tab.url]){
-      form = new Form(background.TBRL.Popup.contents[tab.url], isPopup);
-    } else if(isPopup){
-      getPsInfo(tab).addCallback(function(ps){
-        form = new Form(ps, isPopup);
-      });
-    } else {
-      form = new Form(ps, isPopup);
-    }
-  });
+  getPs(query).addCallback(function(ps) { form = new Form(ps, !query.quick); });
 });
 
 function Form(ps, isPopup) {
@@ -72,7 +53,7 @@ function Form(ps, isPopup) {
   this.notify = new Notify();
   // this.shortcutkeys = background.TBRL.Popup.shortcutkeys;
 
-  this.savers['enabledPosters'] = this.posters = new Posters(ps);
+  this.savers['enabledPosters'] = this.posters = new Posters(ps, this);
 
   var icon = this.icon = $('typeIcon');
   icon.setAttribute('src', 'skin/'+ps.type+'.png');
@@ -90,7 +71,7 @@ function Form(ps, isPopup) {
   connect(window, 'onkeydown', this, function(ev){
     var key = keyString(ev._event);
     var func = Form.shortcutkeys[key];
-    func && func(ev);
+    func && func.call(this, ev);
   });
 
   connect($('post'), 'onclick', this, 'post');
@@ -274,7 +255,7 @@ Form.shortcutkeys = {
 };
 
 Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
-  form.post();
+  this.post();
 };
 
 Form.resize = function() {
@@ -562,12 +543,13 @@ Streams.prototype = {
   }
 };
 
-function Posters(ps) {
+function Posters(ps, form) {
   this.elmPanel = $('posters');
   this.elmButton = $('post');
   this.models = background.Models;
   this.enables = {};
   this.hooks = [];
+  this.form = form;
 
   // enabledPosters could be pre-defined by extractors
   // so, if you check a model is included, use Poster#hasPoster instead
@@ -663,8 +645,8 @@ function PosterItem(ps, poster, index, posters) {
 
   connect(img, 'onclick', this, 'clicked');
   if(index < 9){
-    Form.shortcutkeys[KEY_ACCEL+' + '+(index+1)] = bind(this.toggle, this);
-    Form.shortcutkeys['ALT + '+(index+1)] = bind(this.quick, this);
+    Form.shortcutkeys[KEY_ACCEL+' + '+(index+1)] = this.toggle.bind(this);
+    Form.shortcutkeys['ALT + '+(index+1)] = this.quick.bind(this);
   }
 
   if(res){
@@ -680,13 +662,12 @@ PosterItem.prototype = {
     this.posters.postCheck();
   },
   quick: function(ev){
+    var that = this;
     stop(ev);
     var posters = this.posters;
     posters.allOff();
     this.toggle();
-    setTimeout(function(){
-      form.post();
-    }, 300);
+    setTimeout(function(){ that.posters.form.post(); }, 300);
   },
   checked: function(){
     return !hasElementClass(this.element, 'disabled');
