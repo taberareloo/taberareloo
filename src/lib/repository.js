@@ -1,11 +1,12 @@
 // -*- coding: utf-8 -*-
 // like tombloo Repository
 
-var Repository = function() {
+function Repository() {
   this.list = [];
-};
+}
 
 Repository.prototype = {
+  constructor: Repository,
   clear : function(){
     this.names.forEach(function(name){
       delete this[name];
