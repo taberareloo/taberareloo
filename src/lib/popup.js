@@ -48,23 +48,6 @@ function getPsInfo(tab){
   return d;
 };
 
-function notify(message, is_element){
-  var msg = $('message');
-  // $D(msg);
-  if (is_element) {
-    msg.appendChild(message);
-  } else {
-    msg.appendChild($T(message+'\n'));
-  }
-  addElementClass(msg, 'shown');
-  callLater(0.5, Form.resize);
-};
-notify.clear = function notify_clear() {
-  var msg = $('message');
-  $D(msg);
-  removeElementClass(msg, 'shown');
-};
-
 var main = new Deferred();
 connect(window, 'onDOMContentLoaded', window, function(ev){
   getSelected().addCallback(function(tab){
@@ -91,6 +74,7 @@ function Form(ps) {
   this.savers = {};
   this.toggles = [];
   this.shown = false;
+  this.notify = new Notify();
   // this.shortcutkeys = background.TBRL.Popup.shortcutkeys;
 
   this.savers['enabledPosters'] = this.posters = new Posters(ps);
@@ -160,7 +144,7 @@ function Form(ps) {
     df.appendChild(button);
     connect(button, 'onclick', this, 'allowHttps');
     df.appendChild($T('\n'));
-    notify(df, true);
+    this.notify.show(df, true);
   }
 
   this[ps.type] && this[ps.type]();
@@ -269,7 +253,7 @@ Form.prototype = {
     window.close();
   },
   allowHttps: function() {
-    notify.clear();
+    this.notify.clear();
     if (this.ps.https.pageUrl[0]) {
       this.ps.pageUrl = this.ps.https.pageUrl[1];
     }
@@ -308,6 +292,28 @@ Form.resize = function() {
     Form.nowResizing = false;
   } else {
     callLater(0.5, arguments.callee);
+  }
+};
+
+function Notify(){
+  this.msg = $('message');
+}
+
+Notify.prototype = {
+  constructor: Notify,
+  show: function(message, is_element) {
+    if (is_element) {
+      this.msg.appendChild(message);
+    } else {
+      this.msg.appendChild($T(message+'\n'));
+    }
+    addElementClass(this.msg, 'shown');
+    callLater(0.5, Form.resize);
+  },
+  clear: function NotifyClear() {
+    var msg = $('message');
+    $D(msg);
+    removeElementClass(msg, 'shown');
   }
 };
 
@@ -844,7 +850,7 @@ Tags.prototype = {
         that.openSuggestions();
       }
     }).addErrback(function(e){
-      notify(Config['post']['tag_provider']+'\n'+e.message.indent(4));
+      that.notify.show(Config['post']['tag_provider']+'\n'+e.message.indent(4));
       removeElementClass(that.suggestionIcon, 'loading');
       addElementClass(that.suggestionIcon, 'loaded');
     });
