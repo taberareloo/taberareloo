@@ -3,10 +3,6 @@
 var background = chrome.extension.getBackgroundPage();
 var form = null;
 var ps = null, tab = null;
-var log = function(target){
-  background.console.log.apply(background.console, arguments);
-  return target;
-};
 var Config  = background.TBRL.Config;
 var isPopup = false;
 
@@ -263,8 +259,8 @@ Form.prototype = {
         if(this.tags) this.tags.addNewTags();
         background.TBRL.Service.post(this.ps, this.posters.body());
         window.close();
-      }catch(e){
-        log(e);
+      } catch(e) {
+        console.log(e);
       }
     }
   },
@@ -306,8 +302,6 @@ Form.resize = function() {
   if(!Form.nowResizing){
     Form.nowResizing = true;
     var root = document.body;
-//    var height = window.outerHeight - (window.innerHeight*2) + root.scrollHeight;
-//    var width = window.outerWidth - (window.innerWidth*2) + root.scrollWidth;
     var height = root.scrollHeight - window.innerHeight;
     var width  = root.scrollWidth  - window.innerWidth;
     window.resizeBy(width, height);

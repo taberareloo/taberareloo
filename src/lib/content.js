@@ -1,17 +1,6 @@
 // -*- coding: utf-8 -*-
 // content script space
 
-function log() {
-  var d = new Deferred();
-  chrome.extension.sendRequest(TBRL.id, {
-    request: "log",
-    content: $A(arguments)
-  }, function(res){
-    d.callback(res);
-  });
-  return d;
-};
-
 var TBRL = {
   target : {x:0, y:0},
   clickTarget: {x:0, y:0},
@@ -468,7 +457,7 @@ var onRequestHandlers = {
     var ctx = update({
       onImage: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    }, TBRL.createContext(document.querySelector('img[src='+JSON.stringify(content.srcUrl)+']') || TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Photo/.test(m.name);
     })[0];
@@ -480,7 +469,7 @@ var onRequestHandlers = {
     var ctx = update({
       onImage: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    }, TBRL.createContext(document.querySelector('img[src='+JSON.stringify(content.srcUrl)+']') || TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors["Photo - Upload from Cache"], true);
   },
   contextMenusVideo: function(req, sender, func) {
@@ -489,7 +478,7 @@ var onRequestHandlers = {
     var ctx = update({
       onVideo: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('video[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    }, TBRL.createContext(document.querySelector('video[src='+JSON.stringify(content.srcUrl)+']') || TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Video/.test(m.name);
     })[0];
@@ -501,7 +490,7 @@ var onRequestHandlers = {
     var ctx = update({
       onVideo: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('audio[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    }, TBRL.createContext(document.querySelector('audio[src='+JSON.stringify(content.srcUrl)+']') || TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors.Audio, true);
   },
   contextMenusCapture: function(req, sender, func) {
@@ -518,7 +507,7 @@ var onRequestHandlers = {
     var ctx = update({
       onImage: true,
       contextMenu: true
-    }, TBRL.createContext(document.querySelector('img[src="'+content.srcUrl+'"]') || TBRL.getContextMenuTarget()));
+    }, TBRL.createContext(document.querySelector('img[src='+JSON.stringify(content.srcUrl)+']') || TBRL.getContextMenuTarget()));
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Photo/.test(m.name);
     })[0];

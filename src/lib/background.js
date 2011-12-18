@@ -1,32 +1,5 @@
 // -*- coding: utf-8 -*-
 
-function backgroundAlert(message) {
-  alert(message);
-}
-
-function backgroundConfirm(message) {
-  return confirm(message);
-}
-
-function backgroundError(message, url) {
-  if (confirm(message)) {
-    chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.create({
-        index: tab.index + 1,
-        url: url,
-        selected: true
-      });
-    });
-  }
-}
-
-function addTab(url, focus) {
-  chrome.tabs.create({
-    url: url,
-    selected: focus
-  });
-}
-
 window.addEventListener('load', function() {
   var CHROME_GESTURES = 'jpkfjicglakibpenojifdiepckckakgk';
   var CHROME_KEYCONFIG = 'okneonigbfnolfkmfgjmaeniipdjkgkl';
