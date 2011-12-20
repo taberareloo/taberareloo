@@ -1003,24 +1003,45 @@ Models.register({
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
+  transformForm: function (form) {
+    var template = {
+      'url': 'url',
+      'oldUrl': 'oldUrl',
+      'title': 'title',
+      'tags': 'tags',
+      'note': 'note',
+      'stackId': 'stack_id',
+      'private': 'private',
+      'csrfToken': 'csrf_token'
+    };
+    var res = { };
+    for (var key in form) {
+      var target = template[key];
+      if (target) {
+        res[target] = form[key];
+      }
+    }
+    return res;
+  },
+
   post : function(ps){
+    var that = this;
     return this.getCurrentUser().addCallback(function(user) {
       return request('http://www.delicious.com/save', {
         queryString :  {
-          title : ps.item,
           url   : ps.itemUrl,
-          isNew : true
+          title : ps.item
         }
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
         return request('http://www.delicious.com/save', {
-          sendContent : update(formContents(doc, true), {
+          sendContent : that.transformForm(update(formContents(doc, true), {
             title       : ps.item,
             url         : ps.itemUrl,
             note        : joinText([ps.body, ps.description], ' ', true),
             tags        : joinText(ps.tags, ','),
             private     : !!ps.private
-          })
+          }))
         });
       });
     });
