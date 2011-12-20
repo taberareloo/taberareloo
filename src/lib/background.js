@@ -64,7 +64,7 @@ var GlobalFileEntryCache = { };
 
 var TBRL = {
   // default config
-  VERSION: '2.0.46',
+  VERSION: '2.0.47',
   ID: chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
   Config: {
     'services': {
