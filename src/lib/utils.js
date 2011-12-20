@@ -422,7 +422,7 @@ function queryString(params, question) {
 function queryHash(query) {
   var hash = { };
   query = query.replace(/^\?/, '');
-  query.split('&').forEach(function(pair) {
+  query.split(/[&;]/).forEach(function(pair) {
     pair = pair.split('=');
     if (pair.length === 2) {
       var key = pair[0];
