@@ -1044,7 +1044,7 @@ Extractors.register([
               type        : 'video',
               item        : attachment[3],
               itemUrl     : ctx.href = attachment[24][1],
-              body        : attachment[5] && attachment[5][1]
+              body        : attachment[21]
             });
           }
           else if ((attachment[24][4] === 'image')
@@ -1059,7 +1059,8 @@ Extractors.register([
               ], "\n\n")
            });
           }
-          else if (attachment[24][4] === 'document') {
+          else if ((attachment[24][4] === 'document')
+            || (attachment[24][3] === 'text/html')) {
             var attachment2 = item[11][1];
             if (attachment2 && ((attachment2[24][4] === 'image')
               || (attachment2[24][4] === 'photo'))) {
