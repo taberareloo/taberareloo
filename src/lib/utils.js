@@ -703,12 +703,12 @@ function getFileFromEntry(entry) {
 }
 
 // this is very experimental
-function download(url, type) {
+function download(url, type, ext) {
   return request(url, {
     responseType: 'arraybuffer'
   }).addCallback(function(res) {
     var buffer = res.response;
-    return createFileEntryFromArrayBuffer(buffer, type);
+    return createFileEntryFromArrayBuffer(buffer, type, ext);
   });
 }
 
@@ -730,11 +730,11 @@ var getBlobBuilder = (function() {
   };
 })();
 
-function createFileEntryFromArrayBuffer(buffer, type) {
+function createFileEntryFromArrayBuffer(buffer, type, ext) {
   var d = new Deferred();
   var builder = getBlobBuilder();
   builder.append(buffer);
-  getTempFile()
+  getTempFile(ext)
   .addCallback(function(entry) {
     return getWriter(entry)
     .addCallback(function(writer) {
@@ -930,6 +930,21 @@ function getEncoding(text) {
 function getCharset(text) {
   var matched = text.match(/charset\s*=\s*(["'])?([^\s"'>\/]+)\1[^>]*>/i);
   return (matched && !matched[2].match(/UTF-8/i) && matched[2]);
+}
+
+function getFileExtension(path) {
+  return (/[.]/.exec(path)) ? /[^.]+$/.exec(path)[0] : undefined;
+}
+
+function getImageMimeType(path) {
+  switch (getFileExtension(path)) {
+    case 'bmp' : return 'image/bmp';
+    case 'gif' : return 'image/gif';
+    case 'jpeg': return 'image/jpeg';
+    case 'jpg' : return 'image/jpeg';
+    case 'png' : return 'image/png';
+    default: return 'image/jpeg';
+  }
 }
 
 // 2回requestすることでcharset判別する.
