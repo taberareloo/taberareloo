@@ -568,6 +568,162 @@ Extractors.register([
   },
 
   {
+    name     : 'ReBlog - Google+',
+    ICON     : 'http://ssl.gstatic.com/s2/oz/images/faviconr.ico',
+    HOME_URL : 'https://plus.google.com',
+
+    check : function(ctx) {
+      return (/(plus\.google\.com)\//).test(ctx.href) && this.getActivityId(ctx);
+    },
+
+    getActivityId : function(ctx) {
+      var box = $X(
+        './ancestor-or-self::div[starts-with(@id, "update-")]', ctx.target)[0];
+      return box && box.id.substr(7);
+    },
+
+    extract : function(ctx) {
+      var self = this;
+      var url  = this.HOME_URL + '/_/stream/getactivity/';
+      var id   = this.getActivityId(ctx);
+      return request(url + '?' + queryString({
+        updateId : id,
+        hl       : 'en',
+        rt       : 'j'
+      })).addCallback(function(res) {
+        var data = res.responseText.substr(5).replace(/(\\n|\n)/g, '');
+        var data = MochiKit.Base.evalJSON(data);
+        data = self.getDataByKey(data[0], 'os.u');
+        if (!data) return null;
+        item = data[1];
+
+        ctx.title = item[3] + ' - Google+';
+        ctx.href = self.getAbsoluteURL(item[21]);
+
+        var desc = '';
+        var desc1 = item[77] ? item[47] : item[4];
+        var desc2 = '';
+        if (desc1) {
+          desc1 = '<p><a href="' + self.getAbsoluteURL(item[21]) + '">' + item[3] + '</a>:<br />\n' + desc1 + '</p>';
+        }
+        else {
+          desc1 = '<p><a href="' + self.getAbsoluteURL(item[21]) + '">' + item[3] + '</a>:</p>';
+        }
+        if (item[77]) {
+          if (item[4]) {
+            desc2 = '<p>' + (item[44][1] && ('<a href="' + self.getAbsoluteURL(item[77]) + '">' + item[44][0] + '</a>:<br />\n')) + item[4] + '</p>';
+          }
+          else if (item[44][1]) {
+            desc2 = '<p><a href="' + self.getAbsoluteURL(item[77]) + '">' + item[44][0] + '</a>:</p>';
+          }
+        }
+        if (desc1 && desc2) {
+          desc = joinText([
+            desc1,
+            '<blockquote>' + desc2 + '</blockquote>',
+          ], "\n\n");
+        }
+        else {
+          desc = desc1 || desc2;
+        }
+        var desc = desc && ('<blockquote>' + desc + '</blockquote>');
+
+        var result = {
+          type        : 'link',
+          item        : ctx.title,
+          itemUrl     : ctx.href,
+          body        : desc,
+          description : '',
+          favorite    : {
+            name      : 'Google\\+',
+            id        : id
+          }
+        };
+
+        if (item[11].length) {
+          var attachment = item[11][0];
+          if (attachment[24][4] === 'video') {
+            result = update(result, {
+              type        : 'video',
+              item        : attachment[3],
+              itemUrl     : ctx.href = attachment[24][1],
+              body        : attachment[21]
+            });
+          }
+          else if ((attachment[24][4] === 'image')
+            || (attachment[24][4] === 'photo')) {
+            result = update(result, {
+              type        : 'photo',
+              itemUrl     : attachment[5] && attachment[5][1],
+              body        : joinText([
+                attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
+                attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
+                desc
+              ], "\n\n")
+           });
+          }
+          else if ((attachment[24][4] === 'document')
+            || (attachment[24][3] === 'text/html')) {
+            var attachment2 = item[11][1];
+            if (attachment2 && ((attachment2[24][4] === 'image')
+              || (attachment2[24][4] === 'photo'))) {
+              result = update(result, {
+                type        :'photo',
+                itemUrl     : attachment2[5] && attachment2[5][1],
+                body        : joinText([
+                  attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
+                  attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
+                  desc
+                ], "\n\n")
+              });
+            }
+            else if (attachment[21]) {
+              result = update(result, {
+                type        : 'link',
+                item        : attachment[3],
+                itemUrl     : ctx.href = attachment[24][1],
+                body        : joinText([
+                  attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
+                  desc
+                ], "\n\n")
+              });
+            }
+            else {
+              result = update(result, {
+                type        : 'link',
+                item        : attachment[3],
+                itemUrl     : ctx.href = attachment[24][1],
+                body        : desc
+              });
+            }
+          }
+        }
+        return result;
+      });
+    },
+    getDataByKey : function(arr, key) {
+      for (var i = 0, len = arr.length ; i < len ; i++) {
+        var data = arr[i];
+        if (data[0] === key) {
+          return data;
+        }
+      }
+      return null;
+    },
+    getAbsoluteURL : function(url) {
+      if (url.substr(0, 2) === './') {
+        return this.HOME_URL + url.substr(1);
+      }
+      else if (url.substr(0, 1) !== '/') {
+        return this.HOME_URL + '/' + url;
+      }
+      else {
+        return this.HOME_URL + url;
+      }
+    }
+  },
+
+  {
     name : 'Photo - Google Book Search',
     ICON : 'http://www.google.com/favicon.ico',
     check : function(ctx){
@@ -961,162 +1117,6 @@ Extractors.register([
           body    : $X('//input[@name="script_code"]/@value', doc)[0]
         };
       });
-    }
-  },
-
-  {
-    name     : 'Google+',
-    ICON     : 'http://ssl.gstatic.com/s2/oz/images/faviconr.ico',
-    HOME_URL : 'https://plus.google.com',
-
-    check : function(ctx) {
-      return (/(plus\.google\.com)\//).test(ctx.href) && this.getActivityId(ctx);
-    },
-
-    getActivityId : function(ctx) {
-      var box = $X(
-        './ancestor-or-self::div[starts-with(@id, "update-")]', ctx.target)[0];
-      return box && box.id.substr(7);
-    },
-
-    extract : function(ctx) {
-      var self = this;
-      var url  = this.HOME_URL + '/_/stream/getactivity/';
-      var id   = this.getActivityId(ctx);
-      return request(url + '?' + queryString({
-        updateId : id,
-        hl       : 'en',
-        rt       : 'j'
-      })).addCallback(function(res) {
-        var data = res.responseText.substr(5).replace(/(\\n|\n)/g, '');
-        var data = MochiKit.Base.evalJSON(data);
-        data = self.getDataByKey(data[0], 'os.u');
-        if (!data) return null;
-        item = data[1];
-
-        ctx.title = item[3] + ' - Google+';
-        ctx.href = self.getAbsoluteURL(item[21]);
-
-        var desc = '';
-        var desc1 = item[77] ? item[47] : item[4];
-        var desc2 = '';
-        if (desc1) {
-          desc1 = '<p><a href="' + self.getAbsoluteURL(item[21]) + '">' + item[3] + '</a>:<br />\n' + desc1 + '</p>';
-        }
-        else {
-          desc1 = '<p><a href="' + self.getAbsoluteURL(item[21]) + '">' + item[3] + '</a>:</p>';
-        }
-        if (item[77]) {
-          if (item[4]) {
-            desc2 = '<p>' + (item[44][1] && ('<a href="' + self.getAbsoluteURL(item[77]) + '">' + item[44][0] + '</a>:<br />\n')) + item[4] + '</p>';
-          }
-          else if (item[44][1]) {
-            desc2 = '<p><a href="' + self.getAbsoluteURL(item[77]) + '">' + item[44][0] + '</a>:</p>';
-          }
-        }
-        if (desc1 && desc2) {
-          desc = joinText([
-            desc1,
-            '<blockquote>' + desc2 + '</blockquote>',
-          ], "\n\n");
-        }
-        else {
-          desc = desc1 || desc2;
-        }
-        var desc = desc && ('<blockquote>' + desc + '</blockquote>');
-
-        var result = {
-          type        : 'link',
-          item        : ctx.title,
-          itemUrl     : ctx.href,
-          body        : desc,
-          description : '',
-          favorite    : {
-            name      : 'Google\\+',
-            id        : id
-          }
-        };
-
-        if (item[11].length) {
-          var attachment = item[11][0];
-          if (attachment[24][4] === 'video') {
-            result = update(result, {
-              type        : 'video',
-              item        : attachment[3],
-              itemUrl     : ctx.href = attachment[24][1],
-              body        : attachment[21]
-            });
-          }
-          else if ((attachment[24][4] === 'image')
-            || (attachment[24][4] === 'photo')) {
-            result = update(result, {
-              type        : 'photo',
-              itemUrl     : attachment[5] && attachment[5][1],
-              body        : joinText([
-                attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
-                attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
-                desc
-              ], "\n\n")
-           });
-          }
-          else if ((attachment[24][4] === 'document')
-            || (attachment[24][3] === 'text/html')) {
-            var attachment2 = item[11][1];
-            if (attachment2 && ((attachment2[24][4] === 'image')
-              || (attachment2[24][4] === 'photo'))) {
-              result = update(result, {
-                type        :'photo',
-                itemUrl     : attachment2[5] && attachment2[5][1],
-                body        : joinText([
-                  attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
-                  attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
-                  desc
-                ], "\n\n")
-              });
-            }
-            else if (attachment[21]) {
-              result = update(result, {
-                type        : 'link',
-                item        : attachment[3],
-                itemUrl     : ctx.href = attachment[24][1],
-                body        : joinText([
-                  attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
-                  desc
-                ], "\n\n")
-              });
-            }
-            else {
-              result = update(result, {
-                type        : 'link',
-                item        : attachment[3],
-                itemUrl     : ctx.href = attachment[24][1],
-                body        : desc
-              });
-            }
-          }
-        }
-        return result;
-      });
-    },
-    getDataByKey : function(arr, key) {
-      for (var i = 0, len = arr.length ; i < len ; i++) {
-        var data = arr[i];
-        if (data[0] === key) {
-          return data;
-        }
-      }
-      return null;
-    },
-    getAbsoluteURL : function(url) {
-      if (url.substr(0, 2) === './') {
-        return this.HOME_URL + url.substr(1);
-      }
-      else if (url.substr(0, 1) !== '/') {
-        return this.HOME_URL + '/' + url;
-      }
-      else {
-        return this.HOME_URL + url;
-      }
     }
   },
 
