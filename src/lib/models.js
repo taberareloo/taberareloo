@@ -2703,7 +2703,7 @@ Models.register({
   },
 
   craetePhotoSpar : function(ps) {
-    var mime = this.getMIMEType(ps.itemUrl);
+    var mime = getImageMimeType(ps.itemUrl);
     return JSON.stringify([
       null, null, null, null, null,
       [null, ps.itemUrl],
@@ -2728,17 +2728,6 @@ Models.register({
         [null, 'images', 'http://google.com/profiles/media/provider']
       ]
     ]);
-  },
-
-  getMIMEType : function(url) {
-    switch (createURI(url).fileExtension) {
-    case 'bmp' : return('image/bmp');
-    case 'gif' : return('image/gif');
-    case 'jpeg': return('image/jpeg');
-    case 'jpg' : return('image/jpeg');
-    case 'png' : return('image/png');
-    }
-    return('image/jpeg');
   },
 
   createScopeSpar : function(ps) {
@@ -3026,6 +3015,191 @@ Models.register({
         });
       }
       return pages;
+    });
+  }
+});
+
+Models.register({
+  name       : 'Gmail',
+  ICON       : 'https://mail.google.com/mail/images/favicon.ico',
+  LINK       : 'https://mail.google.com/mail/',
+  LOGIN_URL  : 'https://accounts.google.com/ServiceLogin?service=mail',
+
+  HOME_URL   : 'https://mail.google.com/mail/',
+
+  GLOBALS_REGEX : /<script\b[^>]*>\s*\bvar\s+GLOBALS\s*=\s*([[]+(?:(?:(?![\]]\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;)[\s\S])*)*[\]])\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;/i,
+
+  check: function(ps) {
+    return /regular|photo|quote|link|video/.test(ps.type);
+  },
+
+  getAuthCookie: function() {
+    var self = this;
+    return getCookies('.google.com', 'SSID').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
+      } else {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+    });
+  },
+
+  getGmailAt : function() {
+    var self = this;
+    return getCookies('mail.google.com', 'GMAIL_AT').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
+      } else {
+        return '';
+      }
+    });
+  },
+
+  getGLOBALS : function() {
+    var self = this;
+    return request(self.HOME_URL).addCallback(function(res) {
+      var GLOBALS = res.responseText.match(self.GLOBALS_REGEX)[1];
+      return MochiKit.Base.evalJSON(GLOBALS);
+    });
+  },
+
+  post : function(ps) {
+    var self = this;
+    ps = update({}, ps);
+    return self.getAuthCookie().addCallback(function(cookie) {
+      return self.getGLOBALS().addCallback(function(GLOBALS) {
+        if (ps.type === 'photo') {
+          return self.download(ps).addCallback(function(file) {
+            ps.file = file;
+            return self._post(GLOBALS, ps);
+          });
+        } else {
+          return self._post(GLOBALS, ps);
+        }
+      });
+    });
+  },
+
+  now : Date.now || function() {
+    return +new Date;
+  },
+
+  SEQUENCE1 : 0,
+
+  getRid : function(GLOBALS) {
+    this.SEQUENCE1 += 2;
+    return "mail:sd." + GLOBALS[28] + "." + this.SEQUENCE1 + ".0";
+  },
+
+  getJsid : function() {
+    return Math.floor(2147483648 * Math.random()).toString(36)
+      + Math.abs(Math.floor(2147483648 * Math.random()) ^ 1).toString(36)
+  },
+
+  SEQUENCE2 : 1,
+
+  getCmid : function() {
+    return this.SEQUENCE2++;
+  },
+
+  SEQUENCE3 : 0,
+
+  getReqid : function() {
+    var now = new Date;
+    this.seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    return this.seconds + (this.SEQUENCE3++) * 1E5;
+  },
+
+  SEQUENCE4 : 0,
+
+  getFileid : function() {
+    return "f_" + this.now().toString(36) + this.SEQUENCE4++;
+  },
+
+  download : function(ps) {
+    var self = this;
+    return (
+      ps.file
+        ? succeed(ps.file)
+        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+          .addCallback(function(entry) {
+          return getFileFromEntry(entry);
+        })
+    );
+  },
+
+  createContents : function(ps) {
+    var description = '';
+    if (ps.description) {
+      description += '<p>'
+        + ps.description.replace(/\n/g, '<br/>\n') + '</p>\n\n';
+    }
+    if (ps.page && ps.pageUrl) {
+      description += '<a href="' + ps.pageUrl + '">' + ps.page + '</a>\n';
+    }
+    else if (ps.pageUrl) {
+      description += '<a href="' + ps.pageUrl + '">' + ps.pageUrl + '</a>\n';
+    }
+    if (ps.body) {
+      description += '<blockquote>' + ps.body + '</blockquote>';
+    }
+    return description;
+  },
+
+  createRecipients : function(GLOBALS) {
+    var addr = GLOBALS[10].split('@');
+    return '<' + addr[0] + '+taberareloo@' + addr[1] + '>, ';
+  },
+
+  _post : function(GLOBALS, ps) {
+    var self = this;
+
+    var content = self.createContents(ps);
+
+    var sc = {
+      to      : self.createRecipients(GLOBALS),
+      cc      : '',
+      bcc     : '',
+      subject : ps.item || ps.page,
+      body    : content,
+      ishtml  : 1,
+      nowrap  : 0,
+      draft   : 'undefined',
+      bwd     : '',
+      rm      : 'undefined',
+      cans    : '',
+      ctok    : '',
+      ac      : '[]',
+      adc     : ''
+    };
+
+    return self.getGmailAt().addCallback(function(at) {
+      var qs = {
+        ui     : 2,
+        ik     : GLOBALS[9],
+        rid    : self.getRid(GLOBALS),
+        at     : at,
+        view   : 'up',
+        act    : 'sm',
+        jsid   : self.getJsid(),
+        cmid   : self.getCmid(),
+        cmeb   : 1, // 0, ???
+        cmml   : content.length,
+        _reqid : self.getReqid(),
+        pcd    : 1,
+        mb     : 0,
+        rt     : 'c'
+      };
+
+      if ((ps.type === 'photo') && ps.file) {
+        sc[self.getFileid()] = ps.file;
+        qs['rt'] = 'h';
+        qs['zx'] = self.getJsid();
+      }
+
+      return request(self.HOME_URL + '?' + queryString(qs), {
+        sendContent : sc
+      });
     });
   }
 });
