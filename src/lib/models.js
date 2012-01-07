@@ -3204,6 +3204,66 @@ Models.register({
   }
 });
 
+var WebHook = {
+  name      : 'WebHook',
+  ICON      : chrome.extension.getURL('skin/webhook.png'),
+  LINK      : 'http://www.webhooks.org/',
+  LOGIN_URL : null,
+
+  POST_URL  : null,
+
+  check : function(ps) {
+    return true;
+  },
+
+  post : function(ps) {
+    var self = this;
+    ps = update({}, ps);
+    if (ps.type === 'photo') {
+      return self._download(ps).addCallback(function(file) {
+        ps.file = file;
+        return fileToBinaryString(file).addCallback(function(binary) {
+          ps.file = window.btoa(binary);
+          return self._post(ps);
+        })
+      });
+    } else {
+      return self._post(ps);
+    }
+  },
+
+  _post : function(ps) {
+    var self = this;
+
+    var sendContent = {
+      type  : ps.type,
+      title : ps.item || ps.page,
+      url   : ps.pageUrl,
+      body  : ps.body,
+      html  : getFlavor(ps, 'html'),
+      desc  : ps.description || null,
+      item  : ps.itemUrl,
+      file  : ps.file || null
+    };
+
+    return request(self.POST_URL, {
+      sendContent : sendContent
+    });
+  },
+
+  _download : function(ps) {
+    var self = this;
+    return (
+      ps.file
+        ? succeed(ps.file)
+        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+          .addCallback(function(entry) {
+          return getFileFromEntry(entry);
+        })
+    );
+  }
+};
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
@@ -3317,4 +3377,20 @@ Models.removeGooglePlusPages = function() {
     Models.remove(model);
   });
   Models.googlePlusPages = [];
+};
+
+// WebHook
+Models.WebHooks = [];
+Models.addWebHooks = function() {
+  Models.removeWebHooks();
+  var webhook = update({}, WebHook);
+  webhook.POST_URL = TBRL.Config['post']['webhook_url'];
+  Models.register(webhook);
+  Models.WebHooks.push(webhook);
+};
+Models.removeWebHooks = function() {
+  Models.WebHooks.forEach(function(model) {
+    Models.remove(model);
+  });
+  Models.WebHooks = [];
 };

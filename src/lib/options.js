@@ -68,6 +68,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
   );
   $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
 
+  // WebHook
+  $('label_enable_webhook').appendChild($T(chrome.i18n.getMessage('label_enable')));
+
   $('label_amazonAffiliateId').appendChild($T(chrome.i18n.getMessage('label_amazonAffiliateId')));
   $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
   $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
@@ -134,6 +137,10 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var enableGooglePlusKey_check = new Check('taberareloo_on_google_plus', !!Config.post["taberareloo_on_google_plus"]);
   var googlePlusKey_short = new Shortcutkey("shortcutkey_taberareloo_on_google_plus", true);
 
+  // WebHook
+  var enable_webhook_check = new Check('enable_webhook', !!Config.post["enable_webhook"]);
+  var webhook_url_input = new Input('webhook_url', Config.post['webhook_url']);
+
   // amazon affiliate id
   var amazon = new Input('amazon_affiliate_id', Config.entry['amazon_affiliate_id']);
   // thumbnail template
@@ -161,6 +168,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
     var k = quick_short.body();
     var tcheck = tumble_check.body();
     var gcheck = enableGooglePlusPages_check.body();
+    var enable_webhook = enable_webhook_check.body();
+    var webhook_url = webhook_url_input.body();
     if(!Shortcutkey.isConflict(lk, qk, k)){
       background.TBRL.configSet({
         'services' : services.body(),
@@ -194,7 +203,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "post_with_queue"    : queue_check.body(),
           "enable_google_plus_pages" : gcheck,
           'taberareloo_on_google_plus' : enableGooglePlusKey_check.body(),
-          "shortcutkey_taberareloo_on_google_plus" : googlePlusKey_short.body()
+          "shortcutkey_taberareloo_on_google_plus" : googlePlusKey_short.body(),
+          'enable_webhook' : enable_webhook,
+          'webhook_url' : webhook_url
         },
         'entry'    : {
           'amazon_affiliate_id' : amazon.body(),
@@ -210,6 +221,12 @@ connect(document, 'onDOMContentLoaded', document, function(){
       }
       if(!gcheck){
         googlePlusPages_list.remove();
+      }
+      if(enable_webhook && webhook_url){
+        background.Models.addWebHooks();
+      }
+      else {
+        background.Models.removeWebHooks();
       }
       this.close();
     } else {
