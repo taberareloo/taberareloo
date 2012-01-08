@@ -634,7 +634,7 @@ UserScripts.register({
         mouse     : null,
         menu      : null
       }, window.location);
-      var ext = Extractors['Google+'];
+      var ext = Extractors['ReBlog - Google+'];
       return ext.check(ctx) ? TBRL.share(ctx, ext, true) : null;
     }
   },
