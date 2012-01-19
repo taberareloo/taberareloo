@@ -1174,7 +1174,7 @@ Models.register({
 
 Models.register({
   name : 'GoogleBookmarks',
-  ICON : 'https://www.google.com/bookmarks/api/static/images/favicon.ico',
+  ICON     : chrome.extension.getURL('skin/google-bookmark.png'),
   LINK : 'http://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
   POST_URL : 'https://www.google.com/bookmarks/mark',
