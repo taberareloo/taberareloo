@@ -106,6 +106,9 @@
       }
     }
   },
+  "all_off": {
+    "message": "All Off"
+  },
   "confirm_https": {
     "message": "Allow posting https link?"
   },

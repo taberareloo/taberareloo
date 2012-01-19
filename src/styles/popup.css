@@ -43,7 +43,7 @@ button#cancel {
   background-color: white;
   border: solid 1px silver;
   color: gray;
-  padding: 1px;
+  padding: 3px;
   margin: 0px 0px 0px 10px;
   cursor: pointer;
 }
@@ -226,6 +226,33 @@ div#posters img.poster:hover:active {
   margin-bottom: 10px;
   margin-left : 5px;
   margin-right: 5px;
+}
+#all_off {
+  outline: 0px none;
+  display: inline-block;
+  line-height: normal;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  background-color: white;
+  border: solid 1px silver;
+  color: gray;
+  padding: 2px;
+  margin: 0px 5px 10px 5px;
+  height: 22px;
+  cursor: pointer;
+  vertical-align: text-top;
+}
+#all_off:hover {
+  background-color: gray;
+  border-color: gray;
+  color: white;
+}
+#all_off:hover:active {
+  padding: 2px;
+  height: 20px;
+  margin: 1px 6px 11px 6px;
+  background-color: silver;
+  border-color: silver;
 }
 input#post {
   width : 100%;

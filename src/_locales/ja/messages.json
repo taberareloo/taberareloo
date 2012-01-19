@@ -106,6 +106,9 @@
       }
     }
   },
+  "all_off": {
+    "message": "全てOFF"
+  },
   "confirm_https": {
     "message": "httpsリンクのポストを許可しますか?"
   },

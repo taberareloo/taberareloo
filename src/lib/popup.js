@@ -565,6 +565,12 @@ function Posters(ps, form) {
     df.appendChild(posterItem.element);
     return posterItem;
   }, this);
+
+  // adding all off button
+  var button = $N('button', { id: 'all_off' }, chrome.i18n.getMessage('all_off'));
+  df.appendChild(button);
+  connect(button, 'onclick', this, 'allOff');
+
   this.elmPanel.appendChild(df);
   this.postCheck();
 }
