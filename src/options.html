@@ -166,6 +166,29 @@
         </div>
         <div class="item" id="list_GooglePlusPages"></div>
       </div>
+      <div class="option">
+        <h2 id="label_webhook"><a href="http://www.webhooks.org/" targte="_blank">WebHook</a></h2>
+        <div class="option_line">
+          <p id="label_enable_webhook"></p>
+          <input id="enable_webhook_checkbox" type="checkbox" name="enable_webhook_checkbox">
+        </div>
+        <div class="option_line">
+	        <p>URL to post:</p><input id="webhook_url_input" type="text" size="100">
+        </div>
+        <div class="option_line">
+          <p style="vertical-align: top;">POST DATA:</p>
+          <dl>
+            <dt>type:</dt><dd>'text' | 'photo' | 'quote' | 'link' | 'video' | 'audio' | 'chat'<dd>
+            <dt>title:</dt><dd>title of the item or the page<dd>
+            <dt>url:</dt><dd>URL of the page<dd>
+            <dt>body:</dt><dd>text contents in your selected area as quote<dd>
+            <dt>html:</dt><dd>html contents in your selected area as quote<dd>
+            <dt>desc:</dt><dd>your comment as description<dd>
+            <dt>item:</dt><dd>URL of the item<dd>
+            <dt>file:</dt><dd>base64 encoded binary data of the item, if type is 'photo'<dd>
+          </dl>
+        </div>
+      </div>
     </div>
     <div id="entry" class="slide">
       <div class="option">

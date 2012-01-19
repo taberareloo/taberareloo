@@ -296,6 +296,10 @@ if (TBRL.Config.post['multi_tumblelogs']) {
 if (TBRL.Config.post['enable_google_plus_pages']) {
   Models.getGooglePlusPages();
 }
+// WebHook
+if (TBRL.Config.post['enable_webhook'] && TBRL.Config.post['webhook_url']) {
+  Models.addWebHooks();
+}
 
 var onRequestsHandlers = {
   capture: function(req, sender, func) {
