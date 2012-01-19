@@ -581,9 +581,11 @@ Posters.prototype = {
   },
   allOff: function(){
     this.posterItems.forEach(methodcaller('off'));
+    this.postCheck();
   },
   allOn: function(){
     this.posterItems.forEach(methodcaller('on'));
+    this.postCheck();
   },
   isPostable: function() {
     return !!this.body().length;
