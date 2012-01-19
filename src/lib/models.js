@@ -3340,7 +3340,7 @@ Models.getMultiTumblelogs = function() {
     });
   }).addErrback(function(e) {
     alert('Multiple Tumblelog'+ ': ' +
-      (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+      (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
 };
 
@@ -3369,7 +3369,7 @@ Models.getGooglePlusPages = function() {
     });
   }).addErrback(function(e) {
     alert('Google+ Pages'+ ': ' +
-      (e.message.status ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+      (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
 };
 Models.removeGooglePlusPages = function() {
