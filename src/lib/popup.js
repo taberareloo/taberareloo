@@ -202,7 +202,7 @@ Form.prototype = {
     Object.keys(this.savers).forEach(function(key){
       var body = this.savers[key].body();
       if (key === 'body' && this.ps[key] !== body) {
-        delete ps['flavors'];
+        delete this.ps['flavors'];
       }
       this.ps[key] = body;
     }, this);
