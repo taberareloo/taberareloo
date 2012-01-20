@@ -240,7 +240,8 @@ div#posters img.poster:hover:active {
   margin: 0px 5px 10px 5px;
   height: 22px;
   cursor: pointer;
-  vertical-align: text-top;
+  position: relative;
+  top: -11px;
 }
 #all_off:hover {
   background-color: gray;
@@ -250,7 +251,7 @@ div#posters img.poster:hover:active {
 #all_off:hover:active {
   padding: 2px;
   height: 20px;
-  margin: 1px 6px 11px 6px;
+  margin: 1px 6px 12px 6px;
   background-color: silver;
   border-color: silver;
 }
