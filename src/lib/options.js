@@ -6,7 +6,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
 
   // smoothing slide
   var inner     = $('inner');
-  var slides = ['services', 'post', 'entry', 'about', 'changes'];
+  var slides = ['services', 'post', 'entry', 'about'];
   var tabs = $A(document.getElementsByClassName('tab'));
   var now_active = 0;
   addElementClass(tabs[now_active], 'active');
@@ -29,7 +29,6 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_post').appendChild($T(chrome.i18n.getMessage('label_post')));
   $('label_entry').appendChild($T(chrome.i18n.getMessage('label_entry')));
   $('label_about').appendChild($T(chrome.i18n.getMessage('label_about')));
-  $('label_changes').appendChild($T(chrome.i18n.getMessage('label_changes')));
   $('label_tagprovider').appendChild($T(chrome.i18n.getMessage('label_tagprovider')));
   $('label_keyconfig').appendChild($T(chrome.i18n.getMessage('label_keyconfig')));
 

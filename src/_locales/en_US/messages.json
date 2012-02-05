@@ -15,10 +15,6 @@
     "message": "About",
     "description": "about tab"
   },
-  "label_changes": {
-    "message": "Changes",
-    "description": "changes tab"
-  },
   "label_tagprovider": {
     "message": "Tag Provider"
   },

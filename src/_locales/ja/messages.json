@@ -15,10 +15,6 @@
     "message": "Taberarelooについて",
     "description": "Taberarelooについてのタブ"
   },
-  "label_changes": {
-    "message": "変更履歴",
-    "description": "変更履歴タブ"
-  },
   "label_tagprovider": {
     "message": "クイックポストで使うタグの取得元"
   },
