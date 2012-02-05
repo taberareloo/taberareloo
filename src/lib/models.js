@@ -3264,6 +3264,82 @@ var WebHook = {
   }
 };
 
+Models.register({
+  name : 'Pinterest',
+  ICON : 'http://passets-cdn.pinterest.com/images/favicon.png',
+  LINK : 'http://pinterest.com/',
+
+  LOGIN_URL : 'https://pinterest.com/login/',
+
+  PIN_URL : 'http://pinterest.com/pin/create/bookmarklet/',
+
+  check : function(ps) {
+    return (/photo/).test(ps.type) && !ps.file;
+  },
+
+  getBoards : function(check_login) {
+    var self = this;
+    return request(this.PIN_URL).addCallback(function(res) {
+      var doc = createHTML(res.responseText);
+      if (check_login && !$X('id("id_board")/@value', doc)[0]) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+      var boards = [];
+      $X('//div[@class="BoardList"]/ul/li', doc).forEach(function(li) {
+        boards.push({
+          id   : $X('./@data', li)[0],
+          name : $X('./span/text()', li)[0]
+        });
+      });
+      return boards;
+    });
+  },
+
+  getCSRFToken : function() {
+    var self = this;
+    return getCookies('.pinterest.com', 'csrftoken').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
+      } else {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+    });
+  },
+
+  post : function(ps) {
+    var self = this;
+
+    var caption = '';
+    if (ps.description || ps.body) {
+      caption = joinText([
+        ps.description,
+        (ps.body) ? '“' + ps.body + '”' : ''
+      ], "\n\n", true);
+    }
+    else {
+      caption = ps.item || ps.page;
+    }
+
+    return (ps.pinboard
+      ? succeed([{id : ps.pinboard}])
+      : self.getBoards(true))
+    .addCallback(function(boards) {
+      return self.getCSRFToken().addCallback(function(csrftoken) {
+        return request(self.PIN_URL, {
+          sendContent : {
+            csrfmiddlewaretoken : csrftoken,
+            board     : boards[0].id,
+            url       : ps.pageUrl,
+            title     : ps.page,
+            media_url : ps.itemUrl,
+            caption   : caption
+          }
+        });
+      });
+    });
+  }
+});
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
