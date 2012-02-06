@@ -128,6 +128,9 @@ function Form(ps, isPopup) {
   if (this.posters.hasPoster('Google+')) {
     this.savers['scope'] = this.streams = new Streams(this.posters);
   }
+  if (this.posters.hasPoster('Pinterest')) {
+    this.savers['pinboard'] = this.pinboards = new Pinboards(this.posters);
+  }
 }
 
 Form.prototype = {
@@ -538,6 +541,42 @@ function Streams(posters) {
 }
 
 Streams.prototype = {
+  body : function() {
+    return this.selectBox.options[this.selectBox.selectedIndex].value;
+  }
+};
+
+function Pinboards(posters) {
+  this.posters = posters;
+  var container = this.container = $N('div', {id : 'pinboards'});
+  var selectBox = this.selectBox = $N('select', {
+    id    : 'pinboard',
+    name  : 'pinboard',
+    style : 'font-size:1em; width:100%; margin-bottom: 1em;'
+  });
+  background.Models['Pinterest'].getBoards().addCallback(function(boards) {
+    selectBox.appendChild($N('option',
+      {value : (boards.length ? boards[0].id : '')},
+      'Select Pinterest Board (or same as last one)'));
+    for (var i = 0, len = boards.length ; i < len ; i++) {
+      var board = boards[i];
+      selectBox.appendChild($N('option', {value : board.id}, board.name));
+    }
+    container.appendChild(selectBox);
+    $('widgets').appendChild(container);
+    posters.hooks.push(function() {
+      if (this.body().some(function(poster) { return poster.name === 'Pinterest'; })) {
+        selectBox.removeAttribute('disabled');
+      } else {
+        selectBox.setAttribute('disabled', 'true');
+      }
+    });
+    posters.postCheck();
+    callLater(0, Form.resize());
+  });
+}
+
+Pinboards.prototype = {
   body : function() {
     return this.selectBox.options[this.selectBox.selectedIndex].value;
   }
