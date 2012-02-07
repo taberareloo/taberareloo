@@ -223,7 +223,7 @@ Form.prototype = {
         background.TBRL.Service.post(this.ps, this.posters.body());
         window.close();
       } catch(e) {
-        console.log(e);
+        console.error(e);
       }
     }
   },
@@ -510,11 +510,14 @@ function Streams(posters) {
   this.posters = posters;
   var container = this.container = $N('div', {id : 'streams'});
   var selectBox = this.selectBox = $N('select', {
-    id    : 'scope',
-    name  : 'scope',
-    style : 'font-size:1em; width:100%; margin-bottom: 1em;'
-  });
-  selectBox.appendChild($N('option', {value : ''}, 'Select Google+ Stream (or same as last one)'));
+    id: 'scope',
+    name: 'scope',
+    style: 'font-size:1em; width:100%; margin-bottom: 1em;',
+    disabled: 'true'
+  }, $N('option', {value : ''}, 'Select Google+ Stream (or same as last one)'));
+  container.appendChild(selectBox);
+  $('widgets').appendChild(container);
+
   background.Models['Google+'].getStreams().addCallback(function(streams) {
     for (var i = 0, len = streams.presets.length ; i < len ; i++) {
       var preset = streams.presets[i];
@@ -526,8 +529,6 @@ function Streams(posters) {
       optGroup.appendChild($N('option', {value : JSON.stringify(circle)}, circle[0].name));
     }
     selectBox.appendChild(optGroup);
-    container.appendChild(selectBox);
-    $('widgets').appendChild(container);
     posters.hooks.push(function() {
       if (this.body().some(function(poster) { return poster.name === 'Google+'; })) {
         selectBox.removeAttribute('disabled');
@@ -550,11 +551,16 @@ function Pinboards(posters) {
   this.posters = posters;
   var container = this.container = $N('div', {id : 'pinboards'});
   var selectBox = this.selectBox = $N('select', {
-    id    : 'pinboard',
-    name  : 'pinboard',
-    style : 'font-size:1em; width:100%; margin-bottom: 1em;'
-  });
+    id: 'pinboard',
+    name: 'pinboard',
+    style: 'font-size:1em; width:100%; margin-bottom: 1em;',
+    disabled: 'true'
+  }, $N('option', { value: '' }, 'Loading Pinterest Board'));
+  container.appendChild(selectBox);
+  $('widgets').appendChild(container);
+
   background.Models['Pinterest'].getBoards().addCallback(function(boards) {
+    $D(selectBox);
     selectBox.appendChild($N('option',
       {value : (boards.length ? boards[0].id : '')},
       'Select Pinterest Board (or same as last one)'));
@@ -562,8 +568,6 @@ function Pinboards(posters) {
       var board = boards[i];
       selectBox.appendChild($N('option', {value : board.id}, board.name));
     }
-    container.appendChild(selectBox);
-    $('widgets').appendChild(container);
     posters.hooks.push(function() {
       if (this.body().some(function(poster) { return poster.name === 'Pinterest'; })) {
         selectBox.removeAttribute('disabled');
