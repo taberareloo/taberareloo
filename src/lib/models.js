@@ -535,9 +535,18 @@ Models.register({
   Photo : {
     post : function(ps) {
       var ret = new Deferred();
-      chrome.tabs.getSelected(null, function(tab) {
+      var that = this;
+      chrome.tabs.query({
+        url: 'http://*/*'
+      }, function(tabs) {
         if (ps.itemUrl.indexOf('http') !== 0) {
           return ret.errback('ps.itemUrl is not URL');
+        }
+
+        var tab = tabs[0];
+        if (!tab) {
+          setTimeout(that.post, 5000, that);
+          return;
         }
 
         var code = '(' + function downloadFile(url) {
