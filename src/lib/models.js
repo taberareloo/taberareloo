@@ -543,18 +543,20 @@ Models.register({
           return ret.errback('ps.itemUrl is not URL');
         }
 
-        var tab = tabs[0];
-        if (!tab) {
-          setTimeout(that.post, 5000, that);
+        if (!tabs) {
+          setTimeout(that.post, 10000, that);
           return;
         }
+
+        var tab = tabs[0];
+        var url = ps.itemUrl;
 
         var code = '(' + function downloadFile(url) {
           var ev = document.createEvent('MouseEvents');
           ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
           var target = $N('a', { href: url }, $N('img', {src: url}));
           target.dispatchEvent(ev);
-        }.toString() + ')(' + JSON.stringify(ps.itemUrl) + ')';
+        }.toString() + ')(' + JSON.stringify(url) + ')';
 
         chrome.tabs.executeScript(tab.id, {
           code: code
