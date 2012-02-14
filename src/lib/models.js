@@ -522,7 +522,7 @@ Models.register({
   post : function(ps) {
     var self = this;
     return this.getDataURL(ps).addCallback(function(url) {
-      return self.Photo.post(url);
+      return self.Photo.post(ps, url);
     });
   },
 
@@ -547,29 +547,38 @@ Models.register({
   },
 
   Photo : {
-    post : function(url) {
+    post : function(ps, url) {
       var ret = new Deferred(), that = this;
-      function post(callback, errback) {
-        chrome.tabs.query({
-          url: 'http://*/*'
-        }, function(tabs) {
-          if (!/^(http|data)/.test(url)) {
-            return errback('ps.itemUrl is not URL');
-          }
+      chrome.tabs.query({
+        url: ps.pageUrl
+      }, function(tabs) {
+        if (!/^(http|data)/.test(url)) {
+          ret.errback('ps.itemUrl is not URL');
+        }
 
-          if (!tabs.length) {
-            setTimeout(post.bind(null, (function() { }), (function() { })), 10000);
-            callback();
-            return;
-          }
-          var tab = tabs[0];
+        if (!tabs.length) {
+          // original tab is not found!
+          // we open new tab with url: pageUrl and use it and close
+          chrome.tabs.create({
+            active: false,
+            url: ps.pageUrl,
+          }, function (tab) {
+            post(tab, true);
+          });
+        } else {
+          post(tabs[0], false);
+        }
 
-          var code = '(' + function downloadFile(url) {
+        function post(tab, opened) {
+          var code = '(' + function downloadFile(url, flag) {
             var ev = document.createEvent('MouseEvents');
             ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
             var target = $N('a', { href: url }, $N('img', {src: url}));
             target.dispatchEvent(ev);
-          }.toString() + ')(' + JSON.stringify(url) + ')';
+            if (flag) {
+              window.close();
+            }
+          }.toString() + ')(' + JSON.stringify(url) + ', ' + opened + ')';
 
           chrome.tabs.executeScript(tab.id, {
             code: code
@@ -577,10 +586,8 @@ Models.register({
             callback();
             return;
           });
-        });
-      }
-
-      post(ret.callback.bind(ret), ret.errback.bind(ret));
+        }
+      });
       return ret;
     }
   }
