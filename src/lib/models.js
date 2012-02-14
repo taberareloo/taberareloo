@@ -3361,6 +3361,87 @@ Models.register({
   }
 });
 
+Models.register({
+  name      : 'Gyazo',
+  ICON      : 'http://gyazo.com/public/img/favicon.ico',
+  LINK      : 'http://gyazo.com/',
+  LOGIN_URL : null,
+
+  POST_URL  : 'http://gyazo.com/upload.cgi',
+
+  check : function(ps) {
+    return (/photo/).test(ps.type);
+  },
+
+  post : function(ps) {
+    ps = update({}, ps);
+    return this.upload(ps).addCallback(function(url) {
+      if (url) {
+        window.open(url, '');
+      }
+    });
+  },
+
+  getURL : function(ps) {
+    var self = this;
+    return (
+      !ps.itemUrl && ps.file // capture
+        ? fileToDataURL(ps.file).addCallback(function(url) {
+          return url;
+        })
+        : succeed(ps.itemUrl)
+    );
+  },
+
+  upload : function(ps) {
+    var self = this;
+    return this._download(ps).addCallback(function(file) {
+      return request(self.POST_URL, {
+        sendContent : {
+          id        : window.localStorage.gyazo_id || '',
+          imagedata : file
+        }
+      }).addCallback(function(res) {
+        var gyazo_id = res.getResponseHeader('X-Gyazo-Id');
+        if (gyazo_id) window.localStorage.gyazo_id = gyazo_id;
+        if (res.responseText && !/\.png$/.test(res.responseText)) {
+          return res.responseText + '.png';
+        }
+        else {
+          return res.responseText;
+        }
+      });
+    });
+  },
+
+  _download : function(ps) {
+    var self = this;
+    return (
+      !ps.itemUrl && ps.file // capture
+        ? succeed(ps.file)
+        : canvasRequest(ps.itemUrl).addCallback(function(data) { // must be png
+          return self.base64ToFileEntry(data.binary, 'image/png', 'png');
+        })
+    );
+  },
+
+  base64ToFileEntry : function(base64, type, ext) {
+    var cut = cutBase64Header(base64);
+    var binary = window.atob(cut);
+    var buffer = new ArrayBuffer(binary.length);
+    var view = new Uint8Array(buffer);
+    var fromCharCode = String.fromCharCode;
+    for (var i = 0, len = binary.length; i < len; ++i) {
+      view[i] = binary.charCodeAt(i);
+    }
+    return createFileEntryFromArrayBuffer(buffer, type, ext).addCallback(function(entry) {
+      return getFileFromEntry(entry).addCallback(function(file) {
+        return file;
+      });
+    });
+  }
+});
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
