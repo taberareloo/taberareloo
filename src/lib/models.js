@@ -516,11 +516,14 @@ Models.register({
   ICON : chrome.extension.getURL('skin/local.ico'),
 
   check : function(ps) {
-    return ps.type === 'photo' && !ps.file;
+    return ps.type === 'photo';
   },
 
   post : function(ps) {
-    return this.Photo.post(ps);
+    var self = this;
+    return this.getDataURL(ps).addCallback(function(url) {
+      return self.Photo.post(url);
+    });
   },
 
   append : function(file, ps) {
@@ -532,24 +535,32 @@ Models.register({
     return succeed();
   },
 
+  getDataURL : function(ps) {
+    var self = this;
+    return (
+      ps.file
+        ? fileToDataURL(ps.file).addCallback(function(url) {
+          return url;
+        })
+        : succeed(ps.itemUrl)
+    );
+  },
+
   Photo : {
-    post : function(ps) {
+    post : function(url) {
       var ret = new Deferred();
-      var that = this;
       chrome.tabs.query({
         url: 'http://*/*'
       }, function(tabs) {
-        if (ps.itemUrl.indexOf('http') !== 0) {
+        if (!/^(http|data)/.test(url)) {
           return ret.errback('ps.itemUrl is not URL');
         }
 
-        if (!tabs) {
-          setTimeout(that.post, 10000, that);
-          return;
+        if (!tabs.length) {
+          window.open(url, '');
+          return ret.callback();
         }
-
         var tab = tabs[0];
-        var url = ps.itemUrl;
 
         var code = '(' + function downloadFile(url) {
           var ev = document.createEvent('MouseEvents');
@@ -563,7 +574,6 @@ Models.register({
         }, function() {
           ret.callback();
         });
-        return null;
       });
       return ret;
     }
