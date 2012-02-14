@@ -548,33 +548,39 @@ Models.register({
 
   Photo : {
     post : function(url) {
-      var ret = new Deferred();
-      chrome.tabs.query({
-        url: 'http://*/*'
-      }, function(tabs) {
-        if (!/^(http|data)/.test(url)) {
-          return ret.errback('ps.itemUrl is not URL');
-        }
+      var ret = new Deferred(), that = this;
+      function post(callback, errback) {
+        chrome.tabs.query({
+          url: 'http://*/*'
+        }, function(tabs) {
+          if (!/^(http|data)/.test(url)) {
+            return errback('ps.itemUrl is not URL');
+          }
 
-        if (!tabs.length) {
-          window.open(url, '');
-          return ret.callback();
-        }
-        var tab = tabs[0];
+          if (!tabs.length) {
+            setTimeout(post.bind(null, (function() { }), (function() { })), 10000);
+            callback();
+            return;
+          }
+          var tab = tabs[0];
 
-        var code = '(' + function downloadFile(url) {
-          var ev = document.createEvent('MouseEvents');
-          ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
-          var target = $N('a', { href: url }, $N('img', {src: url}));
-          target.dispatchEvent(ev);
-        }.toString() + ')(' + JSON.stringify(url) + ')';
+          var code = '(' + function downloadFile(url) {
+            var ev = document.createEvent('MouseEvents');
+            ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
+            var target = $N('a', { href: url }, $N('img', {src: url}));
+            target.dispatchEvent(ev);
+          }.toString() + ')(' + JSON.stringify(url) + ')';
 
-        chrome.tabs.executeScript(tab.id, {
-          code: code
-        }, function() {
-          ret.callback();
+          chrome.tabs.executeScript(tab.id, {
+            code: code
+          }, function() {
+            callback();
+            return;
+          });
         });
-      });
+      }
+
+      post(ret.callback.bind(ret), ret.errback.bind(ret));
       return ret;
     }
   }
