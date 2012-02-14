@@ -3286,21 +3286,21 @@ var WebHook = {
 };
 
 Models.register({
-  name : 'Pinterest',
-  ICON : 'http://passets-cdn.pinterest.com/images/favicon.png',
-  LINK : 'http://pinterest.com/',
-
+  name      : 'Pinterest',
+  ICON      : 'http://passets-cdn.pinterest.com/images/favicon.png',
+  LINK      : 'http://pinterest.com/',
   LOGIN_URL : 'https://pinterest.com/login/',
 
-  PIN_URL : 'http://pinterest.com/pin/create/bookmarklet/',
+  BOOKMARK_URL : 'http://pinterest.com/pin/create/bookmarklet/',
+  UPLOAD_URL   : 'http://pinterest.com/pin/create/',
 
   check : function(ps) {
-    return (/photo/).test(ps.type) && !ps.file;
+    return (/photo/).test(ps.type);
   },
 
   getBoards : function(check_login) {
     var self = this;
-    return request(this.PIN_URL).addCallback(function(res) {
+    return request(this.BOOKMARK_URL).addCallback(function(res) {
       var doc = createHTML(res.responseText);
       if (check_login && !$X('id("id_board")/@value', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -3341,20 +3341,40 @@ Models.register({
       caption = ps.item || ps.page;
     }
 
+    var pin_url = '';
+    var sendContent = {};
+    if (ps.file) {
+      caption = joinText([
+        caption,
+        '(via ' + ps.pageUrl + ' )'
+      ], "\n\n", true);
+      pin_url = this.UPLOAD_URL;
+      sendContent = {
+        details : caption,
+        link    : ps.pageUrl,
+        img_url : ps.itemUrl,
+        img     : ps.file
+      };
+    }
+    else {
+      pin_url = this.BOOKMARK_URL;
+      sendContent = {
+        caption   : caption,
+        url       : ps.pageUrl,
+        media_url : ps.itemUrl,
+        title     : ps.page
+      };
+    }
+
     return (ps.pinboard
       ? succeed([{id : ps.pinboard}])
       : self.getBoards(true))
     .addCallback(function(boards) {
+      sendContent.board = boards[0].id;
       return self.getCSRFToken().addCallback(function(csrftoken) {
-        return request(self.PIN_URL, {
-          sendContent : {
-            csrfmiddlewaretoken : csrftoken,
-            board     : boards[0].id,
-            url       : ps.pageUrl,
-            title     : ps.page,
-            media_url : ps.itemUrl,
-            caption   : caption
-          }
+        sendContent.csrfmiddlewaretoken = csrftoken;
+        return request(pin_url, {
+          sendContent : sendContent
         });
       });
     });
