@@ -559,11 +559,24 @@ Models.register({
         if (!tabs.length) {
           // original tab is not found!
           // we open new tab with url: pageUrl and use it and close
-          chrome.tabs.create({
-            active: false,
-            url: ps.pageUrl,
-          }, function (tab) {
-            post(tab, true);
+          chrome.windows.getCurrent(function(win) {
+            if (win) {
+              chrome.tabs.create({
+                active: false,
+                url: ps.pageUrl,
+              }, function (tab) {
+                post(tab, true);
+              });
+            } else {
+              // not current window
+              chrome.windows.create({
+                url: ps.pageUrl,
+                focused: false,
+                type: 'popup'
+              }, function(win) {
+                post(win.tabs[0], true);
+              });
+            }
           });
         } else {
           post(tabs[0], false);
