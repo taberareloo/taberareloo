@@ -3402,17 +3402,6 @@ Models.register({
     });
   },
 
-  getURL : function(ps) {
-    var self = this;
-    return (
-      !ps.itemUrl && ps.file // capture
-        ? fileToDataURL(ps.file).addCallback(function(url) {
-          return url;
-        })
-        : succeed(ps.itemUrl)
-    );
-  },
-
   upload : function(ps) {
     var self = this;
     return this._download(ps).addCallback(function(file) {
