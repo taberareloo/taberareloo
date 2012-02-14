@@ -3341,14 +3341,12 @@ Models.register({
       caption = ps.item || ps.page;
     }
 
-    var pin_url = '';
     var sendContent = {};
     if (ps.file) {
       caption = joinText([
         caption,
         '(via ' + ps.pageUrl + ' )'
       ], "\n\n", true);
-      pin_url = this.UPLOAD_URL;
       sendContent = {
         details : caption,
         link    : ps.pageUrl,
@@ -3357,12 +3355,10 @@ Models.register({
       };
     }
     else {
-      pin_url = this.BOOKMARK_URL;
       sendContent = {
-        caption   : caption,
-        url       : ps.pageUrl,
-        media_url : ps.itemUrl,
-        title     : ps.page
+        details : caption,
+        link    : ps.pageUrl,
+        img_url : ps.itemUrl
       };
     }
 
@@ -3373,7 +3369,7 @@ Models.register({
       sendContent.board = boards[0].id;
       return self.getCSRFToken().addCallback(function(csrftoken) {
         sendContent.csrfmiddlewaretoken = csrftoken;
-        return request(pin_url, {
+        return request(self.UPLOAD_URL, {
           sendContent : sendContent
         });
       });
