@@ -516,11 +516,14 @@ Models.register({
   ICON : chrome.extension.getURL('skin/local.ico'),
 
   check : function(ps) {
-    return ps.type === 'photo' && !ps.file;
+    return ps.type === 'photo';
   },
 
   post : function(ps) {
-    return this.Photo.post(ps);
+    var self = this;
+    return this.getDataURL(ps).addCallback(function(url) {
+      return self.Photo.post(url);
+    });
   },
 
   append : function(file, ps) {
@@ -532,24 +535,32 @@ Models.register({
     return succeed();
   },
 
+  getDataURL : function(ps) {
+    var self = this;
+    return (
+      ps.file
+        ? fileToDataURL(ps.file).addCallback(function(url) {
+          return url;
+        })
+        : succeed(ps.itemUrl)
+    );
+  },
+
   Photo : {
-    post : function(ps) {
+    post : function(url) {
       var ret = new Deferred();
-      var that = this;
       chrome.tabs.query({
         url: 'http://*/*'
       }, function(tabs) {
-        if (ps.itemUrl.indexOf('http') !== 0) {
+        if (!/^(http|data)/.test(url)) {
           return ret.errback('ps.itemUrl is not URL');
         }
 
-        if (!tabs) {
-          setTimeout(that.post, 10000, that);
-          return;
+        if (!tabs.length) {
+          window.open(url, '');
+          return ret.callback();
         }
-
         var tab = tabs[0];
-        var url = ps.itemUrl;
 
         var code = '(' + function downloadFile(url) {
           var ev = document.createEvent('MouseEvents');
@@ -563,7 +574,6 @@ Models.register({
         }, function() {
           ret.callback();
         });
-        return null;
       });
       return ret;
     }
@@ -3276,21 +3286,21 @@ var WebHook = {
 };
 
 Models.register({
-  name : 'Pinterest',
-  ICON : 'http://passets-cdn.pinterest.com/images/favicon.png',
-  LINK : 'http://pinterest.com/',
-
+  name      : 'Pinterest',
+  ICON      : 'http://passets-cdn.pinterest.com/images/favicon.png',
+  LINK      : 'http://pinterest.com/',
   LOGIN_URL : 'https://pinterest.com/login/',
 
-  PIN_URL : 'http://pinterest.com/pin/create/bookmarklet/',
+  BOOKMARK_URL : 'http://pinterest.com/pin/create/bookmarklet/',
+  UPLOAD_URL   : 'http://pinterest.com/pin/create/',
 
   check : function(ps) {
-    return (/photo/).test(ps.type) && !ps.file;
+    return (/photo/).test(ps.type);
   },
 
   getBoards : function(check_login) {
     var self = this;
-    return request(this.PIN_URL).addCallback(function(res) {
+    return request(this.BOOKMARK_URL).addCallback(function(res) {
       var doc = createHTML(res.responseText);
       if (check_login && !$X('id("id_board")/@value', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -3331,21 +3341,107 @@ Models.register({
       caption = ps.item || ps.page;
     }
 
+    var sendContent = {};
+    if (ps.file) {
+      caption = joinText([
+        caption,
+        '(via ' + ps.pageUrl + ' )'
+      ], "\n\n", true);
+      sendContent = {
+        details : caption,
+        link    : ps.pageUrl,
+        img_url : ps.itemUrl,
+        img     : ps.file
+      };
+    }
+    else {
+      sendContent = {
+        details : caption,
+        link    : ps.pageUrl,
+        img_url : ps.itemUrl
+      };
+    }
+
     return (ps.pinboard
       ? succeed([{id : ps.pinboard}])
       : self.getBoards(true))
     .addCallback(function(boards) {
+      sendContent.board = boards[0].id;
       return self.getCSRFToken().addCallback(function(csrftoken) {
-        return request(self.PIN_URL, {
-          sendContent : {
-            csrfmiddlewaretoken : csrftoken,
-            board     : boards[0].id,
-            url       : ps.pageUrl,
-            title     : ps.page,
-            media_url : ps.itemUrl,
-            caption   : caption
-          }
+        sendContent.csrfmiddlewaretoken = csrftoken;
+        return request(self.UPLOAD_URL, {
+          sendContent : sendContent
         });
+      });
+    });
+  }
+});
+
+Models.register({
+  name      : 'Gyazo',
+  ICON      : 'http://gyazo.com/public/img/favicon.ico',
+  LINK      : 'http://gyazo.com/',
+  LOGIN_URL : null,
+
+  POST_URL  : 'http://gyazo.com/upload.cgi',
+
+  check : function(ps) {
+    return (/photo/).test(ps.type);
+  },
+
+  post : function(ps) {
+    ps = update({}, ps);
+    return this.upload(ps).addCallback(function(url) {
+      if (url) {
+        window.open(url, '');
+      }
+    });
+  },
+
+  upload : function(ps) {
+    var self = this;
+    return this._download(ps).addCallback(function(file) {
+      return request(self.POST_URL, {
+        sendContent : {
+          id        : window.localStorage.gyazo_id || '',
+          imagedata : file
+        }
+      }).addCallback(function(res) {
+        var gyazo_id = res.getResponseHeader('X-Gyazo-Id');
+        if (gyazo_id) window.localStorage.gyazo_id = gyazo_id;
+        if (res.responseText && !/\.png$/.test(res.responseText)) {
+          return res.responseText + '.png';
+        }
+        else {
+          return res.responseText;
+        }
+      });
+    });
+  },
+
+  _download : function(ps) {
+    var self = this;
+    return (
+      !ps.itemUrl && ps.file // capture
+        ? succeed(ps.file)
+        : canvasRequest(ps.itemUrl).addCallback(function(data) { // must be png
+          return self.base64ToFileEntry(data.binary, 'image/png', 'png');
+        })
+    );
+  },
+
+  base64ToFileEntry : function(base64, type, ext) {
+    var cut = cutBase64Header(base64);
+    var binary = window.atob(cut);
+    var buffer = new ArrayBuffer(binary.length);
+    var view = new Uint8Array(buffer);
+    var fromCharCode = String.fromCharCode;
+    for (var i = 0, len = binary.length; i < len; ++i) {
+      view[i] = binary.charCodeAt(i);
+    }
+    return createFileEntryFromArrayBuffer(buffer, type, ext).addCallback(function(entry) {
+      return getFileFromEntry(entry).addCallback(function(file) {
+        return file;
       });
     });
   }
