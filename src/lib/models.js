@@ -548,60 +548,17 @@ Models.register({
 
   Photo : {
     post : function(ps, url) {
-      var ret = new Deferred(), that = this;
-      chrome.tabs.query({
-        url: ps.pageUrl
-      }, function(tabs) {
-        if (!/^(http|data)/.test(url)) {
-          ret.errback('ps.itemUrl is not URL');
-        }
+      if (!/^(http|data)/.test(url)) {
+        return fail('ps.itemUrl is not URL');
+      }
 
-        if (!tabs.length) {
-          // original tab is not found!
-          // we open new tab with url: pageUrl and use it and close
-          chrome.windows.getCurrent(function(win) {
-            if (win) {
-              chrome.tabs.create({
-                active: false,
-                url: ps.pageUrl,
-              }, function (tab) {
-                post(tab, true);
-              });
-            } else {
-              // not current window
-              chrome.windows.create({
-                url: ps.pageUrl,
-                focused: false,
-                type: 'popup'
-              }, function(win) {
-                post(win.tabs[0], true);
-              });
-            }
-          });
-        } else {
-          post(tabs[0], false);
-        }
-
-        function post(tab, opened) {
-          var code = '(' + function downloadFile(url, flag) {
-            var ev = document.createEvent('MouseEvents');
-            ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
-            var target = $N('a', { href: url }, $N('img', {src: url}));
-            target.dispatchEvent(ev);
-            if (flag) {
-              window.close();
-            }
-          }.toString() + ')(' + JSON.stringify(url) + ', ' + opened + ')';
-
-          chrome.tabs.executeScript(tab.id, {
-            code: code
-          }, function() {
-            callback();
-            return;
-          });
-        }
-      });
-      return ret;
+      // from newer version, background page can download images
+      // so we restrict chrome version in manifest.json
+      var ev = document.createEvent('MouseEvents');
+      ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
+      var target = $N('a', { href: url }, $N('img', {src: url}));
+      target.dispatchEvent(ev);
+      return succeed();
     }
   }
 });
