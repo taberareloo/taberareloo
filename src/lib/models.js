@@ -3567,9 +3567,7 @@ Models.register({
     switch (ps.type) {
     case 'photo':
       if (ps.file) {
-        return fileToBinaryString(ps.file).addCallback(function(binary) {
-          return self.upload(ps, binary);
-        });
+        return this.upload(ps);
       }
       else {
         sendContent.url = ps.itemUrl;
@@ -3645,7 +3643,7 @@ Models.register({
     });
   },
 
-  upload : function(ps, binary) {
+  upload : function(ps) {
     var self = this;
 
     var description = joinText([
