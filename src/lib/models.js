@@ -2480,6 +2480,45 @@ Models.register({
 
   YOUTUBE_REGEX : /http:\/\/(?:.*\.)?youtube.com\/watch\?v=([a-zA-Z0-9_-]+)[-_.!~*'()a-zA-Z0-9;\/?:@&=+\$,%#]*/g,
 
+  timer : null,
+
+  initialize : function() {
+    var self = this;
+
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+
+    if (this.is_pages) {
+      return;
+    }
+
+    var config = TBRL.Config['services'][this.name];
+    var enable = false;
+    ['regular', 'photo', 'quote', 'link', 'video', 'favorite'].forEach(function(type) {
+      if ((config[type] === 'default') || (config[type] === 'enabled')) {
+        enable = true;
+      }
+    });
+
+    if (!enable) {
+      return;
+    }
+
+    return getCookies('.google.com', 'SSID').addCallback(function(cookies) {
+      if (cookies.length) {
+        try {
+          self._getStreams();
+        }
+        catch (e) {}
+      }
+      self.timer = setTimeout(function() {
+        self.initialize();
+      }, 60000);
+    });
+  },
+
   check: function(ps) {
     return /regular|photo|quote|link|video/.test(ps.type);
   },
@@ -2515,7 +2554,9 @@ Models.register({
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
       var data = MochiKit.Base.evalJSON(initialData);
       data = self.getDataByKey(data[0], 'idr');
-      if (!data) return null;
+      if (!data) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
       data = MochiKit.Base.evalJSON(data[1]);
       return data[key];
     });
@@ -2635,7 +2676,7 @@ Models.register({
       videoUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
           'http://www.youtube.com/v/$1&hl=en&fs=1&autoplay=1');
       imageUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
-          'http://ytimg.googleusercontent.com/vi/$1/default.jpg');
+          'http://ytimg.googleusercontent.com/vi/$1/hqdefault.jpg');
     }
     if (ps.upload) {
       imageUrl = ps.upload.url;
@@ -2926,9 +2967,14 @@ Models.register({
     });
   },
 
+  streams : null,
+
   getStreams : function() {
+    return this.streams;
+  },
+
+  _getStreams : function() {
     var self = this;
-    var ret = new Deferred();
     this.getOZData().addCallback(function(oz) {
       self.getInitialData(12).addCallback(function(data) {
         var circles = [];
@@ -2985,13 +3031,12 @@ Models.register({
           }]
         ];
 
-        ret.callback({
+        self.streams = {
           presets : presets,
           circles : circles
-        });
+        };
       });
     });
-    return ret;
   },
 
   getPages : function() {
@@ -3560,3 +3605,9 @@ Models.removeWebHooks = function() {
   });
   Models.WebHooks = [];
 };
+
+Models.initialize = function() {
+  return this.values.filter(function(m) {
+    return m.initialize && m.initialize();
+  });
+}

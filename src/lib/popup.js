@@ -514,18 +514,23 @@ function Streams(posters) {
     name: 'scope',
     style: 'font-size:1em; width:100%; margin-bottom: 1em;',
     disabled: 'true'
-  }, $N('option', {value : ''}, 'Select Google+ Stream (or same as last one)'));
+  }, $N('option', {value : ''}, 'Not seem to log in Google+'));
   container.appendChild(selectBox);
   $('widgets').appendChild(container);
 
-  background.Models['Google+'].getStreams().addCallback(function(streams) {
-    for (var i = 0, len = streams.presets.length ; i < len ; i++) {
-      var preset = streams.presets[i];
+  var _streams = background.Models['Google+'].getStreams();
+  if (_streams) {
+    $D(selectBox);
+    selectBox.appendChild(
+      $N('option', {value : ''}, 'Select Google+ Stream (or same as last one)')
+    );
+    for (var i = 0, len = _streams.presets.length ; i < len ; i++) {
+      var preset = _streams.presets[i];
       selectBox.appendChild($N('option', {value : JSON.stringify(preset)}, preset[0].name));
     }
     var optGroup = $N('optgroup', {label : 'Stream'});
-    for (var i = 0, len = streams.circles.length ; i < len ; i++) {
-      var circle = streams.circles[i];
+    for (var i = 0, len = _streams.circles.length ; i < len ; i++) {
+      var circle = _streams.circles[i];
       optGroup.appendChild($N('option', {value : JSON.stringify(circle)}, circle[0].name));
     }
     selectBox.appendChild(optGroup);
@@ -537,8 +542,7 @@ function Streams(posters) {
       }
     });
     posters.postCheck();
-    callLater(0, Form.resize());
-  });
+  }
 }
 
 Streams.prototype = {
