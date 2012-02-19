@@ -300,6 +300,7 @@ if (TBRL.Config.post['enable_google_plus_pages']) {
 if (TBRL.Config.post['enable_webhook'] && TBRL.Config.post['webhook_url']) {
   Models.addWebHooks();
 }
+Models.initialize();
 
 var onRequestsHandlers = {
   capture: function(req, sender, func) {
@@ -390,6 +391,9 @@ var onRequestsHandlers = {
   notifications: function(req, sender, func) {
     var id = req.content;
     func(TBRL.Notification.contents[id]);
+  },
+  initialize: function(req, sender, func) {
+    Models.initialize();
   }
 };
 
