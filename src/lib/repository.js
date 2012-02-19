@@ -70,6 +70,12 @@ Repository.prototype = {
       this[d.name] = d;
     }, this);
   },
+  initialize: function() {
+    var args = Array.prototype.slice.call(arguments);
+    this.values.forEach(function(i) {
+      i.initialize && i.initialize.apply(i, args);
+    });
+  },
   get values(){
     return this.list.filter(function(i){ return i.name });
   },
