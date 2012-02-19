@@ -3322,11 +3322,49 @@ Models.register({
   BOOKMARK_URL : 'http://pinterest.com/pin/create/bookmarklet/',
   UPLOAD_URL   : 'http://pinterest.com/pin/create/',
 
+  timer : null,
+
+  initialize : function() {
+    var self = this;
+
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+
+    var config = TBRL.Config['services'][this.name];
+    var enable = false;
+    ['photo'].forEach(function(type) {
+      if ((config[type] === 'default') || (config[type] === 'enabled')) {
+        enable = true;
+      }
+    });
+
+    if (!enable) {
+      return;
+    }
+
+    try {
+      this._getBoards();
+    }
+    catch (e) {}
+
+    this.timer = setTimeout(function() {
+      self.initialize();
+    }, 60000);
+  },
+
   check : function(ps) {
     return (/photo/).test(ps.type);
   },
 
-  getBoards : function(check_login) {
+  boards : null,
+
+  getBoards : function() {
+    return this.boards;
+  },
+
+  _getBoards : function(check_login) {
     var self = this;
     return request(this.BOOKMARK_URL).addCallback(function(res) {
       var doc = createHTML(res.responseText);
@@ -3340,7 +3378,7 @@ Models.register({
           name : $X('./span/text()', li)[0]
         });
       });
-      return boards;
+      return self.boards = boards;
     });
   },
 
@@ -3392,7 +3430,7 @@ Models.register({
 
     return (ps.pinboard
       ? succeed([{id : ps.pinboard}])
-      : self.getBoards(true))
+      : self._getBoards(true))
     .addCallback(function(boards) {
       sendContent.board = boards[0].id;
       return self.getCSRFToken().addCallback(function(csrftoken) {
