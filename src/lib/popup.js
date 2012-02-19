@@ -518,19 +518,19 @@ function Streams(posters) {
   container.appendChild(selectBox);
   $('widgets').appendChild(container);
 
-  var _streams = background.Models['Google+'].getStreams();
-  if (_streams) {
+  var streams = background.Models['Google+'].getStreams();
+  if (streams) {
     $D(selectBox);
     selectBox.appendChild(
       $N('option', {value : ''}, 'Select Google+ Stream (or same as last one)')
     );
-    for (var i = 0, len = _streams.presets.length ; i < len ; i++) {
-      var preset = _streams.presets[i];
+    for (var i = 0, len = streams.presets.length ; i < len ; i++) {
+      var preset = streams.presets[i];
       selectBox.appendChild($N('option', {value : JSON.stringify(preset)}, preset[0].name));
     }
     var optGroup = $N('optgroup', {label : 'Stream'});
-    for (var i = 0, len = _streams.circles.length ; i < len ; i++) {
-      var circle = _streams.circles[i];
+    for (var i = 0, len = streams.circles.length ; i < len ; i++) {
+      var circle = streams.circles[i];
       optGroup.appendChild($N('option', {value : JSON.stringify(circle)}, circle[0].name));
     }
     selectBox.appendChild(optGroup);
@@ -559,15 +559,16 @@ function Pinboards(posters) {
     name: 'pinboard',
     style: 'font-size:1em; width:100%; margin-bottom: 1em;',
     disabled: 'true'
-  }, $N('option', { value: '' }, 'Loading Pinterest Board'));
+  }, $N('option', { value: '' }, 'Not seem to log in Pinterest'));
   container.appendChild(selectBox);
   $('widgets').appendChild(container);
 
-  background.Models['Pinterest'].getBoards().addCallback(function(boards) {
+  var boards = background.Models['Pinterest'].getBoards();
+  if (boards) {
     $D(selectBox);
-    selectBox.appendChild($N('option',
-      {value : (boards.length ? boards[0].id : '')},
-      'Select Pinterest Board (or same as last one)'));
+    selectBox.appendChild(
+      $N('option', {value : ''}, 'Select Pinterest Board (or same as last one)')
+    );
     for (var i = 0, len = boards.length ; i < len ; i++) {
       var board = boards[i];
       selectBox.appendChild($N('option', {value : board.id}, board.name));
@@ -580,8 +581,7 @@ function Pinboards(posters) {
       }
     });
     posters.postCheck();
-    callLater(0, Form.resize());
-  });
+  }
 }
 
 Pinboards.prototype = {
