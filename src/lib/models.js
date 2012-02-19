@@ -3605,9 +3605,3 @@ Models.removeWebHooks = function() {
   });
   Models.WebHooks = [];
 };
-
-Models.initialize = function() {
-  return this.values.filter(function(m) {
-    return m.initialize && m.initialize();
-  });
-}
