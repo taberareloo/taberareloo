@@ -514,7 +514,7 @@ function Streams(posters) {
     name: 'scope',
     style: 'font-size:1em; width:100%; margin-bottom: 1em;',
     disabled: 'true'
-  }, $N('option', {value : ''}, 'Not seem to log in Google+'));
+  }, $N('option', {value : ''}, 'Not seem to log in Google+ (will check 1m later)'));
   container.appendChild(selectBox);
   $('widgets').appendChild(container);
 
@@ -559,12 +559,12 @@ function Pinboards(posters) {
     name: 'pinboard',
     style: 'font-size:1em; width:100%; margin-bottom: 1em;',
     disabled: 'true'
-  }, $N('option', { value: '' }, 'Not seem to log in Pinterest'));
+  }, $N('option', { value: '' }, 'Not seem to log in Pinterest (will check 1m later)'));
   container.appendChild(selectBox);
   $('widgets').appendChild(container);
 
   var boards = background.Models['Pinterest'].getBoards();
-  if (boards) {
+  if (boards && boards.length) {
     $D(selectBox);
     selectBox.appendChild(
       $N('option', {value : ''}, 'Select Pinterest Board (or same as last one)')
