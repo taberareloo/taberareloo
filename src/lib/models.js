@@ -2950,6 +2950,7 @@ Models.register({
   upload : function(file, oz) {
     return this.openUploadSession(file.fileName, file.length, oz).addCallback(function(session) {
       if (!session) {
+        throw new Error("Couldn't upload an image properly");
         return null;
       }
       return request(session.sessionStatus.externalFieldTransfers[0].putInfo.url, {
@@ -2958,10 +2959,13 @@ Models.register({
       }).addCallback(function(res) {
         var session = JSON.parse(res.responseText);
         if (session.sessionStatus) {
-          return session.sessionStatus
-            .additionalInfo['uploader_service.GoogleRupioAdditionalInfo']
-            .completionInfo.customerSpecificInfo;
+          var completionInfo = session.sessionStatus
+            .additionalInfo['uploader_service.GoogleRupioAdditionalInfo'].completionInfo;
+          if (completionInfo && (completionInfo.status === 'SUCCESS')) {
+            return completionInfo.customerSpecificInfo;
+          }
         }
+        throw new Error("Couldn't upload an image properly");
         return null;
       });
     });
