@@ -3045,7 +3045,7 @@ Models.register({
 
   getPages : function() {
     var self = this;
-    var url = 'https://plus.google.com/u/0/_/pages/getidentities/';
+    var url = 'https://plus.google.com/u/0/_/pages/get/';
     return request(url + '?'
       + queryString({
         _reqid : this.getReqid(),
@@ -3054,11 +3054,11 @@ Models.register({
     ).addCallback(function(res) {
       var text = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
       var json = MochiKit.Base.evalJSON(text);
-      var data = self.getDataByKey(json[0], 'ope.gmir');
+      var data = self.getDataByKey(json[0], 'ope.gmppr');
       var pages = [];
       if (data) {
         data[1].forEach(function(page) {
-          if (page[1]) {
+          if (page[2]) {
             pages.push({
               id   : page[30],
               name : page[4][3],
