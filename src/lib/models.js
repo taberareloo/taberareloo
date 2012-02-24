@@ -2494,10 +2494,10 @@ Models.register({
       return;
     }
 
-    var config = TBRL.Config['services'][this.name];
     var enable = false;
     ['regular', 'photo', 'quote', 'link', 'video', 'favorite'].forEach(function(type) {
-      if ((config[type] === 'default') || (config[type] === 'enabled')) {
+      var config = Models.getConfig({ type: type }, self);
+      if ((config === 'default') || (config === 'enabled')) {
         enable = true;
       }
     });
@@ -3336,10 +3336,10 @@ Models.register({
       this.timer = null;
     }
 
-    var config = TBRL.Config['services'][this.name];
     var enable = false;
     ['photo'].forEach(function(type) {
-      if ((config[type] === 'default') || (config[type] === 'enabled')) {
+      var config = Models.getConfig({ type: type }, self);
+      if ((config === 'default') || (config === 'enabled')) {
         enable = true;
       }
     });
@@ -3571,8 +3571,12 @@ Models.getConfig = function(ps, poster) {
   }
 };
 
+Models.getConfigObject = function(config, name) {
+  return config[name] || {};
+};
+
 Models.getPostConfig = function(config, name, ps, model) {
-  var c = config[name] || {};
+  var c = Models.getConfigObject(config, name);
   return (ps.favorite && ps.favorite.name === (model.typeName || name))? c.favorite : c[ps.type];
 };
 
