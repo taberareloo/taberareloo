@@ -2810,7 +2810,7 @@ Models.register({
       }
       if (ps.upload) {
         description = joinText([
-          (ps.page) ? '*' + ps.page + '*' : '', ps.pageUrl,
+          (ps.item || ps.page) ? '*' + (ps.item || ps.page) + '*' : '', ps.pageUrl,
           (ps.body) ? '“' + ps.body + '”' : ''], "\n");
         description = joinText([ps.description, description], "\n\n");
       }
