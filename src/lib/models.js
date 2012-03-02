@@ -1233,20 +1233,22 @@ Models.register({
   },
 
   getUserTags : function() {
-    return request('https://www.google.com/bookmarks/api/bookmark', {
+    return request('https://www.google.com/bookmarks/mark', {
       queryString : {
-        op : 'LIST_LABELS'
+        op : 'add'
       }
     }).addCallback(function(res){
-      var data = JSON.parse(res.responseText);
-      return zip(data['labels'], data['counts']).map(function(pair){
-        return {
-          name      : pair[0],
-          frequency : pair[1]
-        };
-      });
+      var doc = createHTML(res.responseText);
+      return doc.querySelectorAll('a[href^="/bookmarks/lookup?q=label:"]:not([href^="/bookmarks/lookup?q=label:%5Enone"])').reduce(function (memo, label) {
+        memo.push({
+          'name': label.firstChild.textContent.trim(),
+          'frequency': label.firstElementChild.textContent.slice(1, -1)
+        });
+        return memo;
+      }, []);
     });
   },
+
 
   getSuggestions : function(url){
     var that = this;
