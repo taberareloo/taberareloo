@@ -54,18 +54,25 @@ Repository.prototype = {
     }, []);
   },
   register : function(defs, target, after){
-    if(!defs) return;
+    if (!defs) {
+      return;
+    }
     defs = [].concat(defs);
-    if(target){
+    if (target) {
       var vals = this.values;
       this.clear();
-      for(var i = 0, len = vals.length; i < len; ++i){
-        if(vals[i].name === target) break;
+      for (var i = 0, len = vals.length; i < len; ++i) {
+        if (vals[i].name === target) {
+          break;
+        }
       }
-      vals.splice.apply(vals, [(after ? i+1 : i), 0].concat(defs));
+      vals.splice.apply(vals, [(after ? i + 1 : i), 0].concat(defs));
       defs = vals;
     }
-    defs.forEach(function(d){
+    defs.forEach(function (d) {
+      if (this.hasOwnProperty(d.name)) {
+        this.remove(this[d.name]);
+      }
       this.list.push(d);
       this[d.name] = d;
     }, this);
