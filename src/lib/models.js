@@ -802,16 +802,17 @@ Models.register({
       });
     }).addCallback(function(res) {
       var form = formContents(res.responseText, true);
+      var content = {
+        title       : ps.item,
+        url         : ps.itemUrl,
+        description : joinText([ps.body, ps.description], ' ', true),
+        tags        : joinText(ps.tags, ' '),
+      };
+      if (ps.private || form.private) {
+        content.private = 'on';
+      }
       return request('https://pinboard.in/add', {
-        sendContent : update(form, {
-          title       : ps.item,
-          url         : ps.itemUrl,
-          description : joinText([ps.body, ps.description], ' ', true),
-          tags        : joinText(ps.tags, ' '),
-          private     :
-            (ps.private == null)? form.private :
-            (ps.private)? 'on' : '',
-        }),
+        sendContent : update(form, content),
       });
     });
   },
