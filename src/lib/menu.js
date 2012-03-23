@@ -103,6 +103,17 @@
     }
   });
   chrome.contextMenus.create({
+    title: 'Photo - Background Image',
+    contexts: ['all'],
+    parentId: id,
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusBGImage',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
     title: 'Text',
     contexts: ['all'],
     parentId: id,

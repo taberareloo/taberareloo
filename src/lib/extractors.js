@@ -879,7 +879,7 @@ Extractors.register([
       return (img.width===1 && img.height===1);
     },
     extract : function(ctx){
-      removeElement(ctx.target);
+//      removeElement(ctx.target);
 
       return Extractors[ctx.bgImageURL?
         'Photo - background image' :
@@ -1220,11 +1220,11 @@ Extractors.register([
     lookupBG: function(elm, doc){
       if(elm !== doc){
         return (function(target){
-          var bg = getComputedStyle(elm, '').backgroundImage;
-          if(bg){
+          var bg = getComputedStyle(target, '').backgroundImage;
+          if ((bg !== 'none') && bg) {
             return bg;
           } else {
-            var parent = elm.parentNode;
+            var parent = target.parentNode;
             if(parent === doc || !parent){
               return null;
             } else {

@@ -519,6 +519,20 @@ var onRequestHandlers = {
       }, function(res){ });
     });
   },
+  contextMenusBGImage: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext(TBRL.getContextMenuTarget()));
+    var ext = Extractors["Photo - background image"];
+    if (ext.check(ctx)) {
+      TBRL.share(ctx, ext, true);
+    }
+    else {
+      alert('No background image');
+    }
+  },
   contextMenusText: function(req, sender, func) {
     func({});
     var content = req.content;
