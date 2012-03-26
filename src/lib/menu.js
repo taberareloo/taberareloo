@@ -1,4 +1,71 @@
 (function() {
+  chrome.contextMenus.create({
+    title: 'Taberareloo',
+    contexts: ['all'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenus',
+        content: info,
+        popup  : false
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Quote',
+    contexts: ['selection'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusQuote',
+        content: info,
+        popup  : false
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Link',
+    contexts: ['link'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusLink',
+        content: info,
+        popup  : false
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Photo',
+    contexts: ['image'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusImage',
+        content: info,
+        popup  : false
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Video',
+    contexts: ['video'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusVideo',
+        content: info,
+        popup  : false
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Audio',
+    contexts: ['audio'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusAudio',
+        content: info,
+        popup  : false
+      });
+    }
+  });
+
   var id = chrome.contextMenus.create({
     title: 'Share ...',
     contexts: ['all']
@@ -10,7 +77,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenus',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -21,7 +89,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusQuote',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -32,7 +101,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusLink',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -43,7 +113,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusImage',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -65,7 +136,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusVideo',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -76,7 +148,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusAudio',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
