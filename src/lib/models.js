@@ -3523,7 +3523,7 @@ Models.register({
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
-    return text;
+    return maybeDeferred(text);
 
   var urls = text.match(reUrl);
   return gatherResults(urls.map(function(url){
