@@ -117,8 +117,11 @@ var TBRL = {
       var self = this;
       var ds = {};
       var models = {};
+      var notify = TBRL.Notification;
       posters = [].concat(posters);
       posters.forEach(function(p) {
+        var notify_id = TBRL.ID + '_' + (++notify.id);
+        growlNotification(p.name, 'Posting...', 0, notify_id);
         models[p.name] = p;
         try {
           ds[p.name] =
@@ -128,6 +131,16 @@ var TBRL = {
         } catch (e) {
           ds[p.name] = fail(e);
         }
+        ds[p.name].addCallbacks(
+          function(res) {
+            growlNotification(p.name, 'Posting... Done', 3, notify_id);
+            return res;
+          },
+          function(res) {
+            growlNotification(p.name, 'Posting... Error', 0, notify_id);
+            return res;
+          }
+        );
       });
       return new DeferredHash(ds).addCallback(function(ress) {
         var errs = [], urls = [];
@@ -401,3 +414,19 @@ chrome.extension.onRequest.addListener(function(req, sender, func) {
   var handler = onRequestsHandlers[req.request];
   handler && handler.apply(this, arguments);
 });
+
+function growlNotification(title, message, timeout, id, icon, onclick) {
+  id   = id || TBRL.ID;
+  icon = icon || chrome.extension.getURL('skin/fork64.png');
+  try {
+    var notification = webkitNotifications.createNotification(icon, title, message);
+    notification.replaceId = id;
+    notification.ondisplay = function () {
+      if (timeout > 0) setTimeout(function () { notification.cancel(); }, timeout * 1000);
+    };
+    notification.onclick = function () {
+      if (typeof onclick === 'function') onclick();
+    };
+    notification.show();
+  } catch(e) {}
+}
