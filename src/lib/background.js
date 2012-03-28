@@ -117,6 +117,7 @@ var TBRL = {
       var self = this;
       var ds = {};
       var models = {};
+      var notifications = [];
       var notify = TBRL.Notification;
       posters = [].concat(posters);
       posters.forEach(function(p) {
@@ -133,11 +134,15 @@ var TBRL = {
         }
         ds[p.name].addCallbacks(
           function(res) {
-            growlNotification(p.name, 'Posting... Done', 3, notify_id);
+            var notification = growlNotification(p.name, 'Posting... Done', 3, notify_id);
+            if (notification) notifications.push(notification);
             return res;
           },
           function(res) {
-            growlNotification(p.name, 'Posting... Error', 0, notify_id);
+            growlNotification(p.name, 'Posting... Error', 0, notify_id, null, function() {
+              window.open(ps.pageUrl, '');
+              this.cancel();
+            });
             return res;
           }
         );
@@ -155,6 +160,11 @@ var TBRL = {
             urls.push(models[name].LOGIN_URL);
           }
         }
+        notifications.forEach(function(notification) {
+          try {
+            notification.cancel();
+          } catch (e) {}
+        });
         if (errs.length) {
           self.alertError(
             chrome.i18n.getMessage(
@@ -425,8 +435,12 @@ function growlNotification(title, message, timeout, id, icon, onclick) {
       if (timeout > 0) setTimeout(function () { notification.cancel(); }, timeout * 1000);
     };
     notification.onclick = function () {
-      if (typeof onclick === 'function') onclick();
+      if (typeof onclick === 'function') onclick.call(notification);
     };
     notification.show();
-  } catch(e) {}
+    return notification;
+  }
+  catch(e) {
+    return null;
+  }
 }
