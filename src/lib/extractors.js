@@ -1229,9 +1229,9 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/www\.nicovideo\.jp\/watch\//);
     },
     extract : function(ctx){
-      var embed = '';
+      var nico_player = '';
       window.nicovideo_callback = function(player) {
-        embed = player.getHTML();
+        nico_player = player;
       };
       var url = ctx.href.replace(
         /http:\/\/(?:www\.)?nicovideo\.jp\/watch\/([0-9a-zA-Z]+)/g,
@@ -1245,7 +1245,8 @@ Extractors.register([
           type    : 'video',
           item    : ctx.title,
           itemUrl : ctx.href,
-          body    : embed
+          body    : nico_player.getHTML(),
+          nico    : nico_player
         };
       });
     }
