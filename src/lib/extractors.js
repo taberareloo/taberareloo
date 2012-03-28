@@ -1229,14 +1229,23 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/www\.nicovideo\.jp\/watch\//);
     },
     extract : function(ctx){
-      var embedUrl = resolveRelativePath(ctx.href)($X('descendant::a[starts-with(@href, "/embed/")]/@href', ctx.document)[0]);
-      return request(embedUrl, {charset : 'utf-8'}).addCallback(function(res){
-        var doc = createHTML(res.responseText);
+      var embed = '';
+      window.nicovideo_callback = function(player) {
+        embed = player.getHTML();
+      };
+      var url = ctx.href.replace(
+        /http:\/\/(?:www\.)?nicovideo\.jp\/watch\/([0-9a-zA-Z]+)/g,
+        function (text, id) {
+          return 'http://ext.nicovideo.jp/thumb_watch/' + id + '?cb=nicovideo_callback';
+        }
+      );
+      return request(url, {charset : 'utf-8'}).addCallback(function(res){
+        eval(res.responseText);
         return {
           type    : 'video',
           item    : ctx.title,
           itemUrl : ctx.href,
-          body    : $X('//input[@name="script_code"]/@value', doc)[0]
+          body    : embed
         };
       });
     }
