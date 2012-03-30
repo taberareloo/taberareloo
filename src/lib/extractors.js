@@ -1245,7 +1245,7 @@ Extractors.register([
           type    : 'video',
           item    : ctx.title,
           itemUrl : ctx.href,
-          body    : nico_player.getHTML(),
+          body    : nico_player && nico_player.getHTML(),
           nico    : nico_player
         };
       });
