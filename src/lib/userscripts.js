@@ -296,7 +296,7 @@ UserScripts.register([
         setTimeout(function(){
           self.notify(target, true);
           self.reblog(target, manually);
-        }, 0);
+        }, returned * 500);
         if(++returned === len){
           document.removeEventListener(ev_name, arguments.callee, false);
           setTimeout(function(){

@@ -365,7 +365,8 @@ var onRequestHandlers = {
       if(Extractors.Quote.check(ctx)){
         var d = Extractors.Quote.extract(ctx);
       } else {
-        var d = Extractors.Link.extract(ctx);
+//        var d = Extractors.Link.extract(ctx);
+        var d = Extractors.check(ctx)[0].extract(ctx);
       }
       maybeDeferred(d).addCallback(function(ps){
         func(checkHttps(update({
@@ -415,7 +416,7 @@ var onRequestHandlers = {
         break;
     }
     update(ctx, TBRL.createContext((query && document.querySelector(query)) || TBRL.getContextMenuTarget()));
-    TBRL.share(ctx, Extractors.check(ctx)[0], true);
+    TBRL.share(ctx, Extractors.check(ctx)[0], req.popup);
   },
   contextMenusQuote: function(req, sender, func) {
     func({});
@@ -433,7 +434,7 @@ var onRequestHandlers = {
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Quote/.test(m.name);
     })[0];
-    TBRL.share(ctx, ext, true);
+    TBRL.share(ctx, ext, req.popup);
   },
   contextMenusLink: function(req, sender, func) {
     func({});
@@ -446,7 +447,7 @@ var onRequestHandlers = {
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Link/.test(m.name);
     })[0];
-    TBRL.share(ctx, ext, true);
+    TBRL.share(ctx, ext, req.popup);
   },
   contextMenusImage: function(req, sender, func) {
     func({});
@@ -458,7 +459,7 @@ var onRequestHandlers = {
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Photo/.test(m.name);
     })[0];
-    TBRL.share(ctx, ext, true);
+    TBRL.share(ctx, ext, req.popup);
   },
   contextMenusImageCache: function(req, sender, func) {
     func({});
@@ -479,7 +480,7 @@ var onRequestHandlers = {
     var ext = Extractors.check(ctx).filter(function(m){
       return /^Video/.test(m.name);
     })[0];
-    TBRL.share(ctx, ext, true);
+    TBRL.share(ctx, ext, req.popup);
   },
   contextMenusAudio: function(req, sender, func) {
     func({});
@@ -488,7 +489,7 @@ var onRequestHandlers = {
       onVideo: true,
       contextMenu: true
     }, TBRL.createContext(document.querySelector('audio[src='+JSON.stringify(content.srcUrl)+']') || TBRL.getContextMenuTarget()));
-    TBRL.share(ctx, Extractors.Audio, true);
+    TBRL.share(ctx, Extractors.Audio, req.popup);
   },
   contextMenusCapture: function(req, sender, func) {
     func({});

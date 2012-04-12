@@ -10,7 +10,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenus',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -21,7 +22,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusQuote',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -32,7 +34,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusLink',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -43,7 +46,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusImage',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -65,7 +69,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusVideo',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
@@ -76,7 +81,8 @@
     onclick: function(info, tab) {
       chrome.tabs.sendRequest(tab.id, {
         request: 'contextMenusAudio',
-        content: info
+        content: info,
+        popup  : true
       });
     }
   });
