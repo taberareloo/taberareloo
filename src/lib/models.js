@@ -3379,7 +3379,7 @@ Models.register({
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       var boards = [];
-      $X('//div[@class="BoardList"]/ul/li', doc).forEach(function(li) {
+      $X('//div[@class="BoardList"]//ul/li', doc).forEach(function(li) {
         boards.push({
           id   : $X('./@data', li)[0],
           name : $X('./span/text()', li)[0]
