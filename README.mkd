@@ -43,7 +43,7 @@ see [wiki page](https://wiki.github.com/Constellation/taberareloo/)
 
 ## VERSION
 
-2.0.59
+2.0.60
 
 ## DEPENDENCIES
 
@@ -68,6 +68,7 @@ Taberareloo Dev Team
 + YungSang
 + hitode909
 + syoichi
++ mono0x
 
 Tombloo Dev Team
 
