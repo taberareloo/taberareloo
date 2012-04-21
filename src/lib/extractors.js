@@ -311,7 +311,10 @@ Extractors.register([
     },
     extract : function(ctx) {
       ctx.href = this.normalizeUrl(ctx.host, this.getAsin(ctx));
-      ctx.title = 'Amazon: ' + $X('id("prodImage")/@alt', ctx.document)[0] + ': ' + ctx.document.title.split(/[：:] */).slice(-2).shift();
+      var pi = $X('id("prodImage")/@alt', ctx.document)[0];
+      pi = (!! pi) ? pi + ': ' : '';
+      var ti = $X('id("btAsinTitle")/text()', ctx.document);
+      ctx.title = 'Amazon: ' + pi + ti;
 
       // 日本に特化(comの取得方法不明)
       var date = new Date(ctx.document.body.innerHTML.extract('発売日：.*?</b>.*?([\\d/]+)'));
@@ -325,21 +328,22 @@ Extractors.register([
     name : 'Photo - Amazon',
     ICON : 'http://www.amazon.com/favicon.ico',
     check : function(ctx){
-      return Extractors.Amazon.preCheck(ctx) && $X('./ancestor::*[@id="prodImageCell"]', ctx.target)[0];
+      return Extractors.Amazon.preCheck(ctx) && ($X('./ancestor::*[@id="main-image-relative-container"]', ctx.target)[0]
+        || $X('./ancestor::*[@id="iv-large-image"]', ctx.target)[0]);
     },
     extract : function(ctx){
       Extractors.Amazon.extract(ctx);
 
       var url = ctx.target.src.split('.');
-      url.splice(-2, 1, 'LZZZZZZZ');
+      if (url.length > 4) {
+        url.splice(-2, 1, 'LZZZZZZZ');
+      }
       url = url.join('.').replace('.L.LZZZZZZZ.', '.L.'); // カスタマーイメージ用
 
       with (ctx.target) {
         src = url;
         height = '';
         width = '';
-        style.height = 'auto';
-        style.width = 'auto';
       }
 
       return {
