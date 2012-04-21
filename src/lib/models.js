@@ -3628,7 +3628,7 @@ Models.register({
   post_video : function(ps, sendContent) {
     var self = this;
     return request(this.CHECK_URL + '?' + queryString({
-      check : ps.pageUrl
+      check : ps.itemUrl || ps.pageUrl
     })).addCallback(function(res) {
       if (res.responseText) {
         var data = MochiKit.Base.evalJSON(res.responseText);
