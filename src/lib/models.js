@@ -3530,7 +3530,7 @@ Models.register({
   POST_URL    : 'https://gimmebar.com/bookmarklet/capture',
   CHECK_URL   : 'https://gimmebar.com/ajax/content_url',
   UPLOAD_URL  : 'https://gimmebar.com/bookmarklet/upload',
-  DESC_URL    : 'https://gimmebar.com/ajax/asset_description',
+  DESC_URL    : 'https://gimmebar.com/site-api-1/asset/',
   TWITTER_API : 'http://api.twitter.com/1/statuses/show.json',
 
   check : function(ps) {
@@ -3652,28 +3652,31 @@ Models.register({
       '(via ' + ps.pageUrl + ' )'
     ], "\n", true);
 
-    return request(this.UPLOAD_URL, {
-      mode        : 'raw',
-      sendContent : ps.file,
-      headers : {
-        'Content-Type'     : ps.file.type || 'image/png',
-        'X-Filename'       : ps.item || ps.page,
-        'X-Privacy'        : 1,
-        'X-Requested-With' : 'XMLHttpRequest'
-      }
-    }).addCallback(function(res) {
-      if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
-        return self.getCSRFToken().addCallback(function(csrftoken) {
-          return request(self.DESC_URL, {
+    return self.getCSRFToken().addCallback(function(csrftoken) {
+      return request(self.UPLOAD_URL, {
+        mode        : 'raw',
+        sendContent : ps.file,
+        headers : {
+          'Content-Type'     : ps.file.type || 'image/png',
+          'X-CSRF-Token'     : csrftoken,
+          'X-Filename'       : ps.item || ps.page,
+          'X-Privacy'        : 1,
+          'X-Requested-With' : 'XMLHttpRequest'
+        }
+      }).addCallback(function(res) {
+        if (res.responseText) {
+          var data = MochiKit.Base.evalJSON(res.responseText);
+          return request(self.DESC_URL + data.id, {
             sendContent : {
-              asset_id    : data._id,
               description : description,
-              _csrf_token : csrftoken
+              _csrf       : csrftoken
+            },
+            headers : {
+              'X-Requested-With' : 'XMLHttpRequest'
             }
           });
-        });
-      }
+        }
+      });
     });
   }
 });
