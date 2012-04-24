@@ -117,8 +117,12 @@ var TBRL = {
       var self = this;
       var ds = {};
       var models = {};
+      var notifications = [];
+      var notify = TBRL.Notification;
       posters = [].concat(posters);
       posters.forEach(function(p) {
+        var notify_id = TBRL.ID + '_' + (++notify.id);
+        growlNotification(p.name, 'Posting...', 0, notify_id);
         models[p.name] = p;
         try {
           ds[p.name] =
@@ -128,6 +132,20 @@ var TBRL = {
         } catch (e) {
           ds[p.name] = fail(e);
         }
+        ds[p.name].addCallbacks(
+          function(res) {
+            var notification = growlNotification(p.name, 'Posting... Done', 3, notify_id);
+            if (notification) notifications.push(notification);
+            return res;
+          },
+          function(res) {
+            growlNotification(p.name, 'Posting... Error', 0, notify_id, null, function() {
+              window.open(ps.pageUrl, '');
+              this.cancel();
+            });
+            return res;
+          }
+        );
       });
       return new DeferredHash(ds).addCallback(function(ress) {
         var errs = [], urls = [];
@@ -142,6 +160,11 @@ var TBRL = {
             urls.push(models[name].LOGIN_URL);
           }
         }
+        notifications.forEach(function(notification) {
+          try {
+            notification.cancel();
+          } catch (e) {}
+        });
         if (errs.length) {
           self.alertError(
             chrome.i18n.getMessage(
@@ -401,3 +424,23 @@ chrome.extension.onRequest.addListener(function(req, sender, func) {
   var handler = onRequestsHandlers[req.request];
   handler && handler.apply(this, arguments);
 });
+
+function growlNotification(title, message, timeout, id, icon, onclick) {
+  id   = id || TBRL.ID;
+  icon = icon || chrome.extension.getURL('skin/fork64.png');
+  try {
+    var notification = webkitNotifications.createNotification(icon, title, message);
+    notification.replaceId = id;
+    notification.ondisplay = function () {
+      if (timeout > 0) setTimeout(function () { notification.cancel(); }, timeout * 1000);
+    };
+    notification.onclick = function () {
+      if (typeof onclick === 'function') onclick.call(notification);
+    };
+    notification.show();
+    return notification;
+  }
+  catch(e) {
+    return null;
+  }
+}
