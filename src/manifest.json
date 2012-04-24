@@ -34,7 +34,7 @@
    "default_locale": "en_US",
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",
-   "permissions": [ "http://*/*", "https://*/*", "tabs", "bookmarks", "contextMenus", "cookies", "unlimited_storage" ],
+   "permissions": [ "http://*/*", "https://*/*", "tabs", "bookmarks", "contextMenus", "cookies", "unlimited_storage", "notifications" ],
    "version": "2.0.60",
    "incognito": "split"
 }
