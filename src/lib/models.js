@@ -3520,6 +3520,167 @@ Models.register({
   }
 });
 
+Models.register({
+  name      : 'GimmeBar',
+  ICON      : 'https://gimmebar.com/img/favicon.png',
+  LINK      : 'https://gimmebar.com/',
+  LOGIN_URL : 'https://gimmebar.com/login',
+
+  INIT_URL    : 'https://gimmebar.com/ajax/bookmarklet_data',
+  POST_URL    : 'https://gimmebar.com/bookmarklet/capture',
+  CHECK_URL   : 'https://gimmebar.com/ajax/content_url',
+  UPLOAD_URL  : 'https://gimmebar.com/bookmarklet/upload',
+  DESC_URL    : 'https://gimmebar.com/site-api-1/asset/',
+  TWITTER_API : 'http://api.twitter.com/1/statuses/show.json',
+
+  check : function(ps) {
+    return /photo|quote|link|video/.test(ps.type);
+  },
+
+  getCSRFToken : function() {
+    var self = this;
+    return request(this.INIT_URL).addCallback(function(res) {
+      if (res.responseText) {
+        var data = MochiKit.Base.evalJSON(res.responseText);
+        return data.csrf_token;
+      }
+      else {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+    });
+  },
+
+  post : function(ps) {
+    var self = this;
+
+    var sendContent = {
+      source   : ps.pageUrl,
+      title    : ps.item || ps.page,
+      private  : 1,
+      use_prev : 0
+    };
+
+    if (ps.description) {
+      sendContent.description = ps.description;
+    }
+
+    switch (ps.type) {
+    case 'photo':
+      if (ps.file) {
+        return this.upload(ps);
+      }
+      else {
+        sendContent.url = ps.itemUrl;
+      }
+      break;
+    case 'quote':
+      var regex = ps.pageUrl.match(/\/\/twitter\.com\/.*?\/(?:status|statuses)\/(\d+)/);
+      if (regex) {
+        return this.post_twitter(ps, regex[1], sendContent);
+      }
+      sendContent.text = ps.body;
+      break;
+    case 'link':
+      var regex = ps.pageUrl.match(/\/\/twitter\.com\/.*?\/(?:status|statuses)\/(\d+)/);
+      if (regex) {
+        return this.post_twitter(ps, regex[1], sendContent);
+      }
+      sendContent.url = ps.itemUrl;
+      break;
+    case 'video':
+      return this.post_video(ps, sendContent);
+    }
+
+    return this.getCSRFToken().addCallback(function(csrftoken) {
+      sendContent._csrf_token = csrftoken;
+      return request(self.POST_URL, {
+        sendContent : sendContent
+      });
+    });
+  },
+
+  post_twitter : function(ps, id, sendContent) {
+    var self = this;
+    return request(this.TWITTER_API + '?' + queryString({
+      id                  : id,
+      contributor_details : 'true'
+    })).addCallback(function(res) {
+      if (res.responseText) {
+        var data = MochiKit.Base.evalJSON(res.responseText);
+        var sitesense = {
+          minURL  : 'http://twitter.com',
+          data    : data,
+          private : 'null',
+          url     : ps.pageUrl,
+          type    : 'status'
+        };
+        sendContent.sitesense = JSON.stringify(sitesense);
+        return self.getCSRFToken().addCallback(function(csrftoken) {
+          sendContent._csrf_token = csrftoken;
+          return request(self.POST_URL, {
+            sendContent : sendContent
+          });
+        });
+      }
+    });
+  },
+
+  post_video : function(ps, sendContent) {
+    var self = this;
+    return request(this.CHECK_URL + '?' + queryString({
+      check : ps.itemUrl || ps.pageUrl
+    })).addCallback(function(res) {
+      if (res.responseText) {
+        var data = MochiKit.Base.evalJSON(res.responseText);
+        sendContent.assimilator = JSON.stringify(data[0]);
+        return self.getCSRFToken().addCallback(function(csrftoken) {
+          sendContent._csrf_token = csrftoken;
+          return request(self.POST_URL, {
+            sendContent : sendContent
+          });
+        });
+      }
+    });
+  },
+
+  upload : function(ps) {
+    var self = this;
+
+    var description = joinText([
+      ps.description,
+      (ps.body) ? '“' + ps.body + '”' : '',
+      '(via ' + ps.pageUrl + ' )'
+    ], "\n", true);
+
+    return self.getCSRFToken().addCallback(function(csrftoken) {
+      return request(self.UPLOAD_URL, {
+        mode        : 'raw',
+        sendContent : ps.file,
+        headers : {
+          'Content-Type'     : ps.file.type || 'image/png',
+          'X-CSRF-Token'     : csrftoken,
+          'X-Filename'       : ps.item || ps.page,
+          'X-Privacy'        : 1,
+          'X-Requested-With' : 'XMLHttpRequest'
+        }
+      }).addCallback(function(res) {
+        if (res.responseText) {
+          var data = MochiKit.Base.evalJSON(res.responseText);
+          return request(self.DESC_URL + data.id, {
+            sendContent : {
+              description : description,
+              _csrf       : csrftoken
+            },
+            headers : {
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
+          });
+        }
+      });
+    });
+  }
+});
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
