@@ -33,6 +33,9 @@
   "label_tagAutoComplete": {
     "message": "Tag Auto Complete"
   },
+  "label_notificationOnPosting": {
+    "message": "Show notification on posting"
+  },
   "label_postWithQueue": {
     "message": "Tumblr - Post with Queue"
   },

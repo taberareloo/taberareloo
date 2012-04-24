@@ -48,6 +48,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   = $('shortcutkey_taberareloo_on_google_plus_clear').value
   = chrome.i18n.getMessage('label_clear');
   $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
+  $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
   $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
   $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
   $('label_clipFullPage').appendChild($T(chrome.i18n.getMessage('label_clipFullPage')));
@@ -85,6 +86,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var provider = new Provider();
   // tag auto complete
   var tag_check = new Check('tag_auto_complete', !!Config.post["tag_auto_complete"]);
+  // notification on posting
+  var notification_check = new Check('notification_on_posting', !!Config.post["notification_on_posting"]);
   // LDR + Taberareloo
   var ldr_check = new Check('ldr_plus_taberareloo', !!Config.post["ldr_plus_taberareloo"]);
   var ldr_short = new Shortcutkey("shortcutkey_ldr_plus_taberareloo", true, function(key){
@@ -175,6 +178,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
         'post'     : {
           'tag_provider'     : provider.body(),
           'tag_auto_complete': tag_check.body(),
+          'notification_on_posting': notification_check.body(),
           'ldr_plus_taberareloo': ldr_check.body(),
           'disable_tumblr_default_keybind': disable_keybind_check.body(),
           'dashboard_plus_taberareloo': dashboard_check.body(),

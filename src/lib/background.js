@@ -97,7 +97,8 @@ var TBRL = {
       'always_shorten_url': false,
       'multi_tumblelogs': false,
       'post_with_queue': false,
-      'ignore_canonical': 'twitter\\.com'
+      'ignore_canonical': 'twitter\\.com',
+      'notification_on_posting': true
     },
     'entry': {
       'trim_reblog_info': false,
@@ -118,11 +119,17 @@ var TBRL = {
       var ds = {};
       var models = {};
       var notifications = [];
-      var notify = TBRL.Notification;
       posters = [].concat(posters);
       posters.forEach(function(p) {
-        var notify_id = TBRL.ID + '_' + (++notify.id);
-        growlNotification(p.name, 'Posting...', 0, notify_id);
+        var notification = null;
+
+        if (TBRL.Config.post['notification_on_posting']) {
+          notification = TBRL.Notification.notify({
+            title: p.name,
+            message: 'Posting...'
+          });
+        }
+
         models[p.name] = p;
         try {
           ds[p.name] =
@@ -132,20 +139,35 @@ var TBRL = {
         } catch (e) {
           ds[p.name] = fail(e);
         }
-        ds[p.name].addCallbacks(
-          function(res) {
-            var notification = growlNotification(p.name, 'Posting... Done', 3, notify_id);
-            if (notification) notifications.push(notification);
-            return res;
-          },
-          function(res) {
-            growlNotification(p.name, 'Posting... Error', 0, notify_id, null, function() {
-              window.open(ps.pageUrl, '');
-              this.cancel();
-            });
-            return res;
-          }
-        );
+
+        if (TBRL.Config.post['notification_on_posting']) {
+          ds[p.name].addCallbacks(
+            function(res) {
+              var n = TBRL.Notification.notify({
+                title: p.name,
+                message: 'Posting... Done',
+                timeout: 3,
+                id: notification.replaceId
+              });
+              if (n) {
+                notifications.push(n);
+              }
+              return res;
+            },
+            function(res) {
+              TBRL.Notification.notify({
+                title: p.name,
+                message: 'Posting... Error',
+                id: notification.replaceId,
+                onclick: function () {
+                  window.open(ps.pageUrl, '');
+                  this.cancel();
+                }
+              });
+              return res;
+            }
+          );
+        }
       });
       return new DeferredHash(ds).addCallback(function(ress) {
         var errs = [], urls = [];
@@ -160,11 +182,17 @@ var TBRL = {
             urls.push(models[name].LOGIN_URL);
           }
         }
-        notifications.forEach(function(notification) {
-          try {
-            notification.cancel();
-          } catch (e) {}
-        });
+
+        if (TBRL.Config.post['notification_on_posting']) {
+          setTimeout(function () {
+            notifications.forEach(function(notification) {
+              try {
+                notification.cancel();
+              } catch (e) {}
+            });
+          }, 500);
+        }
+
         if (errs.length) {
           self.alertError(
             chrome.i18n.getMessage(
@@ -244,18 +272,40 @@ var TBRL = {
     suggestionShownDefault: false
   },
   Notification: {
+    ICON: chrome.extension.getURL('skin/fork64.png'),
+    NOTIFIER: window.webkitNotifications || window.Notifications,
+    ID: 0,
     contents: {},
-    id: 0,
-    notify: function(content) {
-      var notify = TBRL.Notification;
-      var id = ++notify.id;
-      notify.contents[id] = content;
-      var query = queryString({
-        'id': id
-      }, true);
-      var note = webkitNotifications.createHTMLNotification(
-          chrome.extension.getURL('notifications.html') + query);
-      note.show();
+    generateUniqueID: function() {
+      var id = this.ID++;
+      return TBRL.ID + id;
+    },
+    notify: function(opt) {
+      var id = opt.id || this.generateUniqueID();
+      var icon = opt.icon || this.ICON;
+      var title = opt.title || '';
+      var message = opt.message || '';
+      var timeout = typeof opt.timeout === 'number' ? opt.timeout * 1000 : null;
+      var onclick = opt.onclick || null;
+      try {
+        var notification = this.NOTIFIER.createNotification(icon, title, message);
+        notification.replaceId = id;
+        if (timeout !== null) {
+          notification.ondisplay = function () {
+            setTimeout(function () {
+              notification.cancel();
+            }, timeout);
+          };
+        }
+        if (onclick) {
+          notification.onclick = onclick;
+        }
+        notification.show();
+        return notification;
+      }
+      catch(e) {
+        return null;
+      }
     }
   },
   configSet: function(config) {
@@ -422,25 +472,7 @@ var onRequestsHandlers = {
 
 chrome.extension.onRequest.addListener(function(req, sender, func) {
   var handler = onRequestsHandlers[req.request];
-  handler && handler.apply(this, arguments);
+  if (handler) {
+    handler.apply(this, arguments);
+  }
 });
-
-function growlNotification(title, message, timeout, id, icon, onclick) {
-  id   = id || TBRL.ID;
-  icon = icon || chrome.extension.getURL('skin/fork64.png');
-  try {
-    var notification = webkitNotifications.createNotification(icon, title, message);
-    notification.replaceId = id;
-    notification.ondisplay = function () {
-      if (timeout > 0) setTimeout(function () { notification.cancel(); }, timeout * 1000);
-    };
-    notification.onclick = function () {
-      if (typeof onclick === 'function') onclick.call(notification);
-    };
-    notification.show();
-    return notification;
-  }
-  catch(e) {
-    return null;
-  }
-}

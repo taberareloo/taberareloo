@@ -33,6 +33,9 @@
   "label_tagAutoComplete": {
     "message": "タグの自動決定"
   },
+  "label_notificationOnPosting": {
+    "message": "ポスト時に通知を表示する"
+  },
   "label_postWithQueue": {
     "message": "Tumblr - キューに入れてポストする"
   },
