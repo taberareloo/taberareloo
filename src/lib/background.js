@@ -49,10 +49,12 @@ function constructPsInBackground(content) {
   }
 }
 
-function getSelected() {
+function getCurrent() {
   var d = new Deferred();
-  chrome.tabs.getSelected(null, function(tab) {
-    d.callback(tab);
+  chrome.windows.getCurrent(function(w) {
+    chrome.tabs.getSelected(w.id, function(tab) {
+      d.callback(tab);
+    });
   });
   return d;
 }
@@ -406,7 +408,7 @@ var onRequestsHandlers = {
     });
   },
   share: function(req, sender, func) {
-    getSelected().addCallback(function(tab) {
+    getCurrent().addCallback(function(tab) {
       constructPsInBackground(req.content).addCallback(function(ps) {
         if (req.show) {
           TBRL.Popup.open(tab, ps);
