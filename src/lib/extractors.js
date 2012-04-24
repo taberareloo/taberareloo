@@ -649,7 +649,7 @@ Extractors.register([
               type        : 'video',
               item        : attachment[3],
               itemUrl     : ctx.href = attachment[24][1],
-              body        : attachment[21]
+              body        : attachment[5] && attachment[5][1]
             });
           }
           else if ((attachment[24][4] === 'image')
