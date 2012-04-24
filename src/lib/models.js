@@ -1829,22 +1829,22 @@ Models.register({
 });
 
 Models.register({
-  name : 'ReadItLater',
-  ICON : 'http://readitlaterlist.com/favicon.ico',
-  LINK : 'http://readitlaterlist.com/',
-  LOGIN_URL : 'http://readitlaterlist.com/l',
+  name : 'Pocket',
+  ICON : 'http://getpocket.com/favicon.ico',
+  LINK : 'http://getpocket.com/',
+  LOGIN_URL : 'http://getpocket.com/l',
   check : function(ps){
     return /quote|link/.test(ps.type);
   },
   post : function(ps){
     var that = this;
-    return request('http://readitlaterlist.com/edit').addCallback(function(res) {
+    return request('http://getpocket.com/edit').addCallback(function(res) {
       var doc = createHTML(res.responseText);
-      var form = $X('id("content")/form', doc)[0];
+      var form = doc.getElementsByTagName('form')[0];
       if (/login/.test(form.getAttribute('action'))) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       } else {
-        return request('http://readitlaterlist.com/edit_process.php', {
+        return request('http://getpocket.com/edit_process.php', {
           queryString: {
             BL: 1
           },
