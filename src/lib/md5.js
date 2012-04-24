@@ -9,7 +9,7 @@
 
 var MD5 = { };
 
-(function(module) {
+(function(exports) {
 /*
  * Configurable variables. You may need to tweak these to be compatible with
  * the server-side, but the defaults work in most cases.
@@ -32,12 +32,12 @@ function any_hmac_md5(k, d, e)
   { return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e); }
 
 // EXPORT
-MD5.hex_md5 = hex_md5;
-MD5.b64_md5 = b64_md5;
-MD5.any_md5 = any_md5;
-MD5.hex_hmac_md5 = hex_hmac_md5;
-MD5.b64_hmac_md5 = b64_hmac_md5;
-MD5.any_hmac_md5 = any_hmac_md5;
+exports.hex_md5 = hex_md5;
+exports.b64_md5 = b64_md5;
+exports.any_md5 = any_md5;
+exports.hex_hmac_md5 = hex_hmac_md5;
+exports.b64_hmac_md5 = b64_hmac_md5;
+exports.any_hmac_md5 = any_hmac_md5;
 
 /*
  * Perform a simple self-test to see if the VM is working
