@@ -1032,7 +1032,6 @@ function base64ToBlob(data, type, cutHeader) {
   var binary = window.atob(data);
   var buffer = new ArrayBuffer(binary.length);
   var view = new Uint8Array(buffer);
-  var fromCharCode = String.fromCharCode;
   for (var i = 0, len = binary.length; i < len; ++i) {
     view[i] = binary.charCodeAt(i);
   }
