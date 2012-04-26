@@ -524,7 +524,7 @@ function Streams(posters) {
   if (streams) {
     $D(selectBox);
     selectBox.appendChild(
-      $N('option', {value : ''}, 'Select Google+ Stream (or same as last one)')
+      $N('option', {value : '', selected : 'selected'}, 'Select Google+ Stream (or same as last one)')
     );
     for (var i = 0, len = streams.presets.length ; i < len ; i++) {
       var preset = streams.presets[i];
