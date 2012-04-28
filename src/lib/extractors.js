@@ -379,6 +379,112 @@ Extractors.register([
   },
 
   {
+    name : 'Photo - Flickr',
+    ICON : 'http://www.flickr.com/favicon.ico',
+
+    API_KEY : 'ecf21e55123e4b31afa8dd344def5cc5',
+    RE : new RegExp('^http://(?:.+?.)?static.?flickr.com/\\d+?/(\\d+?)_.*'),
+    getImageId : function(ctx){
+      // 他サイトに貼られているFlickrにも対応する
+      if(/flickr\.com/.test(ctx.host)){
+        // ログインしているとphoto-drag-proxyが前面に表示される
+        // アノテーション上の場合はphoto_notesの孫要素となる
+        if(
+            (ctx.target.src && ctx.target.src.match('spaceball.gif')) || 
+          	ctx.target.id == 'photo-drag-proxy' || 
+            $X('./ancestor-or-self::div[@id="photo-drag-proxy"]', ctx.target)
+        ){
+          ctx.target = $X('//div[@class="photo-div"]/img')[0] || ctx.target;
+        }
+      }
+
+      if(!ctx.target || !ctx.target.src || !ctx.target.src.match(this.RE))
+        return;
+
+      return RegExp.$1;
+    },
+    check : function(ctx){
+      return this.getImageId(ctx);
+    },
+    callMethod : function(ps){
+      return request('http://flickr.com/services/rest/', {
+        queryString : update({
+          api_key        : this.API_KEY,
+          nojsoncallback : 1,
+          format         : 'json',
+        }, ps),
+      }).addCallback(function(res){
+        eval('var json=' + res.responseText);
+        if(json.stat!='ok')
+          throw json.message;
+        return json;
+      });
+    },
+    getSizes : function(id){
+      return this.callMethod({
+        method   : 'flickr.photos.getSizes',
+        photo_id : id,
+      }).addCallback(function(res){
+        return res.sizes.size;
+      });
+    },
+    getInfo : function(id){
+      return this.callMethod({
+        method   : 'flickr.photos.getInfo',
+        photo_id : id,
+      }).addCallback(function(res){
+        return res.photo;
+      });
+    },
+    extract : function(ctx){
+      var id = this.getImageId(ctx);
+      return new DeferredHash({
+        'info'  : this.getInfo(id),
+        'sizes' : this.getSizes(id),
+      }).addCallback(function(r){
+        if(!r.info[0])
+          throw new Error(r.info[1].message);
+
+        var info = r.info[1];
+        var sizes = r.sizes[1];
+
+        var title = info.title._content;
+        ctx.title = title + ' on Flickr'
+        ctx.href  = info.urls.url[0]._content;
+
+        var thumbnailSize;
+        if (sizes.length >= 6) {
+          thumbnailSize = sizes[6]; // may be 'Small'
+        } else {
+          thumbnailSize = sizes[sizes.length-1];
+        }
+        var largestSize;
+        if (info.rotation == 0) {
+          largestSize = sizes.pop();
+        } else {
+          sizes.pop();
+          largestSize = sizes.pop();
+        }
+
+        return {
+          type      : 'photo',
+          item      : title,
+          itemUrl   : largestSize.source,
+          author    : info.owner.username,
+          authorUrl : ctx.href.extract('^(http://.*?flickr.com/photos/.+?/)'),
+          license   : info.license,
+          date      : info.dates.taken,
+          thumbnailUrl   : thumbnailSize.source,
+          originalWidth  : largestSize.width,
+          originalHeight : largestSize.height,
+        }
+      }).addErrback(function(err){
+        return Extractors['Photo'].extract(ctx);
+      });
+    },
+  },
+
+  {
     name : 'ReBlog',
     TUMBLR_URL : 'http://www.tumblr.com/',
     extractByLink : function(ctx, link){
