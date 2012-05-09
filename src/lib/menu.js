@@ -81,6 +81,18 @@
     }
   });
   chrome.contextMenus.create({
+    title: 'Photo - Flickr',
+    contexts: ['all'],
+    parentId: id,
+    documentUrlPatterns: ['http://www.flickr.com/photos/*/*/*'],
+    onclick: function(info, tab) {
+      chrome.tabs.sendRequest(tab.id, {
+        request: 'contextMenusImage',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
     title: 'Photo - Capture',
     contexts: ['all'],
     parentId: id,
