@@ -382,7 +382,7 @@ function Pic(ps, toggle) {
   this.pic = $('pic');
   this.url = ps.itemUrl || '';
   this.pic.appendChild(this.image = $N('img', {
-    'src': ps.fileEntry || ps.itemUrl,
+    'src': ps.fileEntry || ps.thumbnailUrl || ps.itemUrl,
     'alt': ps.item,
     'title': ps.item,
     'class': 'photo_image',
@@ -399,7 +399,9 @@ function Pic(ps, toggle) {
       this.setAttribute('style', 'height:300px !important;width:'+(height/300*width)+' !important;');
       this.setAttribute('style', 'height:300px !important;width:'+(height/300*width)+' !important;');
     }
-    self.size.appendChild($T(width + ' × ' + height));
+    var w = ps.originalWidth || width;
+    var h = ps.originalHeight || height;
+    self.size.appendChild($T(w + ' × ' + h));
     wait(0).addCallback(function(){
       Form.resize();
     });
