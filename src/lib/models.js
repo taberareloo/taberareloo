@@ -1703,7 +1703,7 @@ Models.register({
     var self = this;
     return request(this.URL + '/settings/account').addCallback(function(res) {
       var html = res.responseText;
-      if (~html.indexOf('class="signin"﻿'))
+      if (~html.indexOf('class="signin"'))
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return {
