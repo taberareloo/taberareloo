@@ -1701,9 +1701,9 @@ Models.register({
 
   getToken : function() {
     var self = this;
-    return request(this.URL + '/account/settings').addCallback(function(res) {
+    return request(this.URL + '/settings/account').addCallback(function(res) {
       var html = res.responseText;
-      if (~html.indexOf('login'))
+      if (~html.indexOf('class="signin"'))
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return {
