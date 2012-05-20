@@ -299,10 +299,8 @@ Tumblr.Regular = {
 
 Tumblr.Photo = {
   convertToFormAsync : function(ps){
-    // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
     var ret = new Deferred();
-    function callback(res) {
-      var finalurl = res.responseText;
+    function callback(finalurl) {
 
       var form = {
         'post[type]'  : ps.type,
@@ -316,16 +314,14 @@ Tumblr.Photo = {
       ps.file ? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
       ret.callback(form);
     }
+
     if (ps.itemUrl) {
-      request('http://finalurl.appspot.com/api', {
-        queryString: {
-          url: ps.itemUrl
-        },
-        method: 'GET'
-      }).addCallback(callback);
+      // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
+      getFinalUrl(ps.itemUrl).addCallback(callback);
     } else {
-      setTimeout(callback, 0, {});
+      setTimeout(callback, 0, null);
     }
+
     return ret;
   }
 };
