@@ -26,7 +26,7 @@ var TBRL = {
       'left: 10px;',
       'background-color: white;',
       'list-style-type: none;',
-      '-webkit-border-radius: 4px;',
+      'border-radius: 4px;',
       'border: solid 1px silver;',
       'opacity: 0.6;',
       'position: fixed;'
@@ -58,9 +58,9 @@ var TBRL = {
       'min-width: 70px;',
       'text-align: left;',
       'border: solid 1px silver;',
-      '-webkit-border-radius: 3px;',
+      'border-radius: 3px;',
       'display: block;',
-      'background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(204, 204, 204)), color-stop(1, rgb(102, 102, 102)));',
+      'background-image: -webkit-linear-gradient(rgb(204, 204, 204), rgb(102, 102, 102));',
       'cursor: pointer;'
     ].join(''),
     'img' : [

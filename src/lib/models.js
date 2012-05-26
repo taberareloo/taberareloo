@@ -593,14 +593,17 @@ Models.register({
         } else {
           ary = [ url ];
         }
-        var code = '(' + executor.toString() + '(' + JSON.stringify(ary) + ')())';
+        var code = '(' + executor.toString() + '(' + JSON.stringify(ary) + '))';
         chrome.tabs.executeScript(tab.id, {
           code: code
         }, function() { });
       }
 
-      chrome.tabs.getSelected(null, function(tab) {
-        if (!tab || /^(?:chrome|https)/.test(tab.url)) {
+      chrome.tabs.query({
+        active: true,
+        currentWindow: true
+      }, function (tabs) {
+        if (tabs.length === 0 || /^(?:chrome|https)/.test(tabs[0].url)) {
           chrome.tabs.query({
             url: 'http://*/*',
             active: true,
@@ -634,7 +637,7 @@ Models.register({
             ok(tabs[0]);
           });
         } else {
-          ok(tab);
+          ok(tabs[0]);
         }
       });
       return succeed();
