@@ -3276,7 +3276,7 @@ Models.register({
       description += '<a href="' + ps.pageUrl + '">' + ps.pageUrl + '</a>\n';
     }
     if (ps.body) {
-      description += '<blockquote>' + ps.body + '</blockquote>';
+      description += '<blockquote>' + getFlavor(ps, 'html') + '</blockquote>';
     }
     return description;
   },
