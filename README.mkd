@@ -43,7 +43,7 @@ see [wiki page](https://wiki.github.com/Constellation/taberareloo/)
 
 ## VERSION
 
-2.0.64
+2.0.65
 
 ## DEPENDENCIES
 
@@ -70,6 +70,7 @@ Taberareloo Dev Team
 + syoichi
 + mono0x
 + iyoupapa
++ polygonplanet
 
 Tombloo Dev Team
 
