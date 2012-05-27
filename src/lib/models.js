@@ -3490,6 +3490,10 @@ Models.register({
       caption = ps.item || ps.page;
     }
 
+    if (caption.length > 400) {
+      caption = caption.substring(0, 400) + '...';
+    }
+
     var sendContent = {};
     if (ps.file) {
       caption = joinText([
@@ -3520,6 +3524,11 @@ Models.register({
         sendContent.csrfmiddlewaretoken = csrftoken;
         return request(self.UPLOAD_URL, {
           sendContent : sendContent
+        }).addCallback(function(res) {
+          var json = MochiKit.Base.evalJSON(res.responseText);
+          if (json && json.status && (json.status === 'fail')) {
+            throw new Error(json.message);
+          }
         });
       });
     });
@@ -3617,7 +3626,12 @@ Models.register({
     var self = this;
     return request(this.INIT_URL).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        try {
+          var data = MochiKit.Base.evalJSON(res.responseText);
+        }
+        catch (e) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
         return data.csrf_token;
       }
       else {
@@ -3716,6 +3730,8 @@ Models.register({
           });
         });
       }
+    }).addErrback(function(e) {
+      throw new Error('Not supported a video post on this site.');
     });
   },
 
