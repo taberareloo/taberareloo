@@ -603,7 +603,6 @@ Models.register({
         active: true,
         currentWindow: true
       }, function (tabs) {
-        console.log(tabs);
         if (tabs.length === 0 || /^(?:chrome|https)/.test(tabs[0].url)) {
           chrome.tabs.query({
             url: 'http://*/*',
