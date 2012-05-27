@@ -1516,7 +1516,7 @@ Extractors.register([
         "}\n" +
         "div.taberareloo_capture_size {\n" +
         "  padding: 5px !important;\n" +
-        "  -webkit-border-radius: 5px !important;\n" +
+        "  border-radius: 5px !important;\n" +
         "  opacity: 0.7 !important;\n" +
         "  position: fixed !important;\n" +
         "  z-index: 999999999 !important;\n" +

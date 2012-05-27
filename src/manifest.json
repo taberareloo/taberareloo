@@ -1,5 +1,18 @@
 {
-   "background_page": "background.html",
+   "background": {
+      "scripts": [
+       "lib/Base.js",
+       "lib/DOM.js",
+       "lib/Async.js",
+       "lib/md5.js",
+       "lib/proto.js",
+       "lib/utils.js",
+       "lib/repository.js",
+       "lib/models.js",
+       "lib/background.js",
+       "lib/menu.js"
+      ]
+   },
    "content_scripts": [ {
       "js": [
        "lib/Base.js",
@@ -21,7 +34,7 @@
    "browser_action": {
      "default_icon" : "skin/fork19.png",
      "default_title": "taberareloo",
-     "popup"        : "popup.html"
+     "default_popup": "popup.html"
    },
    "options_page": "options.html",
    "icons": {
@@ -30,7 +43,7 @@
      "32": "skin/fork32.png",
      "16": "skin/fork16.png"
    },
-   "minimum_chrome_version": "17.0",
+   "minimum_chrome_version": "18.0",
    "default_locale": "en_US",
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",

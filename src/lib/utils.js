@@ -1058,6 +1058,10 @@ function getCookies(domain, name) {
  * @return {Deferred} リダイレクト先のURLが返される リダイレイクトしない場合はもとのURL
  */
 var getFinalUrl = (function() {
+  if (!chrome.webRequest) {
+    return null;
+  }
+
   var redirects = {};
   var threads = 0;
 
