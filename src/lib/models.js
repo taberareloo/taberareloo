@@ -1630,10 +1630,12 @@ Models.register({
     var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
     var status   = '';
+    var maxlen   = 140;
     if (ps.type === 'photo') {
       ps = update({}, ps);
       ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
+      maxlen -= 21; // reserve for pic.twitter.com
     }
     if (!template) {
       status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
@@ -1650,14 +1652,18 @@ Models.register({
       });
     }
     var ret = new Deferred();
-    if (TBRL.Config['post']['always_shorten_url']) {
-      shortenUrls(status, Models[self.SHORTEN_SERVICE])
-        .addCallback(function(status) {
-          ret.callback(status);
-        });
-    } else {
-      ret.callback(status);
-    }
+    (TBRL.Config['post']['always_shorten_url']
+      ? shortenUrls(status, Models[self.SHORTEN_SERVICE])
+      : succeed(status)
+    ).addCallback(function(status) {
+      var len = self.getActualLength(status);
+      if (len <= maxlen) {
+        ret.callback(status);
+      }
+      else {
+        ret.errback('too many characters to post (' + (len - maxlen) + ' over)');
+      }
+    });
     return ret;
   },
 
@@ -1786,6 +1792,14 @@ Models.register({
         });
       });
     });
+  },
+
+  getActualLength : function(status) {
+    var ret = status.split('\n').map(function (s) {
+      s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890');
+      return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789');
+    }).join('\n');
+    return ret.length;
   }
 });
 
