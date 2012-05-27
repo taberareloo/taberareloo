@@ -292,10 +292,23 @@ var TBRL = {
       return JSON.stringify(arg);
     }).join(',')
     location.href = "javascript:void ("+encodeURIComponent(func.toString())+")("+args+")";
-  }
+  },
+
+  DOMContentLoaded: (function () {
+    var ret = new Deferred();
+    connect(document, 'onDOMContentLoaded', null, function(ev) {
+      ret.callback({});
+    });
+    return ret;
+  }())
 };
 
-TBRL.getConfig().addCallback(TBRL.init);
+new DeferredList([
+  TBRL.getConfig(),
+  TBRL.DOMContentLoaded
+]).addCallback(function (resses) {
+  TBRL.init(resses[0][1]);
+});
 
 function downloadFile(url, opt) {
   var ret = new Deferred();
