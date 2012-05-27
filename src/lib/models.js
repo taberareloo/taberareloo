@@ -603,6 +603,7 @@ Models.register({
         active: true,
         currentWindow: true
       }, function (tabs) {
+        console.log(tabs);
         if (tabs.length === 0 || /^(?:chrome|https)/.test(tabs[0].url)) {
           chrome.tabs.query({
             url: 'http://*/*',
@@ -1630,12 +1631,10 @@ Models.register({
     var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
     var status   = '';
-    var maxlen   = 140;
     if (ps.type === 'photo') {
       ps = update({}, ps);
       ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
-      maxlen     = 119;
     }
     if (!template) {
       status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
@@ -1652,17 +1651,13 @@ Models.register({
       });
     }
     var ret = new Deferred();
-    if ((status.length < maxlen) && !TBRL.Config['post']['always_shorten_url']) {
-      ret.callback(status);
-    } else {
+    if (TBRL.Config['post']['always_shorten_url']) {
       shortenUrls(status, Models[self.SHORTEN_SERVICE])
         .addCallback(function(status) {
-          if (status.length < maxlen) {
-            ret.callback(status);
-          } else {
-            ret.errback('too many characters to post (' + (status.length - maxlen) + ' over)');
-          }
+          ret.callback(status);
         });
+    } else {
+      ret.callback(status);
     }
     return ret;
   },
