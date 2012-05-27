@@ -51,10 +51,11 @@ function constructPsInBackground(content) {
 
 function getCurrent() {
   var d = new Deferred();
-  chrome.windows.getCurrent(function(w) {
-    chrome.tabs.getSelected(w.id, function(tab) {
-      d.callback(tab);
-    });
+  chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  }, function (tabs) {
+    d.callback(tabs[0]);
   });
   return d;
 }
@@ -66,8 +67,8 @@ var GlobalFileEntryCache = { };
 
 var TBRL = {
   // default config
-  VERSION: '2.0.64',
-  ID: chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
+  VERSION: chrome.app.getDetails().version,
+  ID: chrome.app.getDetails().id,
   Config: {
     'services': {
     },
