@@ -4,11 +4,11 @@ var Models = new Repository();
 
 var Tumblr = {
   name : 'Tumblr',
-  ICON : 'http://www.tumblr.com/images/favicon.gif',
+  ICON : 'http://assets.tumblr.com/images/favicon.gif',
   MEDIA_URL : 'http://media.tumblr.com/',
   TUMBLR_URL : 'http://www.tumblr.com/',
-  LINK : 'http://www.tumblr.com/',
-  LOGIN_URL : 'http://www.tumblr.com/login',
+  LINK : 'https://www.tumblr.com/',
+  LOGIN_URL : 'https://www.tumblr.com/login',
 
   /**
    * ポストを削除する。
@@ -441,7 +441,8 @@ Models.register({
 Models.register({
   name : 'FFFFOUND',
   ICON : 'http://ffffound.com/favicon.ico',
-  URL  : 'http://FFFFOUND.com/',
+  LINK : 'http://ffffound.com/',
+  URL  : 'http://ffffound.com/',
 
   getToken : function(){
     return request(this.URL + 'bookmarklet.js').addCallback(function(res){
@@ -854,7 +855,8 @@ Models.register({
 
 Models.register({
   name : 'Pinboard',
-  ICON : 'http://pinboard.in/favicon.ico',
+  ICON : 'https://pinboard.in/favicon.ico',
+  LINK : 'https://pinboard.in/',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -979,8 +981,8 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : 'http://www.delicious.com/favicon.ico',
-  LINK : 'http://www.delicious.com/',
+  ICON : 'https://www.delicious.com/favicon.ico',
+  LINK : 'https://www.delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
   /**
@@ -1261,8 +1263,8 @@ Models.register({
 
 Models.register({
   name : 'GoogleBookmarks',
-  ICON     : chrome.extension.getURL('skin/google-bookmark.png'),
-  LINK : 'http://www.google.com/bookmarks/',
+  ICON : chrome.extension.getURL('skin/google-bookmark.png'),
+  LINK : 'https://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
   POST_URL : 'https://www.google.com/bookmarks/mark',
 
@@ -1360,7 +1362,8 @@ Models.register({
 
 Models.register({
   name: 'GoogleCalendar',
-  ICON: 'http://calendar.google.com/googlecalendar/images/favicon.ico',
+  ICON: 'https://calendar.google.com/googlecalendar/images/favicon.ico',
+  LINK: 'https://www.google.com/calendar/',
 
   check: function(ps) {
     return /regular|link/.test(ps.type) && !ps.file;
@@ -1469,6 +1472,7 @@ Models.register({
 Models.register({
   name     : 'ChromeBookmark',
   ICON     : chrome.extension.getURL('skin/chromium.ico'),
+  LINK     : 'chrome://bookmarks/',
   check : function(ps){
     return ps.type === 'link';
   },
@@ -1514,10 +1518,10 @@ Models.register({
 
 Models.register({
   name     : 'Evernote',
-  ICON     : 'http://www.evernote.com/favicon.ico',
+  ICON     : 'https://www.evernote.com/favicon.ico',
   POST_URL : 'https://www.evernote.com/clip.action',
   LOGIN_URL: 'https://www.evernote.com/Login.action',
-  LINK     : 'http://www.evernote.com/',
+  LINK     : 'https://www.evernote.com/',
 
   check : function(ps){
     return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -1578,8 +1582,8 @@ Models.register({
 
 Models.register({
   name : 'FriendFeed',
-  ICON : 'http://friendfeed.com/favicon.ico',
-  LINK : 'http://friendfeed.com/',
+  ICON : 'https://friendfeed.com/favicon.ico',
+  LINK : 'https://friendfeed.com/',
   LOGIN_URL : 'https://friendfeed.com/account/login',
   check : function(ps){
     return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
@@ -1616,7 +1620,7 @@ Models.register({
 
 Models.register({
   name : 'Twitter',
-  ICON : 'http://twitter.com/favicon.ico',
+  ICON : 'https://twitter.com/favicon.ico',
   URL  : 'https://twitter.com',
   LINK : 'https://twitter.com/',
   LOGIN_URL : 'https://twitter.com/login',
@@ -1791,8 +1795,8 @@ Models.register({
 
 Models.register({
   name : 'Instapaper',
-  ICON : chrome.extension.getURL('skin/instapaper.ico'),
-  LINK : 'http://www.instapaper.com/',
+  ICON : chrome.extension.getURL('skin/instapaper.png'),
+  LINK : 'https://www.instapaper.com/',
   POST_URL: 'http://www.instapaper.com/edit',
   LOGIN_URL : 'https://www.instapaper.com/user/login',
   check : function(ps){
@@ -1823,9 +1827,9 @@ Models.register({
 
 Models.register({
   name : 'Pocket',
-  ICON : 'http://getpocket.com/favicon.ico',
-  LINK : 'http://getpocket.com/',
-  LOGIN_URL : 'http://getpocket.com/l',
+  ICON : 'https://getpocket.com/favicon.ico',
+  LINK : 'https://getpocket.com/',
+  LOGIN_URL : 'https://getpocket.com/l',
   check : function(ps){
     return /quote|link/.test(ps.type);
   },
@@ -2053,7 +2057,7 @@ items(Models.Yahoo.katakana).forEach(function(pair){
 
 Models.register({
   name : 'YahooBookmarks',
-  ICON : 'http://bookmarks.yahoo.co.jp/favicon.ico',
+  ICON : 'http://i.yimg.jp/images/sicons/ybm16.gif',
   LINK : 'http://bookmarks.yahoo.co.jp/',
   LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
@@ -2126,9 +2130,9 @@ Models.register({
 
 Models.register({
   name : 'Wassr',
-  ICON : 'http://wassr.jp/favicon.ico',
-  LINK : 'http://wassr.jp/',
-  LOGIN_URL : 'http://wassr.jp/',
+  ICON : 'https://wassr.jp/favicon.ico',
+  LINK : 'https://wassr.jp/',
+  LOGIN_URL : 'https://wassr.jp/',
 
   check : function(ps){
     return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -2157,7 +2161,7 @@ Models.register({
 
 Models.register({
   name: 'Clipp',
-  ICON : chrome.extension.getURL('skin/item.ico'),
+  ICON : chrome.extension.getURL('skin/clipp.ico'),
   CLIPP_URL: 'http://clipp.in/',
   LINK : 'http://clipp.in/',
   LOGIN_URL: 'http://clipp.in/account/login',
@@ -2289,15 +2293,16 @@ Models.register({
 
 Models.register({
   name : 'gist',
-  ICON : 'http://gist.github.com/favicon.ico',
-  LINK : 'http://gist.github.com/',
-  LOGIN_URL : 'https://github.com/login',
+  ICON : 'https://gist.github.com/favicon.ico',
+  LINK : 'https://gist.github.com/',
+  LOGIN_URL : 'https://gist.github.com/login',
+  URL  : 'https://gist.github.com/',
   check: function(ps){
     return /regular|quote/.test(ps.type);
   },
   post : function(ps){
     var self = this;
-    return request(this.LINK).addCallback(function(res){
+    return request(this.URL).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," userbox ")]', doc)[0])){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -2316,7 +2321,7 @@ Models.register({
       form['file_name[gistfile1]'] = ps.item;
       // public
       delete form['action_button'];
-      return request(self.LINK+'gists', {
+      return request(self.URL+'gists', {
         sendContent: form
       });
     });
@@ -2401,8 +2406,8 @@ Models.register({
 
 Models.register({
   name: 'Diigo',
-  ICON: 'http://www.diigo.com/favicon.ico',
-  LINK: 'http://www.diigo.com/',
+  ICON: 'https://www.diigo.com/favicon.ico',
+  LINK: 'https://www.diigo.com/',
   check: function(ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },

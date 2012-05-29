@@ -19,7 +19,7 @@ var TBRL = {
     'ol' : [
       'display: block;',
       'margin: 1__qem 0 1em 0;',
-      '-webkit-padding-start: 40px',
+      '-webkit-padding-start: 40px;',
       'z-index: 100000;',
       'padding: 20px;',
       'top: 10px;',
