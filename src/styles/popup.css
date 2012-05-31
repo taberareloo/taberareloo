@@ -235,7 +235,8 @@ div#posters img.poster:hover:active {
   height: 22px;
   cursor: pointer;
   position: relative;
-  top: -11px;
+  top: 5px;
+  vertical-align: top;
 }
 #all_off:hover {
   background-color: gray;
