@@ -1,5 +1,7 @@
 // -*- coding: utf-8 -*-
 
+var isDashboard = /^https?:\/\/www\.tumblr\.com\/(?:(?:dashboard|likes)|(?:liked\/by|show|tagged|blog)\/)/.test(location.href);
+
 var UserScripts = new Repository();
 
 UserScripts.register([
@@ -193,14 +195,7 @@ UserScripts.register([
       var r_flag= TBRL.config['post']['dashboard_plus_taberareloo'];
       var m_key = TBRL.config['post']['shortcutkey_dashboard_plus_taberareloo_manually'];
       var m_flag= TBRL.config['post']['dashboard_plus_taberareloo_manually'];
-      if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) ||
-          /^http:\/\/www\.tumblr\.com\/likes/.test(location.href) ||
-          /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
-          /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
-          /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href) ||
-          /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
-         ) && ((r_flag && r_key) ||
-               (m_flag && m_key))){
+      if(isDashboard && ((r_flag && r_key) || (m_flag && m_key))){
         if(r_flag)
           this.keys[r_key] = false;
         if(m_flag)
@@ -481,12 +476,7 @@ UserScripts.register({
     var play_s = TBRL.config['post']['shortcutkey_play_on_tumblr_play'];
     var like_s = TBRL.config['post']['shortcutkey_play_on_tumblr_like'];
     var count_s = TBRL.config['post']['shortcutkey_play_on_tumblr_count'];
-    if((/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href)    ||
-        /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
-        /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
-        /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href)     ||
-        /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href)
-       ) && ((TBRL.config['post']['play_on_tumblr_play']  && play_s )||
+    if(isDashboard && ((TBRL.config['post']['play_on_tumblr_play']  && play_s )||
              (TBRL.config['post']['play_on_tumblr_like']  && like_s )||
              (TBRL.config['post']['play_on_tumblr_count'] && count_s))){
       if(TBRL.config.post['play_on_tumblr_play'] && play_s){
@@ -573,12 +563,7 @@ UserScripts.register({
   name : 'Disable Tumblr default Keybind',
   check : function(ctx) {
     if (TBRL.config['post']['disable_tumblr_default_keybind']) {
-      return (/^http:\/\/www\.tumblr\.com\/dashboard/.test(location.href) ||
-              /^http:\/\/www\.tumblr\.com\/likes/.test(location.href) ||
-              /^http:\/\/www\.tumblr\.com\/popular\/top/.test(location.href) ||
-              /^http:\/\/www\.tumblr\.com\/show\//.test(location.href) ||
-              /^http:\/\/www\.tumblr\.com\/tagged\//.test(location.href) ||
-              /^http:\/\/www\.tumblr\.com\/tumblelog\//.test(location.href));
+      return isDashboard;
     }
   },
   exec  : function(){
