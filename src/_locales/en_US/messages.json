@@ -19,7 +19,7 @@
     "message": "Tag Provider"
   },
   "label_keyconfig": {
-    "message": "use ChromeKeyConfig instead ( if this is checked, Taberareloo doesn't observe key input. )"
+    "message": "use Keyconfig instead ( if this is checked, Taberareloo doesn't observe key input. )"
   },
   "label_shortcutkey": {
     "message": "Shortcutkey - $1 Quick Post"
