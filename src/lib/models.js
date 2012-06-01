@@ -1634,10 +1634,12 @@ Models.register({
     var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
     var status   = '';
+    var maxlen   = 140;
     if (ps.type === 'photo') {
       ps = update({}, ps);
       ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
+      maxlen -= 21; // reserve for pic.twitter.com
     }
     if (!template) {
       status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
@@ -1654,14 +1656,18 @@ Models.register({
       });
     }
     var ret = new Deferred();
-    if (TBRL.Config['post']['always_shorten_url']) {
-      shortenUrls(status, Models[self.SHORTEN_SERVICE])
-        .addCallback(function(status) {
-          ret.callback(status);
-        });
-    } else {
-      ret.callback(status);
-    }
+    (TBRL.Config['post']['always_shorten_url']
+      ? shortenUrls(status, Models[self.SHORTEN_SERVICE])
+      : succeed(status)
+    ).addCallback(function(status) {
+      var len = self.getActualLength(status);
+      if (len <= maxlen) {
+        ret.callback(status);
+      }
+      else {
+        ret.errback('too many characters to post (' + (len - maxlen) + ' over)');
+      }
+    });
     return ret;
   },
 
@@ -1790,6 +1796,14 @@ Models.register({
         });
       });
     });
+  },
+
+  getActualLength : function(status) {
+    var ret = status.split('\n').map(function (s) {
+      s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890');
+      return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789');
+    }).join('\n');
+    return ret.length;
   }
 });
 
@@ -3495,6 +3509,10 @@ Models.register({
       caption = ps.item || ps.page;
     }
 
+    if (caption.length > 400) {
+      caption = caption.substring(0, 400) + '...';
+    }
+
     var sendContent = {};
     if (ps.file) {
       caption = joinText([
@@ -3525,6 +3543,11 @@ Models.register({
         sendContent.csrfmiddlewaretoken = csrftoken;
         return request(self.UPLOAD_URL, {
           sendContent : sendContent
+        }).addCallback(function(res) {
+          var json = MochiKit.Base.evalJSON(res.responseText);
+          if (json && json.status && (json.status === 'fail')) {
+            throw new Error(json.message);
+          }
         });
       });
     });
@@ -3622,7 +3645,12 @@ Models.register({
     var self = this;
     return request(this.INIT_URL).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        try {
+          var data = MochiKit.Base.evalJSON(res.responseText);
+        }
+        catch (e) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
         return data.csrf_token;
       }
       else {
@@ -3721,6 +3749,8 @@ Models.register({
           });
         });
       }
+    }).addErrback(function(e) {
+      throw new Error('Not supported a video post on this site.');
     });
   },
 
