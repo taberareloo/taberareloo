@@ -213,10 +213,10 @@ Form.prototype = {
       }
       this.ps[key] = body;
     }, this);
-    background.TBRL.Popup.contents[this.ps.itemUrl] = this.ps;
+    background.TBRL.Popup.contents[this.ps.pageUrl] = this.ps;
   },
   delete : function(){
-    delete background.TBRL.Popup.contents[this.ps.itemUrl];
+    delete background.TBRL.Popup.contents[this.ps.pageUrl];
   },
   post: function(){
     if (this.posters.isPostable()) {
