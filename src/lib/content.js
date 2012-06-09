@@ -215,7 +215,7 @@ var TBRL = {
     var ctx = update({
       document :document,
       window : window,
-      title : document.title,
+      title : document.title || location.href.replace(new RegExp('(?:^http://)?(' + location.hostname + ')(?:/$)?'), '$1'),
       selection : (!!sel.raw)? sel : null,
       target : target || TBRL.getTarget() || document.documentElement
     }, window.location);
