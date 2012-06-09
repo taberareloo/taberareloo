@@ -873,24 +873,24 @@ Extractors.register([
 
   {
     name : 'Photo - 4u',
-    ICON : 'http://4u.straightline.jp/favicon.ico',
+    ICON : skin + '4u.ico',
     check : function(ctx){
       return ctx.onImage &&
-        ctx.href.match(/^http:\/\/4u\.straightline\.jp\/image\//) &&
-        ctx.target.src.match(/\/static\/upload\/l\/l_/);
+        ctx.hostname === '4u-beautyimg.com' &&
+        ctx.target.src.match(/\/thumb\/l\/l_/);
     },
     extract : function(ctx){
-      var author = $X('(//div[@class="entry-information"]//a)[1]', ctx.document)[0];
-      var iLoveHer = $X('//div[@class="entry-item fitem"]//a/@href', ctx.document)[0];
+      var iLoveHer = $X('./ancestor::li//span[starts-with(@id, "love-her-")]/a/@href', ctx.target)[0];
+      if (iLoveHer) {
+        var source = decodeURIComponent(iLoveHer.extract('src=([^&]*)'));
+      }
       return {
         type      : 'photo',
-        item      : ctx.title.extract(/(.*) - 4U/i),
-        itemUrl   : ctx.target.src,
-        author    : author.textContent.trim(),
-        authorUrl : author.href,
+        item      : $X('./ancestor::li//h2/a/text()', ctx.target)[0] || ctx.title.extract(/(.*) - 4U/i),
+        itemUrl   : source || ctx.target.src,
         favorite : {
           name : '4u',
-          id : iLoveHer && decodeURIComponent(iLoveHer.extract('src=([^&]*)'))
+          id : source
         }
       };
     }
