@@ -108,5 +108,6 @@
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs", "bookmarks", "contextMenus", "cookies", "unlimitedStorage", "notifications", "webRequest", "webRequestBlocking" ],
    "version": "2.0.79",
+   "update_url": "http://yungsang.com/taberareloo/update.xml",
    "incognito": "split"
 }
