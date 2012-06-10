@@ -884,6 +884,9 @@ Extractors.register([
       if (iLoveHer) {
         var source = decodeURIComponent(iLoveHer.extract('src=([^&]*)'));
       }
+      if (ctx.onLink && !/^\/image\//.test(ctx.pathname)) {
+        ctx.href = ctx.link.href;
+      }
       return {
         type      : 'photo',
         item      : $X('./ancestor::li//h2/a/text()', ctx.target)[0] || ctx.title.extract(/(.*) - 4U/i),
