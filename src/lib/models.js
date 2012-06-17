@@ -391,9 +391,9 @@ Models.register(Tumblr);
 Models.register({
   name : '4u',
   ICON : chrome.extension.getURL('skin/4u.ico'),
-  LOGIN_URL : 'http://4u.straightline.jp/admin/login',
-
-  LINK : 'http://4u.straightline.jp/',
+  LINK : 'http://4u-beautyimg.com/',
+  LOGIN_URL : 'http://4u-beautyimg.com/admin/login',
+  URL : 'http://4u-beautyimg.com/',
 
   check : function(ps){
     return ps.type === 'photo' && !ps.file;
@@ -401,7 +401,7 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request(this.LINK + 'power/manage/register', {
+    return request(this.URL + 'power/manage/register', {
       referrer : ps.pageUrl,
       queryString : {
         site_title  : ps.page,
@@ -423,15 +423,15 @@ Models.register({
 
   iLoveHer : function(id){
     var self = this;
-    return request(this.LINK + 'user/manage/do_register', {
+    return request(this.URL + 'user/manage/do_register', {
       redirectionLimit : 0,
-      referrer : this.LINK,
+      referrer : this.URL,
       queryString : {
         src : id
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('//form[@action="http://4u.straightline.jp/admin/login"]', doc)[0]){
+      if($X('//form[@action="' + this.URL + 'admin/login"]', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
