@@ -23,7 +23,10 @@ UserScripts.register([
       style.href = chrome.extension.getURL('styles/reader.css');
       document.head.appendChild(style);
       this.key = this.keyString2LDR(this.key);
-      TBRL.eval(this.script, this.key);
+      var self = this;
+      setTimeout(function(){
+        TBRL.eval(self.script, self.key);
+      },1000);
       window.addEventListener('Taberareloo.LDR', this.wrap, false);
     },
     unload: function(){
