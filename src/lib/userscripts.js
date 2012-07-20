@@ -126,7 +126,7 @@ UserScripts.register([
       return res;
     },
     script: function(key){
-      var id = setTimeout(function(){
+      var id = setTimeout(function callee() {
         if(id) clearTimeout(id);
         if(typeof Keybind !== 'undefined'){
           Keybind.add(key, function(){
@@ -143,7 +143,7 @@ UserScripts.register([
             }catch(e){}
           });
         } else {
-          id = setTimeout(arguments.callee, 100);
+          id = setTimeout(callee, 100);
         }
       }, 0);
     },
@@ -274,8 +274,8 @@ UserScripts.register([
     getStatus: function(){
       var ret = new Deferred();
       var ev_name = 'LDRize.status.Taberareloo'+(++this.count);
-      document.addEventListener(ev_name, function(e){
-        document.removeEventListener(ev_name, arguments.callee, false);
+      document.addEventListener(ev_name, function callee(e){
+        document.removeEventListener(ev_name, callee, false);
         var data = JSON.parse(e.data);
         ret.callback(data);
       }, false);
@@ -291,14 +291,14 @@ UserScripts.register([
       var ev_name = 'LDRize.strokePins.Taberareloo'+(++this.count);
       var results = [];
       var returned = 0;
-      document.addEventListener(ev_name, function(e){
+      document.addEventListener(ev_name, function callee(e){
         var target = e.target;
         setTimeout(function(){
           self.notify(target, true);
           self.reblog(target, manually);
         }, 0);
         if(++returned === len){
-          document.removeEventListener(ev_name, arguments.callee, false);
+          document.removeEventListener(ev_name, callee, false);
           setTimeout(function(){
             self.FlashMessage.showFlashMessageWindow('ReBlog '+len+' items', 600);
             ret.callback();
@@ -315,8 +315,8 @@ UserScripts.register([
       var ret = new Deferred();
       var self = this;
       var ev_name = 'LDRize.clearPins.Taberareloo'+(++this.count);
-      document.addEventListener(ev_name, function(e){
-        document.removeEventListener(ev_name, arguments.callee, false);
+      document.addEventListener(ev_name, function callee(e) {
+        document.removeEventListener(ev_name, callee, false);
         ret.callback();
       }, false);
       var message = JSON.stringify({type: ev_name });

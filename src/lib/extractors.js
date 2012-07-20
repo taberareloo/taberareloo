@@ -1329,7 +1329,7 @@ Extractors.register([
     },
     lookupBG: function(elm, doc){
       if(elm !== doc){
-        return (function(target){
+        return (function callee(target){
           var bg = getComputedStyle(target, '').backgroundImage;
           if ((bg !== 'none') && bg) {
             return bg;
@@ -1338,7 +1338,7 @@ Extractors.register([
             if(parent === doc || !parent){
               return null;
             } else {
-              return arguments.callee(parent);
+              return callee(parent);
             }
           }
         })(elm);
@@ -1411,8 +1411,8 @@ Extractors.register([
         request: "capture"
       }, function(res){
         var img = new Image();
-        img.addEventListener('load', function(ev){
-          img.removeEventListener('load', arguments.callee, false);
+        img.addEventListener('load', function callee(ev) {
+          img.removeEventListener('load', callee, false);
           scale = (img.naturalWidth === width)? null : img.naturalWidth / width;
           var canvas = document.createElement('canvas');
           var size = {w: 0, h: 0};

@@ -43,8 +43,8 @@ var Tumblr = {
 
     function trimQuote(entry){
       entry = entry.replace(/<p><\/p>/g, '').replace(/<p><a[^<]+<\/a>:<\/p>/g, '');
-      entry = (function(all, contents){
-        return contents.replace(/<blockquote>(([\n\r]|.)+)<\/blockquote>/gm, arguments.callee);
+      entry = (function callee(all, contents){
+        return contents.replace(/<blockquote>(([\n\r]|.)+)<\/blockquote>/gm, callee);
       })(null, entry);
       return entry.trim();
     }

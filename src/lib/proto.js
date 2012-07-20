@@ -7,9 +7,9 @@ Object.defineProperties(Array.prototype, {
     value: function() {
       var ret = [];
       (function(arr) {
-        arr.forEach(function(e) {
+        arr.forEach(function callee(e) {
           if (Array.isArray(e)) {
-             arguments.callee(e);
+            callee(e);
           } else {
             ret.push(e);
           }

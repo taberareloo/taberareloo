@@ -274,7 +274,7 @@ Form.resize = function() {
     window.resizeBy(width, height);
     Form.nowResizing = false;
   } else {
-    callLater(0.5, arguments.callee);
+    callLater(0.5, Form.resize);
   }
 };
 
@@ -945,38 +945,54 @@ Tags.prototype = {
   },
 
   // abbreviation scorer
-  scoreFor: function(toscore, abb){
-    if(!abb) return 0.9;
-    var td = toscore.toLowerCase(), tdLength = toscore.length, pivot = abb.length;
-    if(tdLength < pivot) return 0.0;
-    var ad = abb.toLowerCase(), ahead, atail, found, score, tail, tail_score, penalty, skipped;
-    for(; 0 < pivot; --pivot){
+  scoreFor: function scoreFor(toscore, abb) {
+    var td, tdLength, length, pivot, ad, ahead, atail, found, score, tail, tail_score, penalty, skipped;
+
+    if (!abb) {
+      return 0.9;
+    }
+
+    td = toscore.toLowerCase();
+    tdLength = toscore.length;
+    pivot = abb.length;
+
+    if (tdLength < pivot) {
+      return 0.0;
+    }
+
+    ad = abb.toLowerCase();
+
+    for (; 0 < pivot; --pivot) {
       ahead = ad.substring(0, pivot);
       atail = ad.substring(pivot) || "";
       found = td.indexOf(ahead);
-      if(~found){
-        tail = toscore.substring(found+pivot) || "";
-        tail_score = arguments.callee(tail, atail);
-        if(0 < tail_score){
-          if(found){
+      if (found !== -1) {
+        tail = toscore.substring(found + pivot) || "";
+        tail_score = scoreFor(tail, atail);
+        if (0 < tail_score) {
+          if (found) {
             skipped = toscore.substring(0, found);
-            if(/\s$/.test(skipped)){
+            if (/\s$/.test(skipped)) {
               var nws = skipped.replace(/\S/, "").length;
-              penalty = nws + (skipped.length - nws)*0.15;
-            } else if(/^[A-Z]/.test(toscore.substring(found))){
+              penalty = nws + (skipped.length - nws) * 0.15;
+            } else if (/^[A-Z]/.test(toscore.substring(found))) {
               var nuc = skipped.replace(/[^A-Z]/, "").length;
-              penalty = nuc + (skipped.length - nuc)*0.15;
+              penalty = nuc + (skipped.length - nuc) * 0.15;
             } else {
               penalty = skipped.length;
             }
           } else {
             penalty = 0;
           }
-          score = (found + pivot - penalty + tail_score*tail.length)/tdLength;
+          score = (found + pivot - penalty + tail_score * tail.length) / tdLength;
         }
       }
-      if(score) return score;
+
+      if (score) {
+        return score;
+      }
     }
+
     return 0.0;
   },
 
