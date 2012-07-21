@@ -231,7 +231,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
       else {
         background.Models.removeWebHooks();
       }
-      chrome.extension.sendRequest({request: "initialize"});
+      chrome.extension.sendMessage({request: "initialize"});
       this.close();
     } else {
       alert(chrome.i18n.getMessage('error_keyConfliction'));

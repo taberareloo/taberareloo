@@ -24,7 +24,7 @@ function getPs(query) {
         if (background.TBRL.Popup.contents[tab.url]) {
           d.callback(background.TBRL.Popup.contents[tab.url]);
         } else {
-          chrome.tabs.sendRequest(tab.id, {
+          chrome.tabs.sendMessage(tab.id, {
             request: 'popup',
             content: {
               title: tab.title,
