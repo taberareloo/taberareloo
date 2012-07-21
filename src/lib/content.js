@@ -558,5 +558,8 @@ var onRequestHandlers = {
 
 chrome.extension.onMessage.addListener(function(req, sender, func){
   var handler = onRequestHandlers[req.request];
-  handler && handler.apply(this, arguments);
+  if (handler) {
+    handler.apply(this, arguments);
+    return true;
+  }
 });
