@@ -127,7 +127,7 @@ table.default {
   cursor: url("../skin/default.png"), move !important;
 }
 label.tag_provider_set {
-  display: block;
+  display: table-row;
 }
 label.tag_provider_set > * {
   margin: 3px;
