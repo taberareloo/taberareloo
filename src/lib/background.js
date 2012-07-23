@@ -15,21 +15,21 @@ window.addEventListener('load', function() {
       {name: 'Taberareloo.general'}
     ]
   };
-  chrome.extension.sendRequest(CHROME_GESTURES, action, function(res) {
+  chrome.extension.sendMessage(CHROME_GESTURES, action, function(res) {
     REGISTER['CHROME_GESTURES'] = true;
   });
-  chrome.extension.sendRequest(CHROME_KEYCONFIG, action, function(res) {
+  chrome.extension.sendMessage(CHROME_KEYCONFIG, action, function(res) {
     REGISTER['CHROME_KEYCONFIG'] = true;
   });
   setTimeout(function() {
     // ダメ押しのもう一回
     if (!REGISTER['CHROME_GESTURES']) {
-      chrome.extension.sendRequest(CHROME_GESTURES, action, function(res) {
+      chrome.extension.sendMessage(CHROME_GESTURES, action, function(res) {
         REGISTER['CHROME_GESTURES'] = true;
       });
     }
     if (!REGISTER['CHROME_KEYCONFIG']) {
-      chrome.extension.sendRequest(CHROME_KEYCONFIG, action, function(res) {
+      chrome.extension.sendMessage(CHROME_KEYCONFIG, action, function(res) {
         REGISTER['CHROME_KEYCONFIG'] = true;
       });
     }
@@ -473,10 +473,11 @@ var onRequestsHandlers = {
   }
 };
 
-chrome.extension.onRequest.addListener(function(req, sender, func) {
+chrome.extension.onMessage.addListener(function(req, sender, func) {
   var handler = onRequestsHandlers[req.request];
   if (handler) {
     handler.apply(this, arguments);
+    return true;
   }
 });
 
