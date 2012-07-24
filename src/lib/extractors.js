@@ -253,10 +253,14 @@ Extractors.register([
           html : ctx.selection.html
         };
       } else {
-        var elm = ctx.document.querySelector('.tweet-text-large') ||
-          ctx.document.querySelector('.entry-content') ||
-          ctx.document.querySelector('.permalink-tweet .js-tweet-text');
-        var sel = createFlavoredString(elm);
+        var elm = ctx.document.querySelector('.tweet-text');
+        var cloneElm = elm.cloneNode(true);
+        $A(cloneElm.getElementsByClassName('tco-ellipsis')).forEach(
+          function(target){
+            target.parentNode.removeChild(target);
+          }
+        );
+        var sel = createFlavoredString(cloneElm);
         res.body = sel.raw;
         res.flavors = {
           html : sel.html
