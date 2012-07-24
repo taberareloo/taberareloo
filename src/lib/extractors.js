@@ -1410,7 +1410,7 @@ Extractors.register([
       // Google Chrome doesn't support CanvasRenderingContext2D#drawWindow
       var ret = new Deferred();
       var width = win.innerWidth;
-      chrome.extension.sendRequest(TBRL.id, {
+      chrome.extension.sendMessage(TBRL.id, {
         request: "capture"
       }, function(res){
         var img = new Image();

@@ -44,7 +44,7 @@ div#container {
 }
 div#inner {
   width: 500%;
-  heigt: 100%;
+  height: 100%;
   -webkit-transition: margin-left 0.1s ease-out;
   transition: margin-left 0.1s ease-out;
 }
@@ -127,7 +127,7 @@ table.default {
   cursor: url("../skin/default.png"), move !important;
 }
 label.tag_provider_set {
-  display: block;
+  display: table-row;
 }
 label.tag_provider_set > * {
   margin: 3px;
