@@ -253,9 +253,7 @@ Extractors.register([
           html : ctx.selection.html
         };
       } else {
-        var elm = ctx.document.querySelector('.tweet-text-large') ||
-          ctx.document.querySelector('.entry-content') ||
-          ctx.document.querySelector('.permalink-tweet .js-tweet-text');
+        var elm = ctx.document.querySelector('.tweet-text');
         var sel = createFlavoredString(elm);
         res.body = sel.raw;
         res.flavors = {
