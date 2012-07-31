@@ -98,7 +98,7 @@ function Form(ps, isPopup) {
     $("icon_container").appendChild(cancel);
   }
 
-  if (ps.https.pageUrl[0] || ps.https.itemUrl[0]) {
+  if ((ps.https.pageUrl[0] || ps.https.itemUrl[0]) && ps.https.pageUrl[1] !== ps.pageUrl) {
     // pageUrl or itemUrl is https
     var list = [];
     if (ps.https.pageUrl[0]) {
@@ -130,7 +130,7 @@ function Form(ps, isPopup) {
   this[ps.type] && this[ps.type]();
 
   if (this.posters.hasPoster('Google+')) {
-    this.savers['scope'] = this.streams = new Streams(this.posters);
+    this.savers['scope'] = this.streams = new Streams(this.posters, ps.scope);
   }
   if (this.posters.hasPoster('Pinterest')) {
     this.savers['pinboard'] = this.pinboards = new Pinboards(this.posters);
@@ -213,10 +213,10 @@ Form.prototype = {
       }
       this.ps[key] = body;
     }, this);
-    background.TBRL.Popup.contents[this.ps.pageUrl] = this.ps;
+    background.TBRL.Popup.contents[this.ps.https.pageUrl[1]] = this.ps;
   },
   delete : function(){
-    delete background.TBRL.Popup.contents[this.ps.pageUrl];
+    delete background.TBRL.Popup.contents[this.ps.https.pageUrl[1]];
   },
   post: function(){
     if (this.posters.isPostable()) {
@@ -512,7 +512,7 @@ Body.prototype = {
   }
 };
 
-function Streams(posters) {
+function Streams(posters, scope) {
   this.posters = posters;
   var container = this.container = $N('div', {id : 'streams'});
   var selectBox = this.selectBox = $N('select', {
@@ -543,6 +543,12 @@ function Streams(posters) {
     posters.hooks.push(function() {
       if (this.body().some(function(poster) { return poster.name === 'Google+'; })) {
         selectBox.removeAttribute('disabled');
+        if (scope) {
+          var savedScope = selectBox.querySelector('[value="' + scope.replace(/"/g, '\\"') + '"]');
+          if (savedScope) {
+            savedScope.selected = true;
+          }
+        }
       } else {
         selectBox.setAttribute('disabled', 'true');
       }
