@@ -708,6 +708,9 @@ function download(url, type, ext) {
     responseType: 'arraybuffer'
   }).addCallback(function(res) {
     var buffer = res.response;
+    var mime = res.getResponseHeader('Content-Type').replace(/;.*/, '');
+    type = mime || type;
+    ext = getFileExtensionFromMime(mime) || ext;
     return createFileEntryFromArrayBuffer(buffer, type, ext);
   });
 }
@@ -933,7 +936,18 @@ function getCharset(text) {
 }
 
 function getFileExtension(path) {
-  return (/[.]/.exec(path)) ? /[^.]+$/.exec(path)[0] : undefined;
+  var file = path.replace(/\\/g, '/').replace(/.*\//, '');
+  return (/[.]/.exec(file)) ? /[^.]+$/.exec(file)[0] : undefined;
+}
+
+function getFileExtensionFromMime(mime) {
+  switch (mime) {
+    case 'image/bmp' : return 'bmp';
+    case 'image/gif' : return 'gif';
+    case 'image/jpeg': return 'jpg';
+    case 'image/png' : return 'png';
+    default: return undefined;
+  }
 }
 
 function getImageMimeType(path) {
@@ -943,7 +957,7 @@ function getImageMimeType(path) {
     case 'jpeg': return 'image/jpeg';
     case 'jpg' : return 'image/jpeg';
     case 'png' : return 'image/png';
-    default: return 'image/jpeg';
+    default: return undefined;
   }
 }
 
