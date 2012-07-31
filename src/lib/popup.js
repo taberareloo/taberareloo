@@ -665,7 +665,7 @@ function PosterItem(ps, poster, index, posters) {
   this.posters = posters;
   this.index = index;
 
-  var res = ~ps.enabledPosters.indexOf(poster.name) || posters.models.getConfig(ps, poster) === 'default';
+  var res = ~ps.enabledPosters.indexOf(poster) || posters.models.getConfig(ps, poster) === 'default';
   var img = this.element = $N('img', {'title':poster.name, 'class':'poster'});
 
   // canvas grayscale
