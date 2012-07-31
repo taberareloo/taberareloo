@@ -2650,14 +2650,27 @@ Models.register({
       rt     : 'j'
     })).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var data = MochiKit.Base.evalJSON(initialData);
+      var data = self.parseJSON(initialData);
       data = self.getDataByKey(data[0], 'idr');
       if (!data) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-      data = MochiKit.Base.evalJSON(data[1]);
+      data = self.parseJSON(data[1]);
       return data[key];
     });
+  },
+
+  /**
+   * Originally made with Open Source software JSAPI by +Mohamed Mansour
+   * https://github.com/mohamedmansour/google-plus-extension-jsapi
+   */
+  parseJSON : function(str) {
+    var cleaned = str.replace(/\[,/g, '[null,');
+    cleaned = cleaned.replace(/,\]/g, ',null]');
+    cleaned = cleaned.replace(/,,/g, ',null,');
+    cleaned = cleaned.replace(/,,/g, ',null,');
+    cleaned = cleaned.replace(/{(\d+):/g, '{"$1":');
+    return JSON.parse(cleaned);
   },
 
   getDataByKey : function(arr, key) {
@@ -2674,7 +2687,7 @@ Models.register({
     var self = this;
     return this.getInitialData(11).addCallback(function(data) {
       if (!data) return JSON.stringify([]);
-      data = MochiKit.Base.evalJSON(data[0]);
+      data = self.parseJSON(data[0]);
 
       var aclEntries = [];
 
@@ -2753,7 +2766,7 @@ Models.register({
       }
     }).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var result = MochiKit.Base.evalJSON(initialData)[0];
+      var result = self.parseJSON(initialData)[0];
       var data = self.getDataByKey(result, 'lpd');
       if (!data || !data[1]) return '';
 
@@ -3151,7 +3164,7 @@ Models.register({
       })
     ).addCallback(function(res) {
       var text = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var json = MochiKit.Base.evalJSON(text);
+      var json = self.parseJSON(text);
       var data = self.getDataByKey(json[0], 'ope.gmppr');
       var pages = [];
       if (data) {
@@ -3179,6 +3192,20 @@ Models.register({
   HOME_URL   : 'https://mail.google.com/mail/',
 
   GLOBALS_REGEX : /<script\b[^>]*>\s*\bvar\s+GLOBALS\s*=\s*([[]+(?:(?:(?![\]]\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;)[\s\S])*)*[\]])\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;/i,
+
+  /**
+   * Originally made with Open Source software JSAPI by +Mohamed Mansour
+   * https://github.com/mohamedmansour/google-plus-extension-jsapi
+   */
+  parseJSON : function(str) {
+    var cleaned = str.replace(/\[,/g, '[null,');
+    cleaned = cleaned.replace(/,\]/g, ',null]');
+    cleaned = cleaned.replace(/,,([^g])/g, ",null,$1");
+    cleaned = cleaned.replace(/,,([^g])/g, ",null,$1");
+    cleaned = cleaned.replace(/,\n,/g, ",\nnull,");
+    cleaned = cleaned.replace(/'.*'/g, 'null');
+    return JSON.parse(cleaned);
+  },
 
   check: function(ps) {
     return /regular|photo|quote|link|video/.test(ps.type);
@@ -3210,7 +3237,7 @@ Models.register({
     var self = this;
     return request(self.HOME_URL).addCallback(function(res) {
       var GLOBALS = res.responseText.match(self.GLOBALS_REGEX)[1];
-      return MochiKit.Base.evalJSON(GLOBALS);
+      return self.parseJSON(GLOBALS);
     });
   },
 
@@ -3274,8 +3301,11 @@ Models.register({
         ? succeed(ps.file)
         : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
-          return getFileFromEntry(entry);
-        })
+            return getFileFromEntry(entry);
+          })
+          .addErrback(function(e) {
+            throw new Error('Could not get an image file.');
+          })
     );
   },
 
@@ -3544,7 +3574,7 @@ Models.register({
         return request(self.UPLOAD_URL, {
           sendContent : sendContent
         }).addCallback(function(res) {
-          var json = MochiKit.Base.evalJSON(res.responseText);
+          var json = JSON.parse(res.responseText);
           if (json && json.status && (json.status === 'fail')) {
             throw new Error(json.message);
           }
@@ -3646,7 +3676,7 @@ Models.register({
     return request(this.INIT_URL).addCallback(function(res) {
       if (res.responseText) {
         try {
-          var data = MochiKit.Base.evalJSON(res.responseText);
+          var data = JSON.parse(res.responseText);
         }
         catch (e) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -3715,7 +3745,7 @@ Models.register({
       contributor_details : 'true'
     })).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        var data = JSON.parse(res.responseText);
         var sitesense = {
           minURL  : 'http://twitter.com',
           data    : data,
@@ -3740,7 +3770,7 @@ Models.register({
       check : ps.itemUrl || ps.pageUrl
     })).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        var data = JSON.parse(res.responseText);
         sendContent.assimilator = JSON.stringify(data[0]);
         return self.getCSRFToken().addCallback(function(csrftoken) {
           sendContent._csrf_token = csrftoken;
@@ -3776,7 +3806,7 @@ Models.register({
         }
       }).addCallback(function(res) {
         if (res.responseText) {
-          var data = MochiKit.Base.evalJSON(res.responseText);
+          var data = JSON.parse(res.responseText);
           return request(self.DESC_URL + data.id, {
             sendContent : {
               description : description,
