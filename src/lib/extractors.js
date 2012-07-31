@@ -708,7 +708,7 @@ Extractors.register([
         rt       : 'j'
       })).addCallback(function(res) {
         var data = res.responseText.substr(5).replace(/(\\n|\n)/g, '');
-        var data = MochiKit.Base.evalJSON(data);
+        var data = self.parseJSON(data);
         data = self.getDataByKey(data[0], 'os.u');
         if (!data) return null;
         item = data[1];
@@ -816,6 +816,18 @@ Extractors.register([
         }
         return result;
       });
+    },
+    /**
+     * Originally made with Open Source software JSAPI by +Mohamed Mansour
+     * https://github.com/mohamedmansour/google-plus-extension-jsapi
+     */
+    parseJSON : function(str) {
+      var cleaned = str.replace(/\[,/g, '[null,');
+      cleaned = cleaned.replace(/,\]/g, ',null]');
+      cleaned = cleaned.replace(/,,/g, ',null,');
+      cleaned = cleaned.replace(/,,/g, ',null,');
+      cleaned = cleaned.replace(/{(\d+):/g, '{"$1":');
+      return JSON.parse(cleaned);
     },
     getDataByKey : function(arr, key) {
       for (var i = 0, len = arr.length ; i < len ; i++) {
