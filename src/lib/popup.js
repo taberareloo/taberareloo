@@ -666,43 +666,7 @@ function PosterItem(ps, poster, index, posters) {
   this.index = index;
 
   var res = ~ps.enabledPosters.indexOf(poster) || posters.models.getConfig(ps, poster) === 'default';
-  var img = this.element = $N('img', {'title':poster.name, 'class':'poster'});
-
-  // canvas grayscale
-  var id  = connect(img, 'onload', this, function(){
-    disconnect(id);
-    var canvas = $N('canvas');
-    var W = img.naturalWidth;
-    var H = img.naturalHeight;
-    canvas.width  = W;
-    canvas.height = H;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var imgData = ctx.getImageData(0, 0, W, H);
-    W = imgData.width;
-    H = imgData.height;
-    this.normal = canvas.toDataURL('image/png', '');
-    var pxImage = ctx.createImageData(W, H);
-    for(var y = 0; y < H; ++y){
-      for(var x = 0; x < W; ++x){
-        var ptr = (y * W + x) * 4;
-        var R = imgData.data[ptr+0];
-        var G = imgData.data[ptr+1];
-        var B = imgData.data[ptr+2];
-        pxImage.data[ptr+0] = pxImage.data[ptr+1] = pxImage.data[ptr+2] = Math.floor( 0.298912 * R + 0.586611 * G + 0.114478 * B );
-        pxImage.data[ptr+3] = imgData.data[ptr+3];
-      }
-    }
-    ctx.putImageData(pxImage, 0, 0);
-    this.gray = canvas.toDataURL('image/png', '');
-    if(this.checked()){
-      this.element.src = this.normal;
-    } else {
-      this.element.src = this.gray;
-    }
-  });
-
-  img.src = poster.ICON;
+  var img = this.element = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
 
   connect(img, 'onclick', this, 'clicked');
   if(index < 9){
@@ -744,16 +708,10 @@ PosterItem.prototype = {
   },
   off: function(){
     addElementClass(this.element, 'disabled');
-    if (this.gray) {
-      this.element.src = this.gray;
-    }
     delete this.posters.enables[this.poster.name];
   },
   on: function(){
     removeElementClass(this.element, 'disabled');
-    if (this.normal) {
-      this.element.src = this.normal;
-    }
     this.posters.enables[this.poster.name] = this.poster;
   }
 };
