@@ -3193,20 +3193,6 @@ Models.register({
 
   GLOBALS_REGEX : /<script\b[^>]*>\s*\bvar\s+GLOBALS\s*=\s*([[]+(?:(?:(?![\]]\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;)[\s\S])*)*[\]])\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;/i,
 
-  /**
-   * Originally made with Open Source software JSAPI by +Mohamed Mansour
-   * https://github.com/mohamedmansour/google-plus-extension-jsapi
-   */
-  parseJSON : function(str) {
-    var cleaned = str.replace(/\[,/g, '[null,');
-    cleaned = cleaned.replace(/,\]/g, ',null]');
-    cleaned = cleaned.replace(/,,([^g])/g, ",null,$1");
-    cleaned = cleaned.replace(/,,([^g])/g, ",null,$1");
-    cleaned = cleaned.replace(/,\n,/g, ",\nnull,");
-    cleaned = cleaned.replace(/'.*'/g, 'null');
-    return JSON.parse(cleaned);
-  },
-
   check: function(ps) {
     return /regular|photo|quote|link|video/.test(ps.type);
   },
@@ -3237,7 +3223,9 @@ Models.register({
     var self = this;
     return request(self.HOME_URL).addCallback(function(res) {
       var GLOBALS = res.responseText.match(self.GLOBALS_REGEX)[1];
-      return self.parseJSON(GLOBALS);
+      return Sandbox.evalJSON(GLOBALS).addCallback(function(json) {
+        return json;
+      });
     });
   },
 
