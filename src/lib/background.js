@@ -540,3 +540,34 @@ var getFinalUrl = (function() {
     return ret;
   };
 })();
+
+var Sandbox = {
+  sandbox  : null,
+  sequence : 0,
+
+  initailize : function() {
+    this.sandbox = document.createElement('iframe');
+    this.sandbox.sandbox = 'allow-scripts';
+    this.sandbox.src = 'sandbox.html';
+    document.body.appendChild(this.sandbox);
+  },
+
+  evalJSON : function(str) {
+    var ret = new Deferred();
+    var seq = this.sequence++;
+    var messageHandler = function(res) {
+      if (res.data.seq === seq) {
+        window.removeEventListener('message', messageHandler);
+        ret.callback(res.data.json);
+      }
+    };
+    window.addEventListener('message', messageHandler, false);
+    this.sandbox.contentWindow.postMessage({
+      action : 'evalJSON',
+      seq    : seq,
+      value  : str
+    }, '*');
+    return ret;
+  }
+};
+Sandbox.initailize();
