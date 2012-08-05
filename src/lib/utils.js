@@ -751,18 +751,9 @@ var getURLObject = (function() {
   };
 })();
 
-var getURLFromFile = (function() {
-  var err = new Error("createObjectURL is not found");
-  var get = window.createBlobURL || window.createObjectURL;
-  if (get) {
-    return function getURLFromFile(file) {
-      return get(file);
-    };
-  }
-  return function getURLFromFile(file) {
-    return getURLObject().createObjectURL(file);
-  };
-})();
+function getURLFromFile(file) {
+  return getURLObject().createObjectURL(file);
+}
 
 function revokeObjectURL(url) {
   getURLObject().revokeObjectURL(url);
