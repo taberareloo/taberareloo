@@ -1015,14 +1015,11 @@ function cutBase64Header(data) {
   return data.replace(/^.*?,/, '');
 }
 
-function base64ToBlob(data, type, cutHeader) {
-  if (cutHeader) {
-    data = cutBase64Header(data);
-  }
-  var binary = window.atob(data);
-  var buffer = new ArrayBuffer(binary.length);
-  var view = new Uint8Array(buffer);
-  for (var i = 0, len = binary.length; i < len; ++i) {
+function base64ToBlob(data, type) {
+  var binary = window.atob(cutBase64Header(data));
+  var len = binary.length;
+  var view = new Uint8Array(len);
+  for (var i = 0; i < len; ++i) {
     view[i] = binary.charCodeAt(i);
   }
   return getBlob(view, type);

@@ -569,7 +569,7 @@ Models.register({
           if (/http|https/.test(url)) {
             dispatch(url);
           } else {
-            dispatch(getURLFromFile(base64ToBlob(url, 'image/png', true)));
+            dispatch(getURLFromFile(base64ToBlob(url, 'image/png')));
           }
         });
       }
@@ -3615,15 +3615,7 @@ Models.register({
   },
 
   base64ToFileEntry : function(base64, type, ext) {
-    var cut = cutBase64Header(base64);
-    var binary = window.atob(cut);
-    var buffer = new ArrayBuffer(binary.length);
-    var view = new Uint8Array(buffer);
-    var fromCharCode = String.fromCharCode;
-    for (var i = 0, len = binary.length; i < len; ++i) {
-      view[i] = binary.charCodeAt(i);
-    }
-    return createFileEntryFromBlob(getBlob(view, type), ext).addCallback(function(entry) {
+    return createFileEntryFromBlob(base64ToBlob(base64, type), ext).addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         return file;
       });
