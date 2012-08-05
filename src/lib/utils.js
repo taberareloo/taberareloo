@@ -745,12 +745,7 @@ function createFileEntryFromArrayBuffer(buffer, type, ext) {
 }
 
 var getURLObject = (function() {
-  var url = null;
-  if (window.URL) {
-    url = window.URL;
-  } else {
-    url = window.webkitURL;
-  }
+  var url = window.URL || window.webkitURL;
   return function getURLObject() {
     return url;
   };
