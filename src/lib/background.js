@@ -202,7 +202,7 @@ var TBRL = {
               'error_post', [errs.join('\n').indent(2), ps.page, ps.pageUrl]),
             ps.pageUrl, urls);
         } else {
-          delete TBRL.Popup.contents[ps.pageUrl];
+          delete TBRL.Popup.contents[ps.https.pageUrl[1]];
         }
       }).addErrback(function(err) {
         self.alertError(err, ps.pageUrl);
