@@ -702,6 +702,10 @@ function getFileFromEntry(entry) {
   return d;
 }
 
+function getBlob(arrayBufferView, type) {
+  return new Blob([arrayBufferView], {type: type});
+}
+
 // this is very experimental
 function download(url, type, ext) {
   return request(url, {
