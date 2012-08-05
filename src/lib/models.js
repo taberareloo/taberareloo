@@ -569,18 +569,7 @@ Models.register({
           if (/http|https/.test(url)) {
             dispatch(url);
           } else {
-            // probably data url
-            var data = url.replace(/^.*?,/, '');
-            var binary = window.atob(data);
-            var buffer = new ArrayBuffer(binary.length);
-            var view = new Uint8Array(buffer);
-            for (var i = 0, len = binary.length; i < len; ++i) {
-              view[i] = binary.charCodeAt(i);
-            }
-            var builder = new (window.BlobBuilder || window.WebKitBlobBuilder);
-            var URL = window.URL || window.webkitURL;
-            builder.append(buffer);
-            dispatch(URL.createObjectURL(builder.getBlob('image/png')));
+            dispatch(getURLFromFile(base64ToBlob(url, 'image/png', true)));
           }
         });
       }

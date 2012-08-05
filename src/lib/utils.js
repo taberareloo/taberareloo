@@ -719,24 +719,12 @@ function downloadBlob(url, type) {
   return request(url, {
     responseType: 'arraybuffer'
   }).addCallback(function(res) {
-    var buffer = res.response;
-    var builder = getBlobBuilder();
-    builder.append(buffer);
-    return builder.getBlob(type);
+    return new Blob([res.response], {type: type});
   });
 }
 
-var getBlobBuilder = (function() {
-  var builder = window.BlobBuilder || window.WebKitBlobBuilder;
-  return function getBlobBuilder() {
-    return new builder();
-  };
-})();
-
 function createFileEntryFromArrayBuffer(buffer, type, ext) {
   var d = new Deferred();
-  var builder = getBlobBuilder();
-  builder.append(buffer);
   getTempFile(ext)
   .addCallback(function(entry) {
     return getWriter(entry)
@@ -747,7 +735,7 @@ function createFileEntryFromArrayBuffer(buffer, type, ext) {
       writer.onerror = function onError(e) {
         d.errback(e);
       };
-      writer.write(builder.getBlob(type));
+      writer.write(new Blob([buffer], {type: type}));
     })
     .addErrback(function(e) {
       d.errback(e);
@@ -1049,9 +1037,7 @@ function base64ToBlob(data, type, cutHeader) {
   for (var i = 0, len = binary.length; i < len; ++i) {
     view[i] = binary.charCodeAt(i);
   }
-  var builder = getBlobBuilder();
-  builder.append(buffer);
-  return builder.getBlob(type);
+  return new Blob([buffer], {type: type});
 }
 
 function getCookies(domain, name) {
