@@ -1111,7 +1111,6 @@ Extractors.register([
       var target = ctx.target;
       var itemUrl = (tagName(target) === 'object') ? target.data : target.src;
       return downloadFile(itemUrl, {
-        type : getImageMimeType(itemUrl),
         ext  : getFileExtension(itemUrl)
       }).addCallback(function(url) {
         return {

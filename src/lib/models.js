@@ -3276,7 +3276,7 @@ Models.register({
     return (
       ps.file
         ? succeed(ps.file)
-        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+        : download(ps.itemUrl, getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
             return getFileFromEntry(entry);
           })
@@ -3414,7 +3414,7 @@ var WebHook = {
     return (
       ps.file
         ? succeed(ps.file)
-        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+        : download(ps.itemUrl, getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
           return getFileFromEntry(entry);
         })
@@ -3623,7 +3623,7 @@ Models.register({
     for (var i = 0, len = binary.length; i < len; ++i) {
       view[i] = binary.charCodeAt(i);
     }
-    return createFileEntryFromArrayBuffer(buffer, type, ext).addCallback(function(entry) {
+    return createFileEntryFromBlob(getBlob(view, type), ext).addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         return file;
       });

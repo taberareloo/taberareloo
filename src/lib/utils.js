@@ -707,27 +707,25 @@ function getBlob(arrayBufferView, type) {
 }
 
 // this is very experimental
-function download(url, type, ext) {
+function download(url, ext) {
   return request(url, {
-    responseType: 'arraybuffer'
+    responseType: 'blob'
   }).addCallback(function(res) {
-    var buffer = res.response;
     var mime = res.getResponseHeader('Content-Type').replace(/;.*/, '');
-    type = mime || type;
     ext = getFileExtensionFromMime(mime) || ext;
-    return createFileEntryFromArrayBuffer(buffer, type, ext);
+    return createFileEntryFromBlob(res.response, ext);
   });
 }
 
-function downloadBlob(url, type) {
+function downloadBlob(url) {
   return request(url, {
-    responseType: 'arraybuffer'
+    responseType: 'blob'
   }).addCallback(function(res) {
-    return new Blob([res.response], {type: type});
+    return res.response;
   });
 }
 
-function createFileEntryFromArrayBuffer(buffer, type, ext) {
+function createFileEntryFromBlob(blob, ext) {
   var d = new Deferred();
   getTempFile(ext)
   .addCallback(function(entry) {
@@ -739,7 +737,7 @@ function createFileEntryFromArrayBuffer(buffer, type, ext) {
       writer.onerror = function onError(e) {
         d.errback(e);
       };
-      writer.write(new Blob([buffer], {type: type}));
+      writer.write(blob);
     })
     .addErrback(function(e) {
       d.errback(e);
@@ -1027,7 +1025,7 @@ function base64ToBlob(data, type, cutHeader) {
   for (var i = 0, len = binary.length; i < len; ++i) {
     view[i] = binary.charCodeAt(i);
   }
-  return new Blob([buffer], {type: type});
+  return getBlob(view, type);
 }
 
 function getCookies(domain, name) {
