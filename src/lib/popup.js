@@ -98,7 +98,7 @@ function Form(ps, isPopup) {
     $("icon_container").appendChild(cancel);
   }
 
-  if (ps.https.pageUrl[0] || ps.https.itemUrl[0]) {
+  if ((ps.https.pageUrl[0] || ps.https.itemUrl[0]) && ps.https.pageUrl[1] !== ps.pageUrl) {
     // pageUrl or itemUrl is https
     var list = [];
     if (ps.https.pageUrl[0]) {
@@ -130,7 +130,7 @@ function Form(ps, isPopup) {
   this[ps.type] && this[ps.type]();
 
   if (this.posters.hasPoster('Google+')) {
-    this.savers['scope'] = this.streams = new Streams(this.posters);
+    this.savers['scope'] = this.streams = new Streams(this.posters, ps.scope);
   }
   if (this.posters.hasPoster('Pinterest')) {
     this.savers['pinboard'] = this.pinboards = new Pinboards(this.posters);
@@ -213,10 +213,10 @@ Form.prototype = {
       }
       this.ps[key] = body;
     }, this);
-    background.TBRL.Popup.contents[this.ps.pageUrl] = this.ps;
+    background.TBRL.Popup.contents[this.ps.https.pageUrl[1]] = this.ps;
   },
   delete : function(){
-    delete background.TBRL.Popup.contents[this.ps.pageUrl];
+    delete background.TBRL.Popup.contents[this.ps.https.pageUrl[1]];
   },
   post: function(){
     if (this.posters.isPostable()) {
@@ -512,7 +512,7 @@ Body.prototype = {
   }
 };
 
-function Streams(posters) {
+function Streams(posters, scope) {
   this.posters = posters;
   var container = this.container = $N('div', {id : 'streams'});
   var selectBox = this.selectBox = $N('select', {
@@ -543,6 +543,12 @@ function Streams(posters) {
     posters.hooks.push(function() {
       if (this.body().some(function(poster) { return poster.name === 'Google+'; })) {
         selectBox.removeAttribute('disabled');
+        if (scope) {
+          var savedScope = selectBox.querySelector('[value="' + scope.replace(/"/g, '\\"') + '"]');
+          if (savedScope) {
+            savedScope.selected = true;
+          }
+        }
       } else {
         selectBox.setAttribute('disabled', 'true');
       }
@@ -665,44 +671,8 @@ function PosterItem(ps, poster, index, posters) {
   this.posters = posters;
   this.index = index;
 
-  var res = ~ps.enabledPosters.indexOf(poster.name) || posters.models.getConfig(ps, poster) === 'default';
-  var img = this.element = $N('img', {'title':poster.name, 'class':'poster'});
-
-  // canvas grayscale
-  var id  = connect(img, 'onload', this, function(){
-    disconnect(id);
-    var canvas = $N('canvas');
-    var W = img.naturalWidth;
-    var H = img.naturalHeight;
-    canvas.width  = W;
-    canvas.height = H;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var imgData = ctx.getImageData(0, 0, W, H);
-    W = imgData.width;
-    H = imgData.height;
-    this.normal = canvas.toDataURL('image/png', '');
-    var pxImage = ctx.createImageData(W, H);
-    for(var y = 0; y < H; ++y){
-      for(var x = 0; x < W; ++x){
-        var ptr = (y * W + x) * 4;
-        var R = imgData.data[ptr+0];
-        var G = imgData.data[ptr+1];
-        var B = imgData.data[ptr+2];
-        pxImage.data[ptr+0] = pxImage.data[ptr+1] = pxImage.data[ptr+2] = Math.floor( 0.298912 * R + 0.586611 * G + 0.114478 * B );
-        pxImage.data[ptr+3] = imgData.data[ptr+3];
-      }
-    }
-    ctx.putImageData(pxImage, 0, 0);
-    this.gray = canvas.toDataURL('image/png', '');
-    if(this.checked()){
-      this.element.src = this.normal;
-    } else {
-      this.element.src = this.gray;
-    }
-  });
-
-  img.src = poster.ICON;
+  var res = ~ps.enabledPosters.indexOf(poster) || posters.models.getConfig(ps, poster) === 'default';
+  var img = this.element = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
 
   connect(img, 'onclick', this, 'clicked');
   if(index < 9){
@@ -744,16 +714,10 @@ PosterItem.prototype = {
   },
   off: function(){
     addElementClass(this.element, 'disabled');
-    if (this.gray) {
-      this.element.src = this.gray;
-    }
     delete this.posters.enables[this.poster.name];
   },
   on: function(){
     removeElementClass(this.element, 'disabled');
-    if (this.normal) {
-      this.element.src = this.normal;
-    }
     this.posters.enables[this.poster.name] = this.poster;
   }
 };
