@@ -387,16 +387,7 @@ var onRequestsHandlers = {
     });
   },
   base64ToFileEntry: function(req, sender, func) {
-    var data = req.content;
-    var cut = cutBase64Header(data);
-    var binary = window.atob(cut);
-    var buffer = new ArrayBuffer(binary.length);
-    var view = new Uint8Array(buffer);
-    var fromCharCode = String.fromCharCode;
-    for (var i = 0, len = binary.length; i < len; ++i) {
-      view[i] = binary.charCodeAt(i);
-    }
-    createFileEntryFromArrayBuffer(buffer, 'image/png', 'png').addCallback(function(entry) {
+    createFileEntryFromBlob(base64ToBlob(req.content, 'image/png'), 'png').addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         var key = getURLFromFile(file);
         GlobalFileEntryCache[key] = entry;
@@ -446,7 +437,7 @@ var onRequestsHandlers = {
         opt = content.opt,
         url = content.url;
     // this is very experimental
-    return download(url, opt && opt.type, opt && opt.ext).addCallback(function(entry) {
+    return download(url, opt && opt.ext).addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         var key = getURLFromFile(file);
         GlobalFileEntryCache[key] = entry;

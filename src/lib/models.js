@@ -570,17 +570,7 @@ Models.register({
             dispatch(url);
           } else {
             // probably data url
-            var data = url.replace(/^.*?,/, '');
-            var binary = window.atob(data);
-            var buffer = new ArrayBuffer(binary.length);
-            var view = new Uint8Array(buffer);
-            for (var i = 0, len = binary.length; i < len; ++i) {
-              view[i] = binary.charCodeAt(i);
-            }
-            var builder = new (window.BlobBuilder || window.WebKitBlobBuilder);
-            var URL = window.URL || window.webkitURL;
-            builder.append(buffer);
-            dispatch(URL.createObjectURL(builder.getBlob('image/png')));
+            dispatch(getURLFromFile(base64ToBlob(url, 'image/png')));
           }
         });
       }
@@ -3287,7 +3277,7 @@ Models.register({
     return (
       ps.file
         ? succeed(ps.file)
-        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+        : download(ps.itemUrl, getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
             return getFileFromEntry(entry);
           })
@@ -3425,7 +3415,7 @@ var WebHook = {
     return (
       ps.file
         ? succeed(ps.file)
-        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+        : download(ps.itemUrl, getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
           return getFileFromEntry(entry);
         })
@@ -3626,15 +3616,7 @@ Models.register({
   },
 
   base64ToFileEntry : function(base64, type, ext) {
-    var cut = cutBase64Header(base64);
-    var binary = window.atob(cut);
-    var buffer = new ArrayBuffer(binary.length);
-    var view = new Uint8Array(buffer);
-    var fromCharCode = String.fromCharCode;
-    for (var i = 0, len = binary.length; i < len; ++i) {
-      view[i] = binary.charCodeAt(i);
-    }
-    return createFileEntryFromArrayBuffer(buffer, type, ext).addCallback(function(entry) {
+    return createFileEntryFromBlob(base64ToBlob(base64, type), ext).addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         return file;
       });

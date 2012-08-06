@@ -702,41 +702,31 @@ function getFileFromEntry(entry) {
   return d;
 }
 
+function getBlob(arrayBufferView, type) {
+  return new Blob([arrayBufferView], {type: type});
+}
+
 // this is very experimental
-function download(url, type, ext) {
+function download(url, ext) {
   return request(url, {
-    responseType: 'arraybuffer'
+    responseType: 'blob'
   }).addCallback(function(res) {
-    var buffer = res.response;
     var mime = res.getResponseHeader('Content-Type').replace(/;.*/, '');
-    type = mime || type;
     ext = getFileExtensionFromMime(mime) || ext;
-    return createFileEntryFromArrayBuffer(buffer, type, ext);
+    return createFileEntryFromBlob(res.response, ext);
   });
 }
 
-function downloadBlob(url, type) {
+function downloadBlob(url) {
   return request(url, {
-    responseType: 'arraybuffer'
+    responseType: 'blob'
   }).addCallback(function(res) {
-    var buffer = res.response;
-    var builder = getBlobBuilder();
-    builder.append(buffer);
-    return builder.getBlob(type);
+    return res.response;
   });
 }
 
-var getBlobBuilder = (function() {
-  var builder = window.BlobBuilder || window.WebKitBlobBuilder;
-  return function getBlobBuilder() {
-    return new builder();
-  };
-})();
-
-function createFileEntryFromArrayBuffer(buffer, type, ext) {
+function createFileEntryFromBlob(blob, ext) {
   var d = new Deferred();
-  var builder = getBlobBuilder();
-  builder.append(buffer);
   getTempFile(ext)
   .addCallback(function(entry) {
     return getWriter(entry)
@@ -747,7 +737,7 @@ function createFileEntryFromArrayBuffer(buffer, type, ext) {
       writer.onerror = function onError(e) {
         d.errback(e);
       };
-      writer.write(builder.getBlob(type));
+      writer.write(blob);
     })
     .addErrback(function(e) {
       d.errback(e);
@@ -757,29 +747,15 @@ function createFileEntryFromArrayBuffer(buffer, type, ext) {
 }
 
 var getURLObject = (function() {
-  var url = null;
-  if (window.URL) {
-    url = window.URL;
-  } else {
-    url = window.webkitURL;
-  }
+  var url = window.URL || window.webkitURL;
   return function getURLObject() {
     return url;
   };
 })();
 
-var getURLFromFile = (function() {
-  var err = new Error("createObjectURL is not found");
-  var get = window.createBlobURL || window.createObjectURL;
-  if (get) {
-    return function getURLFromFile(file) {
-      return get(file);
-    };
-  }
-  return function getURLFromFile(file) {
-    return getURLObject().createObjectURL(file);
-  };
-})();
+function getURLFromFile(file) {
+  return getURLObject().createObjectURL(file);
+}
 
 function revokeObjectURL(url) {
   getURLObject().revokeObjectURL(url);
@@ -1039,19 +1015,14 @@ function cutBase64Header(data) {
   return data.replace(/^.*?,/, '');
 }
 
-function base64ToBlob(data, type, cutHeader) {
-  if (cutHeader) {
-    data = cutBase64Header(data);
-  }
-  var binary = window.atob(data);
-  var buffer = new ArrayBuffer(binary.length);
-  var view = new Uint8Array(buffer);
-  for (var i = 0, len = binary.length; i < len; ++i) {
+function base64ToBlob(data, type) {
+  var binary = window.atob(cutBase64Header(data));
+  var len = binary.length;
+  var view = new Uint8Array(len);
+  for (var i = 0; i < len; ++i) {
     view[i] = binary.charCodeAt(i);
   }
-  var builder = getBlobBuilder();
-  builder.append(buffer);
-  return builder.getBlob(type);
+  return getBlob(view, type);
 }
 
 function getCookies(domain, name) {
