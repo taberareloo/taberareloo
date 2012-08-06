@@ -569,6 +569,7 @@ Models.register({
           if (/http|https/.test(url)) {
             dispatch(url);
           } else {
+            // probably data url
             dispatch(getURLFromFile(base64ToBlob(url, 'image/png')));
           }
         });
