@@ -4,11 +4,11 @@ var Models = new Repository();
 
 var Tumblr = {
   name : 'Tumblr',
-  ICON : 'http://www.tumblr.com/images/favicon.gif',
+  ICON : 'http://assets.tumblr.com/images/favicon.gif',
   MEDIA_URL : 'http://media.tumblr.com/',
   TUMBLR_URL : 'http://www.tumblr.com/',
-  LINK : 'http://www.tumblr.com/',
-  LOGIN_URL : 'http://www.tumblr.com/login',
+  LINK : 'https://www.tumblr.com/',
+  LOGIN_URL : 'https://www.tumblr.com/login',
 
   /**
    * ポストを削除する。
@@ -391,9 +391,9 @@ Models.register(Tumblr);
 Models.register({
   name : '4u',
   ICON : chrome.extension.getURL('skin/4u.ico'),
-  LOGIN_URL : 'http://4u.straightline.jp/admin/login',
-
-  LINK : 'http://4u.straightline.jp/',
+  LINK : 'http://4u-beautyimg.com/',
+  LOGIN_URL : 'http://4u-beautyimg.com/admin/login',
+  URL : 'http://4u-beautyimg.com/',
 
   check : function(ps){
     return ps.type === 'photo' && !ps.file;
@@ -401,7 +401,7 @@ Models.register({
 
   post : function(ps){
     var self = this;
-    return request(this.LINK + 'power/manage/register', {
+    return request(this.URL + 'power/manage/register', {
       referrer : ps.pageUrl,
       queryString : {
         site_title  : ps.page,
@@ -423,15 +423,15 @@ Models.register({
 
   iLoveHer : function(id){
     var self = this;
-    return request(this.LINK + 'user/manage/do_register', {
+    return request(this.URL + 'user/manage/do_register', {
       redirectionLimit : 0,
-      referrer : this.LINK,
+      referrer : this.URL,
       queryString : {
         src : id
       }
     }).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('//form[@action="http://4u.straightline.jp/admin/login"]', doc)[0]){
+      if($X('//form[@action="' + this.URL + 'admin/login"]', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
@@ -441,7 +441,8 @@ Models.register({
 Models.register({
   name : 'FFFFOUND',
   ICON : 'http://ffffound.com/favicon.ico',
-  URL  : 'http://FFFFOUND.com/',
+  LINK : 'http://ffffound.com/',
+  URL  : 'http://ffffound.com/',
 
   getToken : function(){
     return request(this.URL + 'bookmarklet.js').addCallback(function(res){
@@ -569,17 +570,7 @@ Models.register({
             dispatch(url);
           } else {
             // probably data url
-            var data = url.replace(/^.*?,/, '');
-            var binary = window.atob(data);
-            var buffer = new ArrayBuffer(binary.length);
-            var view = new Uint8Array(buffer);
-            for (var i = 0, len = binary.length; i < len; ++i) {
-              view[i] = binary.charCodeAt(i);
-            }
-            var builder = new (window.BlobBuilder || window.WebKitBlobBuilder);
-            var URL = window.URL || window.webkitURL;
-            builder.append(buffer);
-            dispatch(URL.createObjectURL(builder.getBlob('image/png')));
+            dispatch(getURLFromFile(base64ToBlob(url, 'image/png')));
           }
         });
       }
@@ -854,7 +845,8 @@ Models.register({
 
 Models.register({
   name : 'Pinboard',
-  ICON : 'http://pinboard.in/favicon.ico',
+  ICON : 'https://pinboard.in/favicon.ico',
+  LINK : 'https://pinboard.in/',
 
   check : function(ps){
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -979,8 +971,8 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : 'http://www.delicious.com/favicon.ico',
-  LINK : 'http://www.delicious.com/',
+  ICON : 'https://www.delicious.com/favicon.ico',
+  LINK : 'https://www.delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
   /**
@@ -1261,8 +1253,8 @@ Models.register({
 
 Models.register({
   name : 'GoogleBookmarks',
-  ICON     : chrome.extension.getURL('skin/google-bookmark.png'),
-  LINK : 'http://www.google.com/bookmarks/',
+  ICON : chrome.extension.getURL('skin/google-bookmark.png'),
+  LINK : 'https://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
   POST_URL : 'https://www.google.com/bookmarks/mark',
 
@@ -1360,7 +1352,8 @@ Models.register({
 
 Models.register({
   name: 'GoogleCalendar',
-  ICON: 'http://calendar.google.com/googlecalendar/images/favicon.ico',
+  ICON: 'https://calendar.google.com/googlecalendar/images/favicon.ico',
+  LINK: 'https://www.google.com/calendar/',
 
   check: function(ps) {
     return /regular|link/.test(ps.type) && !ps.file;
@@ -1469,6 +1462,7 @@ Models.register({
 Models.register({
   name     : 'ChromeBookmark',
   ICON     : chrome.extension.getURL('skin/chromium.ico'),
+  LINK     : 'chrome://bookmarks/',
   check : function(ps){
     return ps.type === 'link';
   },
@@ -1514,10 +1508,10 @@ Models.register({
 
 Models.register({
   name     : 'Evernote',
-  ICON     : 'http://www.evernote.com/favicon.ico',
+  ICON     : 'https://www.evernote.com/favicon.ico',
   POST_URL : 'https://www.evernote.com/clip.action',
   LOGIN_URL: 'https://www.evernote.com/Login.action',
-  LINK     : 'http://www.evernote.com/',
+  LINK     : 'https://www.evernote.com/',
 
   check : function(ps){
     return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -1578,8 +1572,8 @@ Models.register({
 
 Models.register({
   name : 'FriendFeed',
-  ICON : 'http://friendfeed.com/favicon.ico',
-  LINK : 'http://friendfeed.com/',
+  ICON : 'https://friendfeed.com/favicon.ico',
+  LINK : 'https://friendfeed.com/',
   LOGIN_URL : 'https://friendfeed.com/account/login',
   check : function(ps){
     return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
@@ -1616,7 +1610,7 @@ Models.register({
 
 Models.register({
   name : 'Twitter',
-  ICON : 'http://twitter.com/favicon.ico',
+  ICON : 'https://twitter.com/favicon.ico',
   URL  : 'https://twitter.com',
   LINK : 'https://twitter.com/',
   LOGIN_URL : 'https://twitter.com/login',
@@ -1630,10 +1624,12 @@ Models.register({
     var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
     var status   = '';
+    var maxlen   = 140;
     if (ps.type === 'photo') {
       ps = update({}, ps);
       ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
+      maxlen -= 21; // reserve for pic.twitter.com
     }
     if (!template) {
       status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
@@ -1650,14 +1646,18 @@ Models.register({
       });
     }
     var ret = new Deferred();
-    if (TBRL.Config['post']['always_shorten_url']) {
-      shortenUrls(status, Models[self.SHORTEN_SERVICE])
-        .addCallback(function(status) {
-          ret.callback(status);
-        });
-    } else {
-      ret.callback(status);
-    }
+    (TBRL.Config['post']['always_shorten_url']
+      ? shortenUrls(status, Models[self.SHORTEN_SERVICE])
+      : succeed(status)
+    ).addCallback(function(status) {
+      var len = self.getActualLength(status);
+      if (len <= maxlen) {
+        ret.callback(status);
+      }
+      else {
+        ret.errback('too many characters to post (' + (len - maxlen) + ' over)');
+      }
+    });
     return ret;
   },
 
@@ -1786,13 +1786,21 @@ Models.register({
         });
       });
     });
+  },
+
+  getActualLength : function(status) {
+    var ret = status.split('\n').map(function (s) {
+      s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890');
+      return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789');
+    }).join('\n');
+    return ret.length;
   }
 });
 
 Models.register({
   name : 'Instapaper',
-  ICON : chrome.extension.getURL('skin/instapaper.ico'),
-  LINK : 'http://www.instapaper.com/',
+  ICON : chrome.extension.getURL('skin/instapaper.png'),
+  LINK : 'https://www.instapaper.com/',
   POST_URL: 'http://www.instapaper.com/edit',
   LOGIN_URL : 'https://www.instapaper.com/user/login',
   check : function(ps){
@@ -1823,9 +1831,9 @@ Models.register({
 
 Models.register({
   name : 'Pocket',
-  ICON : 'http://getpocket.com/favicon.ico',
-  LINK : 'http://getpocket.com/',
-  LOGIN_URL : 'http://getpocket.com/l',
+  ICON : 'https://getpocket.com/favicon.ico',
+  LINK : 'https://getpocket.com/',
+  LOGIN_URL : 'https://getpocket.com/l',
   check : function(ps){
     return /quote|link/.test(ps.type);
   },
@@ -2053,7 +2061,7 @@ items(Models.Yahoo.katakana).forEach(function(pair){
 
 Models.register({
   name : 'YahooBookmarks',
-  ICON : 'http://bookmarks.yahoo.co.jp/favicon.ico',
+  ICON : 'http://i.yimg.jp/images/sicons/ybm16.gif',
   LINK : 'http://bookmarks.yahoo.co.jp/',
   LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
@@ -2126,9 +2134,9 @@ Models.register({
 
 Models.register({
   name : 'Wassr',
-  ICON : 'http://wassr.jp/favicon.ico',
-  LINK : 'http://wassr.jp/',
-  LOGIN_URL : 'http://wassr.jp/',
+  ICON : 'https://wassr.jp/favicon.ico',
+  LINK : 'https://wassr.jp/',
+  LOGIN_URL : 'https://wassr.jp/',
 
   check : function(ps){
     return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -2157,7 +2165,7 @@ Models.register({
 
 Models.register({
   name: 'Clipp',
-  ICON : chrome.extension.getURL('skin/item.ico'),
+  ICON : chrome.extension.getURL('skin/clipp.ico'),
   CLIPP_URL: 'http://clipp.in/',
   LINK : 'http://clipp.in/',
   LOGIN_URL: 'http://clipp.in/account/login',
@@ -2289,15 +2297,16 @@ Models.register({
 
 Models.register({
   name : 'gist',
-  ICON : 'http://gist.github.com/favicon.ico',
-  LINK : 'http://gist.github.com/',
-  LOGIN_URL : 'https://github.com/login',
+  ICON : 'https://gist.github.com/favicon.ico',
+  LINK : 'https://gist.github.com/',
+  LOGIN_URL : 'https://gist.github.com/login',
+  URL  : 'https://gist.github.com/',
   check: function(ps){
     return /regular|quote/.test(ps.type);
   },
   post : function(ps){
     var self = this;
-    return request(this.LINK).addCallback(function(res){
+    return request(this.URL).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," userbox ")]', doc)[0])){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -2316,7 +2325,7 @@ Models.register({
       form['file_name[gistfile1]'] = ps.item;
       // public
       delete form['action_button'];
-      return request(self.LINK+'gists', {
+      return request(self.URL+'gists', {
         sendContent: form
       });
     });
@@ -2401,8 +2410,8 @@ Models.register({
 
 Models.register({
   name: 'Diigo',
-  ICON: 'http://www.diigo.com/favicon.ico',
-  LINK: 'http://www.diigo.com/',
+  ICON: 'https://www.diigo.com/favicon.ico',
+  LINK: 'https://www.diigo.com/',
   check: function(ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
@@ -2631,14 +2640,27 @@ Models.register({
       rt     : 'j'
     })).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var data = MochiKit.Base.evalJSON(initialData);
+      var data = self.parseJSON(initialData);
       data = self.getDataByKey(data[0], 'idr');
       if (!data) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-      data = MochiKit.Base.evalJSON(data[1]);
+      data = self.parseJSON(data[1]);
       return data[key];
     });
+  },
+
+  /**
+   * Originally made with Open Source software JSAPI by +Mohamed Mansour
+   * https://github.com/mohamedmansour/google-plus-extension-jsapi
+   */
+  parseJSON : function(str) {
+    var cleaned = str.replace(/\[,/g, '[null,');
+    cleaned = cleaned.replace(/,\]/g, ',null]');
+    cleaned = cleaned.replace(/,,/g, ',null,');
+    cleaned = cleaned.replace(/,,/g, ',null,');
+    cleaned = cleaned.replace(/{(\d+):/g, '{"$1":');
+    return JSON.parse(cleaned);
   },
 
   getDataByKey : function(arr, key) {
@@ -2655,7 +2677,7 @@ Models.register({
     var self = this;
     return this.getInitialData(11).addCallback(function(data) {
       if (!data) return JSON.stringify([]);
-      data = MochiKit.Base.evalJSON(data[0]);
+      data = self.parseJSON(data[0]);
 
       var aclEntries = [];
 
@@ -2734,7 +2756,7 @@ Models.register({
       }
     }).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var result = MochiKit.Base.evalJSON(initialData)[0];
+      var result = self.parseJSON(initialData)[0];
       var data = self.getDataByKey(result, 'lpd');
       if (!data || !data[1]) return '';
 
@@ -3132,7 +3154,7 @@ Models.register({
       })
     ).addCallback(function(res) {
       var text = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var json = MochiKit.Base.evalJSON(text);
+      var json = self.parseJSON(text);
       var data = self.getDataByKey(json[0], 'ope.gmppr');
       var pages = [];
       if (data) {
@@ -3191,7 +3213,9 @@ Models.register({
     var self = this;
     return request(self.HOME_URL).addCallback(function(res) {
       var GLOBALS = res.responseText.match(self.GLOBALS_REGEX)[1];
-      return MochiKit.Base.evalJSON(GLOBALS);
+      return Sandbox.evalJSON(GLOBALS).addCallback(function(json) {
+        return json;
+      });
     });
   },
 
@@ -3253,10 +3277,13 @@ Models.register({
     return (
       ps.file
         ? succeed(ps.file)
-        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+        : download(ps.itemUrl, getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
-          return getFileFromEntry(entry);
-        })
+            return getFileFromEntry(entry);
+          })
+          .addErrback(function(e) {
+            throw new Error('Could not get an image file.');
+          })
     );
   },
 
@@ -3388,7 +3415,7 @@ var WebHook = {
     return (
       ps.file
         ? succeed(ps.file)
-        : download(ps.itemUrl, getImageMimeType(ps.itemUrl), getFileExtension(ps.itemUrl))
+        : download(ps.itemUrl, getFileExtension(ps.itemUrl))
           .addCallback(function(entry) {
           return getFileFromEntry(entry);
         })
@@ -3490,6 +3517,10 @@ Models.register({
       caption = ps.item || ps.page;
     }
 
+    if (caption.length > 400) {
+      caption = caption.substring(0, 400) + '...';
+    }
+
     var sendContent = {};
     if (ps.file) {
       caption = joinText([
@@ -3520,6 +3551,11 @@ Models.register({
         sendContent.csrfmiddlewaretoken = csrftoken;
         return request(self.UPLOAD_URL, {
           sendContent : sendContent
+        }).addCallback(function(res) {
+          var json = JSON.parse(res.responseText);
+          if (json && json.status && (json.status === 'fail')) {
+            throw new Error(json.message);
+          }
         });
       });
     });
@@ -3580,15 +3616,7 @@ Models.register({
   },
 
   base64ToFileEntry : function(base64, type, ext) {
-    var cut = cutBase64Header(base64);
-    var binary = window.atob(cut);
-    var buffer = new ArrayBuffer(binary.length);
-    var view = new Uint8Array(buffer);
-    var fromCharCode = String.fromCharCode;
-    for (var i = 0, len = binary.length; i < len; ++i) {
-      view[i] = binary.charCodeAt(i);
-    }
-    return createFileEntryFromArrayBuffer(buffer, type, ext).addCallback(function(entry) {
+    return createFileEntryFromBlob(base64ToBlob(base64, type), ext).addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         return file;
       });
@@ -3617,7 +3645,12 @@ Models.register({
     var self = this;
     return request(this.INIT_URL).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        try {
+          var data = JSON.parse(res.responseText);
+        }
+        catch (e) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
         return data.csrf_token;
       }
       else {
@@ -3682,7 +3715,7 @@ Models.register({
       contributor_details : 'true'
     })).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        var data = JSON.parse(res.responseText);
         var sitesense = {
           minURL  : 'http://twitter.com',
           data    : data,
@@ -3707,7 +3740,7 @@ Models.register({
       check : ps.itemUrl || ps.pageUrl
     })).addCallback(function(res) {
       if (res.responseText) {
-        var data = MochiKit.Base.evalJSON(res.responseText);
+        var data = JSON.parse(res.responseText);
         sendContent.assimilator = JSON.stringify(data[0]);
         return self.getCSRFToken().addCallback(function(csrftoken) {
           sendContent._csrf_token = csrftoken;
@@ -3716,6 +3749,8 @@ Models.register({
           });
         });
       }
+    }).addErrback(function(e) {
+      throw new Error('Not supported a video post on this site.');
     });
   },
 
@@ -3741,7 +3776,7 @@ Models.register({
         }
       }).addCallback(function(res) {
         if (res.responseText) {
-          var data = MochiKit.Base.evalJSON(res.responseText);
+          var data = JSON.parse(res.responseText);
           return request(self.DESC_URL + data.id, {
             sendContent : {
               description : description,

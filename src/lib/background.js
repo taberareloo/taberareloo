@@ -15,21 +15,21 @@ window.addEventListener('load', function() {
       {name: 'Taberareloo.general'}
     ]
   };
-  chrome.extension.sendRequest(CHROME_GESTURES, action, function(res) {
+  chrome.extension.sendMessage(CHROME_GESTURES, action, function(res) {
     REGISTER['CHROME_GESTURES'] = true;
   });
-  chrome.extension.sendRequest(CHROME_KEYCONFIG, action, function(res) {
+  chrome.extension.sendMessage(CHROME_KEYCONFIG, action, function(res) {
     REGISTER['CHROME_KEYCONFIG'] = true;
   });
   setTimeout(function() {
     // ダメ押しのもう一回
     if (!REGISTER['CHROME_GESTURES']) {
-      chrome.extension.sendRequest(CHROME_GESTURES, action, function(res) {
+      chrome.extension.sendMessage(CHROME_GESTURES, action, function(res) {
         REGISTER['CHROME_GESTURES'] = true;
       });
     }
     if (!REGISTER['CHROME_KEYCONFIG']) {
-      chrome.extension.sendRequest(CHROME_KEYCONFIG, action, function(res) {
+      chrome.extension.sendMessage(CHROME_KEYCONFIG, action, function(res) {
         REGISTER['CHROME_KEYCONFIG'] = true;
       });
     }
@@ -202,7 +202,7 @@ var TBRL = {
               'error_post', [errs.join('\n').indent(2), ps.page, ps.pageUrl]),
             ps.pageUrl, urls);
         } else {
-          delete TBRL.Popup.contents[ps.itemUrl];
+          delete TBRL.Popup.contents[ps.https.pageUrl[1]];
         }
       }).addErrback(function(err) {
         self.alertError(err, ps.pageUrl);
@@ -387,16 +387,7 @@ var onRequestsHandlers = {
     });
   },
   base64ToFileEntry: function(req, sender, func) {
-    var data = req.content;
-    var cut = cutBase64Header(data);
-    var binary = window.atob(cut);
-    var buffer = new ArrayBuffer(binary.length);
-    var view = new Uint8Array(buffer);
-    var fromCharCode = String.fromCharCode;
-    for (var i = 0, len = binary.length; i < len; ++i) {
-      view[i] = binary.charCodeAt(i);
-    }
-    createFileEntryFromArrayBuffer(buffer, 'image/png', 'png').addCallback(function(entry) {
+    createFileEntryFromBlob(base64ToBlob(req.content, 'image/png'), 'png').addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         var key = getURLFromFile(file);
         GlobalFileEntryCache[key] = entry;
@@ -446,7 +437,7 @@ var onRequestsHandlers = {
         opt = content.opt,
         url = content.url;
     // this is very experimental
-    return download(url, opt && opt.type, opt && opt.ext).addCallback(function(entry) {
+    return download(url, opt && opt.ext).addCallback(function(entry) {
       return getFileFromEntry(entry).addCallback(function(file) {
         var key = getURLFromFile(file);
         GlobalFileEntryCache[key] = entry;
@@ -473,10 +464,11 @@ var onRequestsHandlers = {
   }
 };
 
-chrome.extension.onRequest.addListener(function(req, sender, func) {
+chrome.extension.onMessage.addListener(function(req, sender, func) {
   var handler = onRequestsHandlers[req.request];
   if (handler) {
     handler.apply(this, arguments);
+    return true;
   }
 });
 
@@ -539,3 +531,34 @@ var getFinalUrl = (function() {
     return ret;
   };
 })();
+
+var Sandbox = {
+  sandbox  : null,
+  sequence : 0,
+
+  initailize : function() {
+    this.sandbox = document.createElement('iframe');
+    this.sandbox.sandbox = 'allow-scripts';
+    this.sandbox.src = 'sandbox.html';
+    document.body.appendChild(this.sandbox);
+  },
+
+  evalJSON : function(str) {
+    var ret = new Deferred();
+    var seq = this.sequence++;
+    var messageHandler = function(res) {
+      if (res.data.seq === seq) {
+        window.removeEventListener('message', messageHandler);
+        ret.callback(res.data.json);
+      }
+    };
+    window.addEventListener('message', messageHandler, false);
+    this.sandbox.contentWindow.postMessage({
+      action : 'evalJSON',
+      seq    : seq,
+      value  : str
+    }, '*');
+    return ret;
+  }
+};
+Sandbox.initailize();

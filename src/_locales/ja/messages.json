@@ -19,7 +19,7 @@
     "message": "クイックポストで使うタグの取得元"
   },
   "label_keyconfig": {
-    "message": "ChromeKeyConfig を使う ( チェックされているとTaberarelooによるキー監視は行われません )"
+    "message": "Keyconfig を使う ( チェックされているとTaberarelooによるキー監視は行われません )"
   },
   "label_shortcutkey": {
     "message": "ショートカット - $1クイックポスト"

@@ -8,7 +8,7 @@
     contexts: ['all'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenus',
         content: info
       });
@@ -19,7 +19,7 @@
     contexts: ['selection'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusQuote',
         content: info
       });
@@ -30,7 +30,7 @@
     contexts: ['link'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusLink',
         content: info
       });
@@ -41,7 +41,7 @@
     contexts: ['image'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusImage',
         content: info
       });
@@ -52,7 +52,7 @@
     contexts: ['image'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusImageCache',
         content: info
       });
@@ -63,7 +63,7 @@
     contexts: ['video'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusVideo',
         content: info
       });
@@ -74,7 +74,7 @@
     contexts: ['audio'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusAudio',
         content: info
       });
@@ -86,7 +86,7 @@
     parentId: id,
     documentUrlPatterns: ['http://www.flickr.com/photos/*/*/*'],
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusImage',
         content: info
       });
@@ -97,7 +97,7 @@
     contexts: ['all'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusCapture',
         content: info
       });
@@ -108,7 +108,7 @@
     contexts: ['image'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusSearchGoogleImage',
         content: info
       });
@@ -119,7 +119,7 @@
     contexts: ['all'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusBGImage',
         content: info
       });
@@ -130,7 +130,7 @@
     contexts: ['all'],
     parentId: id,
     onclick: function(info, tab) {
-      chrome.tabs.sendRequest(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusText',
         content: info
       });

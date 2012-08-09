@@ -253,10 +253,14 @@ Extractors.register([
           html : ctx.selection.html
         };
       } else {
-        var elm = ctx.document.querySelector('.tweet-text-large') ||
-          ctx.document.querySelector('.entry-content') ||
-          ctx.document.querySelector('.permalink-tweet .js-tweet-text');
-        var sel = createFlavoredString(elm);
+        var elm = ctx.document.querySelector('.tweet-text');
+        var cloneElm = elm.cloneNode(true);
+        $A(cloneElm.getElementsByClassName('tco-ellipsis')).forEach(
+          function(target){
+            target.parentNode.removeChild(target);
+          }
+        );
+        var sel = createFlavoredString(cloneElm);
         res.body = sel.raw;
         res.flavors = {
           html : sel.html
@@ -704,7 +708,7 @@ Extractors.register([
         rt       : 'j'
       })).addCallback(function(res) {
         var data = res.responseText.substr(5).replace(/(\\n|\n)/g, '');
-        var data = MochiKit.Base.evalJSON(data);
+        var data = self.parseJSON(data);
         data = self.getDataByKey(data[0], 'os.u');
         if (!data) return null;
         item = data[1];
@@ -781,7 +785,8 @@ Extractors.register([
               || (attachment2[24][4] === 'photo'))) {
               result = update(result, {
                 type        :'photo',
-                itemUrl     : attachment2[5] && attachment2[5][1],
+                itemUrl     : (attachment2[5] && attachment2[5][1])
+                  || (attachment2[41] && attachment2[41][0] && attachment2[41][0][1]),
                 body        : joinText([
                   attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
                   attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
@@ -812,6 +817,18 @@ Extractors.register([
         }
         return result;
       });
+    },
+    /**
+     * Originally made with Open Source software JSAPI by +Mohamed Mansour
+     * https://github.com/mohamedmansour/google-plus-extension-jsapi
+     */
+    parseJSON : function(str) {
+      var cleaned = str.replace(/\[,/g, '[null,');
+      cleaned = cleaned.replace(/,\]/g, ',null]');
+      cleaned = cleaned.replace(/,,/g, ',null,');
+      cleaned = cleaned.replace(/,,/g, ',null,');
+      cleaned = cleaned.replace(/{(\d+):/g, '{"$1":');
+      return JSON.parse(cleaned);
     },
     getDataByKey : function(arr, key) {
       for (var i = 0, len = arr.length ; i < len ; i++) {
@@ -873,24 +890,27 @@ Extractors.register([
 
   {
     name : 'Photo - 4u',
-    ICON : 'http://4u.straightline.jp/favicon.ico',
+    ICON : skin + '4u.ico',
     check : function(ctx){
       return ctx.onImage &&
-        ctx.href.match(/^http:\/\/4u\.straightline\.jp\/image\//) &&
-        ctx.target.src.match(/\/static\/upload\/l\/l_/);
+        ctx.hostname === '4u-beautyimg.com' &&
+        ctx.target.src.match(/\/thumb\/l\/l_/);
     },
     extract : function(ctx){
-      var author = $X('(//div[@class="entry-information"]//a)[1]', ctx.document)[0];
-      var iLoveHer = $X('//div[@class="entry-item fitem"]//a/@href', ctx.document)[0];
+      var iLoveHer = $X('./ancestor::li//span[starts-with(@id, "love-her-")]/a/@href', ctx.target)[0];
+      if (iLoveHer) {
+        var source = decodeURIComponent(iLoveHer.extract('src=([^&]*)'));
+      }
+      if (ctx.onLink && !/^\/image\//.test(ctx.pathname)) {
+        ctx.href = ctx.link.href;
+      }
       return {
         type      : 'photo',
-        item      : ctx.title.extract(/(.*) - 4U/i),
-        itemUrl   : ctx.target.src,
-        author    : author.textContent.trim(),
-        authorUrl : author.href,
+        item      : $X('./ancestor::li//h2/a/text()', ctx.target)[0] || ctx.title.extract(/(.*) - 4U/i),
+        itemUrl   : source || ctx.target.src,
         favorite : {
           name : '4u',
-          id : iLoveHer && decodeURIComponent(iLoveHer.extract('src=([^&]*)'))
+          id : source
         }
       };
     }
@@ -1092,7 +1112,6 @@ Extractors.register([
       var target = ctx.target;
       var itemUrl = (tagName(target) === 'object') ? target.data : target.src;
       return downloadFile(itemUrl, {
-        type : getImageMimeType(itemUrl),
         ext  : getFileExtension(itemUrl)
       }).addCallback(function(url) {
         return {
@@ -1407,7 +1426,7 @@ Extractors.register([
       // Google Chrome doesn't support CanvasRenderingContext2D#drawWindow
       var ret = new Deferred();
       var width = win.innerWidth;
-      chrome.extension.sendRequest(TBRL.id, {
+      chrome.extension.sendMessage(TBRL.id, {
         request: "capture"
       }, function(res){
         var img = new Image();

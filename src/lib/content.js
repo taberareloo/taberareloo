@@ -19,7 +19,7 @@ var TBRL = {
     'ol' : [
       'display: block;',
       'margin: 1__qem 0 1em 0;',
-      '-webkit-padding-start: 40px',
+      '-webkit-padding-start: 40px;',
       'z-index: 100000;',
       'padding: 20px;',
       'top: 10px;',
@@ -215,7 +215,7 @@ var TBRL = {
     var ctx = update({
       document :document,
       window : window,
-      title : document.title,
+      title : document.title || location.href.replace(new RegExp('(?:^http://)?(' + location.hostname + ')(?:/$)?'), '$1'),
       selection : (!!sel.raw)? sel : null,
       target : target || TBRL.getTarget() || document.documentElement
     }, window.location);
@@ -266,7 +266,7 @@ var TBRL = {
   },
   share: function(ctx, ext, show) {
     this.extract(ctx, ext).addCallback(function(ps) {
-      chrome.extension.sendRequest(TBRL.id, {
+      chrome.extension.sendMessage(TBRL.id, {
         request: "share",
         show   : show,
         content: checkHttps(update({
@@ -278,7 +278,7 @@ var TBRL = {
   },
   getConfig : function(){
     var d = new Deferred();
-    chrome.extension.sendRequest(TBRL.id, {
+    chrome.extension.sendMessage(TBRL.id, {
       request: "config"
     }, function(res){
       d.callback(res);
@@ -312,7 +312,7 @@ new DeferredList([
 
 function downloadFile(url, opt) {
   var ret = new Deferred();
-  chrome.extension.sendRequest(TBRL.id, {
+  chrome.extension.sendMessage(TBRL.id, {
     request: "download",
     content: {
       "url" : url,
@@ -330,7 +330,7 @@ function downloadFile(url, opt) {
 
 function base64ToFileEntry(data) {
   var ret = new Deferred();
-  chrome.extension.sendRequest(TBRL.id, {
+  chrome.extension.sendMessage(TBRL.id, {
     request: "base64ToFileEntry",
     content: data
   }, function(res){
@@ -522,7 +522,7 @@ var onRequestHandlers = {
       return /^Photo/.test(m.name);
     })[0];
     TBRL.extract(ctx, ext).addCallback(function(ps) {
-      chrome.extension.sendRequest(TBRL.id, {
+      chrome.extension.sendMessage(TBRL.id, {
         request: "search",
         show   : false,
         content: update({
@@ -556,7 +556,10 @@ var onRequestHandlers = {
   }
 };
 
-chrome.extension.onRequest.addListener(function(req, sender, func){
+chrome.extension.onMessage.addListener(function(req, sender, func){
   var handler = onRequestHandlers[req.request];
-  handler && handler.apply(this, arguments);
+  if (handler) {
+    handler.apply(this, arguments);
+    return true;
+  }
 });

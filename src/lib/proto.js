@@ -74,20 +74,6 @@ Object.defineProperties(String.prototype, {
     }
   },
 
-  link: {
-    writable: true,
-    value: function(href) {
-      return '<a href="' + href + '">' + this + '</a>';
-    }
-  },
-
-  trim: {
-    writable: true,
-    value: function() {
-      return this.replace(/^\s+|\s+$/g, '');
-    }
-  },
-
   wrap: {
     writable: true,
     value: function(c) {
