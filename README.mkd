@@ -43,7 +43,7 @@ see [wiki page](https://github.com/Constellation/taberareloo/wiki/)
 
 ## VERSION
 
-2.0.66
+2.0.67
 
 ## DEPENDENCIES
 
