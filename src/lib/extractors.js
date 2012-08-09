@@ -785,7 +785,8 @@ Extractors.register([
               || (attachment2[24][4] === 'photo'))) {
               result = update(result, {
                 type        :'photo',
-                itemUrl     : attachment2[5] && attachment2[5][1],
+                itemUrl     : (attachment2[5] && attachment2[5][1])
+                  || (attachment2[41] && attachment2[41][0] && attachment2[41][0][1]),
                 body        : joinText([
                   attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
                   attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
