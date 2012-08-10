@@ -675,7 +675,16 @@ function PosterItem(ps, poster, index, posters) {
   this.posters = posters;
   this.index = index;
 
-  var res = ~ps.enabledPosters.indexOf(poster) || posters.models.getConfig(ps, poster) === 'default';
+  var res = (function(){
+    if (~ps.enabledPosters.indexOf(poster)) {
+      return true;
+    } else if (posters.models.getConfig(ps, poster) === 'default') {
+      if (!(isPopup && background.TBRL.Popup.contents[ps.https.pageUrl[1]])) {
+        return true;
+      }
+    }
+    return false;
+  }());
   var img = this.element = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
 
   connect(img, 'onclick', this, 'clicked');
