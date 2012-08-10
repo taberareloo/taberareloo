@@ -3,6 +3,7 @@
 var background = chrome.extension.getBackgroundPage();
 var form = null;
 var Config  = background.TBRL.Config;
+var isPopup;
 
 function getPs(query) {
   var d = new Deferred();
@@ -44,10 +45,13 @@ function getPs(query) {
 
 connect(window, 'onDOMContentLoaded', window, function(ev){
   var query = queryHash(location.search);
-  getPs(query).addCallback(function(ps) { form = new Form(ps, !query.quick); });
+  getPs(query).addCallback(function(ps) {
+    isPopup = !query.quick;
+    form = new Form(ps);
+  });
 });
 
-function Form(ps, isPopup) {
+function Form(ps) {
   this.ps = ps;
   this.posted = false;
   this.canceled = false;
