@@ -2635,32 +2635,25 @@ Models.register({
     var self = this;
     var url = this.HOME_URL + this.BASE_URL + this.INIT_URL;
     return request(url + '?' + queryString({
-      key    : key,
+      hl     : 'en',
       _reqid : this.getReqid(),
       rt     : 'j'
-    })).addCallback(function(res) {
-      var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var data = self.parseJSON(initialData);
-      data = self.getDataByKey(data[0], 'idr');
-      if (!data) {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+    }), {
+      sendContent : {
+        key : key
       }
-      data = self.parseJSON(data[1]);
-      return data[key];
+    }).addCallback(function(res) {
+      var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
+      return Sandbox.evalJSON(initialData).addCallback(function(json) {
+        var data = self.getDataByKey(json[0], 'idr');
+        if (!data) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
+        return Sandbox.evalJSON(data[1]).addCallback(function(json) {
+          return json[key];
+        });
+      });
     });
-  },
-
-  /**
-   * Originally made with Open Source software JSAPI by +Mohamed Mansour
-   * https://github.com/mohamedmansour/google-plus-extension-jsapi
-   */
-  parseJSON : function(str) {
-    var cleaned = str.replace(/\[,/g, '[null,');
-    cleaned = cleaned.replace(/,\]/g, ',null]');
-    cleaned = cleaned.replace(/,,/g, ',null,');
-    cleaned = cleaned.replace(/,,/g, ',null,');
-    cleaned = cleaned.replace(/{(\d+):/g, '{"$1":');
-    return JSON.parse(cleaned);
   },
 
   getDataByKey : function(arr, key) {
@@ -2677,7 +2670,7 @@ Models.register({
     var self = this;
     return this.getInitialData(11).addCallback(function(data) {
       if (!data) return JSON.stringify([]);
-      data = self.parseJSON(data[0]);
+      data = JSON.parse(data[0]);
 
       var aclEntries = [];
 
@@ -2756,12 +2749,13 @@ Models.register({
       }
     }).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var result = self.parseJSON(initialData)[0];
-      var data = self.getDataByKey(result, 'lpd');
-      if (!data || !data[1]) return '';
+      return Sandbox.evalJSON(initialData).addCallback(function(json) {
+        var data = self.getDataByKey(json[0], 'lpd');
+        if (!data || !data[1]) return '';
 
-      var snippet = data[2].length ? data[2] : data[3];
-      return snippet[snippet.length - 1][21];
+        var snippet = data[2].length ? data[2] : data[3];
+        return snippet[snippet.length - 1][21];
+      });
     });
   },
 
@@ -3154,21 +3148,22 @@ Models.register({
       })
     ).addCallback(function(res) {
       var text = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      var json = self.parseJSON(text);
-      var data = self.getDataByKey(json[0], 'ope.gmppr');
-      var pages = [];
-      if (data) {
-        data[1].forEach(function(page) {
-          if (page[2]) {
-            pages.push({
-              id   : page[30],
-              name : page[4][3],
-              icon : page[3]
-            });
-          }
-        });
-      }
-      return pages;
+      return Sandbox.evalJSON(text).addCallback(function(json) {
+        var data = self.getDataByKey(json[0], 'ope.gmppr');
+        var pages = [];
+        if (data) {
+          data[1].forEach(function(page) {
+            if (page[2]) {
+              pages.push({
+                id   : page[30],
+                name : page[4][3],
+                icon : page[3]
+              });
+            }
+          });
+        }
+        return pages;
+      });
     });
   }
 });
