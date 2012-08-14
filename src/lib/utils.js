@@ -647,11 +647,11 @@ function checkHttps(ps) {
       pageFlag = false,
       itemFlag = false,
       m    = null;
-  if (page && (m = page.match(/^https:\/\/[^/]+/))) {
+  if (page && (m = page.match(/^https:\/\/[^/]+/)) && !isWhitelistedSite(page)) {
     pageFlag = true;
     ps.pageUrl = m[0];
   }
-  if (item && (m = item.match(/^https:\/\/[^/]+/))) {
+  if (item && (m = item.match(/^https:\/\/[^/]+/)) && !isWhitelistedSite(item)) {
     itemFlag = true;
     ps.itemUrl = m[0];
   }
@@ -660,6 +660,16 @@ function checkHttps(ps) {
     itemUrl: [itemFlag, item]
   };
   return ps;
+}
+
+function isWhitelistedSite(url) {
+  var https_whitelist = TBRL.config.entry.https_whitelist;
+  if (!https_whitelist) {
+    return false;
+  }
+  var whitelist = https_whitelist.split(/\r?\n/);
+  var urlParser = $N('a', {href: url});
+  return whitelist.indexOf(urlParser.hostname) !== -1;
 }
 
 function getTempFile(ext) {

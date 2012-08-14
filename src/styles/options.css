@@ -188,3 +188,9 @@ table.option_table th {
   border-style: solid !important;
   border-color: #bbb !important;
 }
+
+textarea {
+  max-width: 710px;
+  width: 100%;
+  height: 200px;
+}
