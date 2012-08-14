@@ -102,7 +102,7 @@ function Form(ps) {
     $("icon_container").appendChild(cancel);
   }
 
-  if ((ps.https.pageUrl[0] || ps.https.itemUrl[0]) && ps.https.pageUrl[1] !== ps.pageUrl) {
+  if ((ps.https.pageUrl[0] || ps.https.itemUrl[0]) && !(isPopup && ps.https.pageUrl[1] === ps.pageUrl)) {
     // pageUrl or itemUrl is https
     var list = [];
     if (ps.https.pageUrl[0]) {
