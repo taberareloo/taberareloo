@@ -3,6 +3,7 @@
 var background = chrome.extension.getBackgroundPage();
 var form = null;
 var Config  = background.TBRL.Config;
+var isPopup;
 
 function getPs(query) {
   var d = new Deferred();
@@ -44,10 +45,13 @@ function getPs(query) {
 
 connect(window, 'onDOMContentLoaded', window, function(ev){
   var query = queryHash(location.search);
-  getPs(query).addCallback(function(ps) { form = new Form(ps, !query.quick); });
+  getPs(query).addCallback(function(ps) {
+    isPopup = !query.quick;
+    form = new Form(ps);
+  });
 });
 
-function Form(ps, isPopup) {
+function Form(ps) {
   this.ps = ps;
   this.posted = false;
   this.canceled = false;
@@ -98,7 +102,7 @@ function Form(ps, isPopup) {
     $("icon_container").appendChild(cancel);
   }
 
-  if ((ps.https.pageUrl[0] || ps.https.itemUrl[0]) && ps.https.pageUrl[1] !== ps.pageUrl) {
+  if ((ps.https.pageUrl[0] || ps.https.itemUrl[0]) && !(isPopup && ps.https.pageUrl[1] === ps.pageUrl)) {
     // pageUrl or itemUrl is https
     var list = [];
     if (ps.https.pageUrl[0]) {
@@ -671,7 +675,16 @@ function PosterItem(ps, poster, index, posters) {
   this.posters = posters;
   this.index = index;
 
-  var res = ~ps.enabledPosters.indexOf(poster) || posters.models.getConfig(ps, poster) === 'default';
+  var res = (function(){
+    if (~ps.enabledPosters.indexOf(poster)) {
+      return true;
+    } else if (posters.models.getConfig(ps, poster) === 'default') {
+      if (!(isPopup && background.TBRL.Popup.contents[ps.https.pageUrl[1]])) {
+        return true;
+      }
+    }
+    return false;
+  }());
   var img = this.element = $N('img', {'src':poster.ICON, 'title':poster.name, 'class':'poster'});
 
   connect(img, 'onclick', this, 'clicked');
