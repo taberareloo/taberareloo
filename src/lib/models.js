@@ -2899,6 +2899,12 @@ Models.register({
       : succeed(ps.body)).addCallback(function(snippet) {
       ps.body = snippet;
 
+      if (ps.nico) {
+        ps.type    = 'photo';
+        ps.itemUrl = ps.nico.video.thumbnail;
+        ps.body    = ps.nico.video.description;
+      }
+
       var description = ps.description;
       if (ps.type === 'regular') {
         description = joinText([ps.item, ps.description], "\n");
