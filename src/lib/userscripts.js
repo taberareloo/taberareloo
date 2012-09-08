@@ -154,7 +154,7 @@ UserScripts.register([
     },
     fire  : function(ev){
       var target = ev.target;
-      addElementClass($X('ancestor::div[starts-with(@id, "item_count")]/parent::div', target)[0], 'TBRL_posted');
+      $X('ancestor::div[starts-with(@id, "item_count")]/parent::div', target)[0].classList.add('TBRL_posted');
       var data = JSON.parse(ev.data);
       var body = $X('ancestor::div[starts-with(@id, "item_count")]/parent::div//div[@class="item_body"]', target)[0];
       var sel = createFlavoredString(window.getSelection());
@@ -432,7 +432,7 @@ UserScripts.register([
           ctx.onImage = true;
           ctx.target = $X('./descendant::img[0]', item.body)[0];
         }
-        addElementClass(item.parent, 'TBRL_posted');
+        item.parent.classList.add('TBRL_posted');
         var ext = Extractors.check(ctx)[0];
         return TBRL.share(ctx, ext, ext.name.match(/^Link /));
       } else {
@@ -603,7 +603,7 @@ UserScripts.register({
     var elem = ev.target;
     var tag  = tagName(elem);
     if ((tag === 'input') || (tag === 'textarea')
-      || MochiKit.DOM.hasElementClass(elem, 'editable')
+      || elem.classList.contains('editable')
       || MochiKit.DOM.getNodeAttribute(elem, 'g_editable')
       || MochiKit.DOM.getNodeAttribute(elem, 'contenteditable')) {
       return null;

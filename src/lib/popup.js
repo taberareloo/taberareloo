@@ -86,8 +86,10 @@ function Form(ps) {
 
   var toggle_detail = $('toggle_detail');
   connect(toggle_detail, 'onclick', this, function(ev){
-    if(!addElementClass(toggle_detail, 'extended')){
-      removeElementClass(toggle_detail, 'extended');
+    if (toggle_detail.classList.contains('extended')){
+      toggle_detail.classList.remove('extended');
+    } else {
+      toggle_detail.classList.add('extended');
     }
     this.toggle();
   });
@@ -294,13 +296,13 @@ Notify.prototype = {
     } else {
       this.msg.appendChild($T(message+'\n'));
     }
-    addElementClass(this.msg, 'shown');
+    this.msg.classList.add('shown');
     callLater(0.5, Form.resize);
   },
   clear: function NotifyClear() {
     var msg = $('message');
     $D(msg);
-    removeElementClass(msg, 'shown');
+    msg.classList.remove('shown');
   }
 };
 
@@ -323,8 +325,8 @@ Title.prototype = {
   showInputTitle: function(ev){
     if(!this.shownInput){
       this.shownInput = true;
-      addElementClass(this.textTitle, 'hide');
-      removeElementClass(this.inputTitle, 'hide');
+      this.textTitle.classList.add('hide');
+      this.inputTitle.classList.remove('hide');
       this.inputTitle.focus();
     }
   },
@@ -333,8 +335,8 @@ Title.prototype = {
       this.shownInput = false;
       $D(this.textTitle);
       this.textTitle.appendChild($T(this.inputTitle.value));
-      addElementClass(this.inputTitle, 'hide');
-      removeElementClass(this.textTitle, 'hide');
+      this.inputTitle.classList.add('hide');
+      this.textTitle.classList.remove('hide');
     }
   },
   toggle: function(){
@@ -696,7 +698,7 @@ function PosterItem(ps, poster, index, posters) {
   if(res){
     posters.enables[poster.name] = poster;
   } else {
-    addElementClass(img, 'disabled');
+    img.classList.add('disabled');
   }
 }
 
@@ -714,7 +716,7 @@ PosterItem.prototype = {
     setTimeout(function(){ that.posters.form.post(); }, 300);
   },
   checked: function(){
-    return !hasElementClass(this.element, 'disabled');
+    return !this.element.classList.contains('disabled');
   },
   clicked: function(ev){
     var mod = ev.modifier();
@@ -726,11 +728,11 @@ PosterItem.prototype = {
     }
   },
   off: function(){
-    addElementClass(this.element, 'disabled');
+    this.element.classList.add('disabled');
     delete this.posters.enables[this.poster.name];
   },
   on: function(){
-    removeElementClass(this.element, 'disabled');
+    this.element.classList.remove('disabled');
     this.posters.enables[this.poster.name] = this.poster;
   }
 };
@@ -854,8 +856,8 @@ Tags.prototype = {
       that.setSuggestions(res);
       that.setTags(res.tags);
 
-      removeElementClass(that.suggestionIcon, 'loading');
-      addElementClass(that.suggestionIcon, 'loaded');
+      that.suggestionIcon.classList.remove('loading');
+      that.suggestionIcon.classList.add('loaded');
       if (that.suggestionIconNotConnected) {
         that.suggestionIconNotConnected = false;
         connect(that.suggestionIcon, 'onclick', that, 'toggleSuggestions');
@@ -865,15 +867,15 @@ Tags.prototype = {
       }
     }).addErrback(function(e){
       that.notify.show(Config['post']['tag_provider']+'\n'+e.message.indent(4));
-      removeElementClass(that.suggestionIcon, 'loading');
-      addElementClass(that.suggestionIcon, 'loaded');
+      that.suggestionIcon.classList.remove('loading');
+      that.suggestionIcon.classList.add('loaded');
     });
   },
 
   reset: function(ps) {
     if(Config['post']['tag_auto_complete'] && !this.ignoreTags) {
-      removeElementClass(this.suggestionIcon, 'loaded');
-      addElementClass(this.suggestionIcon, 'loading');
+      this.suggestionIcon.classList.remove('loaded');
+      this.suggestionIcon.classList.add('loading');
       $D($('suggestions'));
       this.loadSuggestion(ps.itemUrl);
     }
@@ -1203,9 +1205,9 @@ Tags.prototype = {
           }
           self.elmTags[cand] = sug;
           connect(sug, 'onclick', cand, function(ev){
-            if(hasElementClass(sug, 'used')){
+            if(sug.classList.contains('used')){
               self.removeWord(cand);
-              removeElementClass(sug, 'used');
+              sug.classList.remove('used');
             } else {
               self.injectCandidates(cand, true);
             }
@@ -1224,15 +1226,16 @@ Tags.prototype = {
 
     this.values().forEach(function(tag){
       var elm = self.elmTags[tag];
-      if(elm)
-        addElementClass(elm, 'used');
+      if (elm) {
+        elm.classList.add('used');
+      }
       tags[tag] = null;
     });
 
     items(self.elmTags).forEach(function(pair){
       var tag = pair[0], elm = pair[1];
       if(!(tag in tags))
-        removeElementClass(elm, 'used');
+        elm.classList.remove('used');
     });
   },
 
@@ -1244,7 +1247,7 @@ Tags.prototype = {
     var sg = $('suggestions');
     sg.style.display = 'block';
     background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = true;
-    addElementClass(this.suggestionIcon, 'extended');
+    this.suggestionIcon.classList.add('extended');
     return callLater(0, Form.resize);
   },
 
@@ -1252,7 +1255,7 @@ Tags.prototype = {
     var sg = $('suggestions');
     sg.style.display = 'none';
     background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = false;
-    removeElementClass(this.suggestionIcon, 'extended');
+    this.suggestionIcon.classList.remove('extended');
     return callLater(0, Form.resize);
   }
 };
@@ -1301,9 +1304,9 @@ Popup.prototype = {
     var index = this.selectedIndex + offset;
     index = index >= this.rowCount ? 0:
             index < 0              ? (this.rowCount - 1) : index;
-    removeElementClass(this.items[this.selectedIndex], "selected");
+    this.items[this.selectedIndex].classList.remove("selected");
     this.selectedIndex = index;
-    addElementClass(this.items[this.selectedIndex], "selected");
+    this.items[this.selectedIndex].classList.add("selected");
   },
 
   removeAll: function(){
@@ -1326,7 +1329,7 @@ Popup.prototype = {
     }, this);
     this.rowCount = cands.length;
     this.selectedIndex = 0;
-    addElementClass(this.items[this.selectedIndex], "selected");
+    this.items[this.selectedIndex].classList.add("selected");
   },
 
   rowHeight: function(){

@@ -9,16 +9,16 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var slides = ['services', 'post', 'entry', 'about'];
   var tabs = $A(document.getElementsByClassName('tab'));
   var now_active = 0;
-  addElementClass(tabs[now_active], 'active');
+  tabs[now_active].classList.add('active');
   tabs.forEach(function(li){
     var p = li.getElementsByTagName('p')[0];
     var anchor = p.className;
     connect(li, 'onclick', li, function(ev){
-      removeElementClass(tabs[now_active], 'active');
+      tabs[now_active].classList.remove('active');
       var index = slides.indexOf(anchor);
       if(~index){
         now_active = index;
-        addElementClass(tabs[now_active], 'active');
+        tabs[now_active].classList.add('active');
         inner.style.marginLeft = (-index)*100+'%';
       }
     });
@@ -305,7 +305,7 @@ function Services(){
         service[index] = $N('td', null, [container]);
         self.elements[servicename][Services.TYPES[index-1]] = button;
         connect(service[index], 'onclick', service[index], function(ev){
-          removeElementClass(button, status);
+          button.classList.remove(status);
           if(status === 'enabled'){
             status = 'disabled';
           } else if(status === 'disabled'){
@@ -313,18 +313,18 @@ function Services(){
           } else {
             status = 'enabled';
           }
-          addElementClass(button, status);
+          button.classList.add(status);
         });
         dragger.register(container, {
           start: function(ev) {
             this.status = status;
-            removeElementClass(table, 'normal');
-            addElementClass(table, status);
+            table.classList.remove('normal');
+            table.classList.add(status);
           },
           end:   function(ev) {
             this.status = null;
-            removeElementClass(table, status);
-            addElementClass(table, 'normal');
+            table.classList.remove(status);
+            table.classList.add('normal');
           }
         });
         dragger.dragging(container, function(ev) {
@@ -374,9 +374,9 @@ Services.prototype = {
       Services.TYPES.forEach(function(type){
         if(val[type]){
           var button = val[type];
-          if(hasElementClass(button, 'enabled')){
+          if(button.classList.contains('enabled')){
             result[name][type] = 'enabled';
-          } else if(hasElementClass(button, 'disabled')){
+          } else if(button.classList.contains('disabled')){
             result[name][type] = 'disabled';
           } else {
             result[name][type] = 'default';
