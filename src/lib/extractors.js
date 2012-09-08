@@ -506,7 +506,7 @@ Extractors.register([
       var that = this;
       return request(url).addCallback(function(res){
         var doc = createHTML(res.responseText);
-        var form = formContents($X('//form', doc)[0]);
+        var form = formContents($X('id("edit_post")', doc)[0]);
         delete form.preview_post;
         form.redirect_to = that.TUMBLR_URL+'dashboard';
         if (form.reblog_post_id) {
