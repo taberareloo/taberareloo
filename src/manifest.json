@@ -37,6 +37,12 @@
      "default_popup": "popup.html"
    },
    "options_page": "options.html",
+   "sandbox": {
+     "pages": [
+       "sandbox.html"
+     ],
+     "content_security_policy": "sandbox allow-scripts; 'unsafe-eval'"
+   },
    "icons": {
      "128": "skin/fork128.png",
      "64": "skin/fork64.png",
