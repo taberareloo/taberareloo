@@ -43,6 +43,7 @@
      "32": "skin/fork32.png",
      "16": "skin/fork16.png"
    },
+   "manifest_version": 2,
    "minimum_chrome_version": "21.0",
    "default_locale": "en_US",
    "description": "Yet Another Tombloo on Chromium",
