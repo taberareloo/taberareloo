@@ -43,6 +43,9 @@
      ],
      "content_security_policy": "sandbox allow-scripts; 'unsafe-eval'"
    },
+   "web_accessible_resources": [
+     "skin/fork64.png"
+   ],
    "icons": {
      "128": "skin/fork128.png",
      "64": "skin/fork64.png",
