@@ -1009,8 +1009,6 @@ Extractors.register([
       return (img.width===1 && img.height===1);
     },
     extract : function(ctx){
-//      removeElement(ctx.target);
-
       return Extractors[ctx.bgImageURL?
         'Photo - background image' :
         'Photo - area element'].extract(ctx);
@@ -1463,7 +1461,7 @@ Extractors.register([
 
       $X('//*[self::object or self::embed][contains(@type, "flash")][boolean(@wmode)=false or (@wmode!="opaque" and @wmode!="transparent")]', doc).forEach(function(flash){
         flash.setAttribute('wmode', 'opaque');
-        flash = swapDOM(flash, flash.cloneNode(false));
+        flash = MochiKit.DOM.swapDOM(flash, flash.cloneNode(false));
         flash.offsetWidth;
       });
     },
@@ -1735,9 +1733,9 @@ Extractors.register([
 
         doc.documentElement.style.cursor = '';
 
-        removeElement(region);
-        removeElement(size);
-        removeElement(style);
+        region.parentNode.removeChild(region);
+        size.parentNode.removeChild(size);
+        style.parentNode.removeChild(style);
       }
 
       doc.addEventListener('mousedown', onMouseDown, true);

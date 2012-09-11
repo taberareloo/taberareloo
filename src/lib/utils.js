@@ -339,6 +339,13 @@ function stop(ev) {
 }
 var cancel = stop;
 
+function escapeHTML(s) {
+  return s.replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function unescapeHTML(s) {
   return s.replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
@@ -562,7 +569,9 @@ function convertToHTMLString(source, safe, hatena) {
     $X('descendant::*[contains(",' +
        convertToHTMLString.UNSAFE_ELEMENTS +
        ',", concat(",", local-name(.), ","))]',
-       root).forEach(removeElement);
+       root).forEach(function (node) {
+      node.parentNode.removeChild(node);
+    });
     $X('descendant::*/@*[not(contains(",' +
        convertToHTMLString.SAFE_ATTRIBUTES +
        ',", concat(",", local-name(.), ",")))]',
@@ -583,7 +592,10 @@ function convertToHTMLString(source, safe, hatena) {
       });
     }
 
-    node = appendChildNodes($DF(), root.childNodes);
+    node = $A(root.childNodes).reduce(function (df, node) {
+      df.appendChild(node);
+      return df;
+    }, $DF());
   }
   return new XMLSerializer().serializeToString(node);
 }
