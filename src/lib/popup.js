@@ -849,9 +849,11 @@ Tags.prototype = {
 
   loadSuggestion: function(url) {
     var that = this;
-    background.Models[Config['post']['tag_provider']]
-    .getSuggestions(url)
-    .addCallback(function(res){
+    var model = background.Models[Config['post']['tag_provider']];
+    if (!model) {
+      model = background.Models[Config['post']['tag_provider'] = background.TBRL.Popup.defaultSuggester];
+    }
+    model.getSuggestions(url).addCallback(function(res){
       that.arrangeSuggestions(res);
       that.setSuggestions(res);
       that.setTags(res.tags);
