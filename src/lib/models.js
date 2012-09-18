@@ -2823,7 +2823,7 @@ Models.register({
       : succeed(ps.body)).addCallback(function(snippet) {
       ps.body = snippet;
 
-      var description = ps.description;
+      var description = (ps.description == null) ? '' : ps.description;
       if (ps.type === 'regular') {
         description = joinText([ps.item, ps.description], "\n");
       }
@@ -2836,7 +2836,7 @@ Models.register({
 
       var spar = [];
       if (ps.reshare) {
-        description = ps.description;
+        description = (ps.description == null) ? '' : ps.description;
         spar.push(
           description,
           self.getToken(oz),
