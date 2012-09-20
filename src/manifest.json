@@ -31,6 +31,10 @@
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_start"
    } ],
+   "web_accessible_resources": [
+      "styles/dashboard.css",
+      "styles/reader.css"
+   ],
    "browser_action": {
      "default_icon" : "skin/fork19.png",
      "default_title": "taberareloo",
