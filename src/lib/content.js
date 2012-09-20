@@ -86,7 +86,10 @@ var TBRL = {
     window.addEventListener('Taberareloo.link', TBRL.link, false);
     window.addEventListener('Taberareloo.quote', TBRL.quote, false);
     window.addEventListener('Taberareloo.general', TBRL.general, false);
-    !TBRL.config['post']['keyconfig'] && document.addEventListener('keydown', TBRL.keyhandler, false);
+
+    if (!TBRL.config['post']['keyconfig']) {
+      document.addEventListener('keydown', TBRL.keyhandler, false);
+    }
 
     (TBRL.userscripts = UserScripts.check()).forEach(function(script){
       script.exec();
@@ -190,21 +193,24 @@ var TBRL = {
     var t = ev.target;
     if(t.nodeType === 1){
       try{
-      var tag = tagName(t);
-      if(tag === 'input' || tag === 'textarea'){
-        return;
-      }
-      var key = keyString(ev);
-      var link_quick_post = TBRL.config['post']['shortcutkey_linkquickpost'];
-      var quote_quick_post = TBRL.config['post']['shortcutkey_quotequickpost'];
-      var quick_post = TBRL.config['post']['shortcutkey_quickpost'];
-      if(link_quick_post && key === link_quick_post){
-        TBRL.link();
-      } else if(quote_quick_post && key === quote_quick_post){
-        TBRL.quote();
-      } else if(quick_post && key === quick_post){
-        TBRL.general();
-      }
+        var tag = tagName(t);
+
+        if(tag === 'input' || tag === 'textarea'){
+          return;
+        }
+
+        var key = keyString(ev);
+        var link_quick_post = TBRL.config['post']['shortcutkey_linkquickpost'];
+        var quote_quick_post = TBRL.config['post']['shortcutkey_quotequickpost'];
+        var quick_post = TBRL.config['post']['shortcutkey_quickpost'];
+
+        if (link_quick_post && key === link_quick_post) {
+          TBRL.link();
+        } else if (quote_quick_post && key === quote_quick_post) {
+          TBRL.quote();
+        } else if (quick_post && key === quick_post) {
+          TBRL.general();
+        }
       }catch(e){
         alert(e);
       }
