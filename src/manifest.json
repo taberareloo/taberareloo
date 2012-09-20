@@ -46,7 +46,6 @@
    "web_accessible_resources": [
       "styles/dashboard.css",
       "styles/reader.css",
-      "skin/fork64.png",
       "skin/4u.ico",
       "skin/accept.png",
       "skin/arrow-down.png",
