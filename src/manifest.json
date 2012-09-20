@@ -105,6 +105,6 @@
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",
    "permissions": [ "http://*/*", "https://*/*", "tabs", "bookmarks", "contextMenus", "cookies", "unlimited_storage", "notifications", "webRequest" ],
-   "version": "2.0.71",
+   "version": "2.0.72",
    "incognito": "split"
 }
