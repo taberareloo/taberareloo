@@ -578,12 +578,8 @@ Extractors.register([
       });
     },
     getFrameUrl : function(doc){
-      var elm = $X('//iframe[starts-with(@src, "http://assets.tumblr.com/iframe") and contains(@src, "pid=")]/@src', doc);
-      if(elm.length){
-        return elm[0];
-      } else {
-        return null;
-      }
+      var elm = $X('//iframe[starts-with(@src, "http://www.tumblr.com/iframe") and contains(@src, "pid=")]/@src', doc);
+      return elm.length ? elm[0] : null;
     },
     convertToParams  : function(form){
       switch(form['post[type]']){
