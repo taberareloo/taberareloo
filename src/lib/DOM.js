@@ -1142,9 +1142,9 @@ MochiKit.Base.update(MochiKit.DOM, {
             str += 'return ' + toName + '.apply(this, arguments);';
             MochiKit[fromModule][fromName] = new Function(str);
         }
-        for (var i = 0; i < MochiKit.DOM.DEPRECATED.length; i++) {
-            _deprecated('DOM', MochiKit.DOM.DEPRECATED[i]);
-        }
+//        for (var i = 0; i < MochiKit.DOM.DEPRECATED.length; i++) {
+//            _deprecated('DOM', MochiKit.DOM.DEPRECATED[i]);
+//        }
 
         // shorthand for createDOM syntax
         var createDOMFunc = this.createDOMFunc;
