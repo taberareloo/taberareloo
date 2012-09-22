@@ -2336,12 +2336,32 @@ Models.register({
   name: 'Diigo',
   ICON: 'https://www.diigo.com/favicon.ico',
   LINK: 'https://www.diigo.com/',
+  UPLOAD_URL: "http://www.diigo.com/item/save/image", // based on http://www.diigo.com/item/new/image?t=basic
+
   check: function(ps) {
-    return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+    return /photo|quote|link|conversation|video/.test(ps.type);
   },
 
   post: function(ps) {
-    return this.addBookmark(ps.itemUrl, ps.item, ps.tags, joinText([ps.body, ps.description],' '),ps.private);
+    if(ps.file) {
+      return this.uploadImage(ps);
+    } else {
+      return this.addBookmark(ps.itemUrl, ps.item, ps.tags, joinText([ps.body, ps.description],' '),ps.private);
+    }
+  },
+
+  uploadImage: function(ps) {
+    return request(this.UPLOAD_URL, {
+      sendContent: {
+        file1       : ps.file,
+        description : joinText([
+          ps.description,
+          '(via ' + ps.pageUrl + ' )'
+        ], "\n", true),
+        tags        : (ps.tags && ps.tags.length) ? joinText(ps.tags, ',') : '',
+        private     : (!!ps.private ? "on" : "")
+      }
+    });
   },
 
   addBookmark: function(url, title, tags, description, priv) {
