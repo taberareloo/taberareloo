@@ -2057,37 +2057,6 @@ Models.register({
 });
 
 Models.register({
-  name : 'Wassr',
-  ICON : 'https://wassr.jp/favicon.ico',
-  LINK : 'https://wassr.jp/',
-  LOGIN_URL : 'https://wassr.jp/',
-
-  check : function(ps){
-    return /regular|photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
-  },
-
-  post : function(ps){
-    return this.addMessage(joinText([ps.item, ps.itemUrl, ps.body, ps.description], ' ', true));
-  },
-
-  addMessage : function(message){
-    var self = this;
-    return request('http://wassr.jp/my/').addCallback(function(res){
-      var doc = createHTML(res.responseText);
-      if($X('id("LoginForm")', doc)[0])
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-
-      return request('http://wassr.jp/my/status/add', {
-        //redirectionLimit : 0,
-        sendContent : update(formContents($X('id("HeadBox")/descendant::form', doc)[0]), {
-          message : message
-        })
-      });
-    })
-  }
-});
-
-Models.register({
   name: 'Clipp',
   ICON : chrome.extension.getURL('skin/clipp.ico'),
   CLIPP_URL: 'http://clipp.in/',
