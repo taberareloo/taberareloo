@@ -27,8 +27,7 @@ and
 and
 
 +  4u
-+  Clipp
-+  Wassr (these are Japanese Service)
++  Clipp (these are Japanese Service)
 
 and others
 
