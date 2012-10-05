@@ -892,19 +892,9 @@ Models.register({
   },
 
   getUserTags : function(){
-    var that = this;
-    return succeed().addCallback(function(){
-      return that.getCurrentUser().addCallback(function(username) {
-        return request('https://pinboard.in/u:' + username, {
-          queryString: {
-            mode: 'list',
-            floor: 1
-          }
-        });
-      });
-    }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
-      return $X('id("tag_cloud")//a[contains(@class, "tag")]/text()', doc).map(function(tag) {
+    return request('https://pinboard.in/user_tag_list/').addCallback(function(res){
+      var tags = JSON.parse(res.responseText.replace(/^var\s+usertags\s*=\s*(\[.+\]);$/, '$1'));
+      return tags.map(function(tag){
         return {
           name: tag,
           frequency: 0
