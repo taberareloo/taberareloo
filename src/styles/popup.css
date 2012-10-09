@@ -1,6 +1,7 @@
 .disabled {
   opacity: 0.4;
   -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
 }
 .hide {
   display : none !important;
