@@ -572,7 +572,11 @@ UserScripts.register({
   exec  : function(){
     // thx id:os0x, id:bardiche, id:syoichi
     var script = $N('script', { type: 'text/javascript' });
-    script.textContent = "javascript:window.key_commands_are_suspended = true;void 0;";
+    script.textContent = '(' + function() {
+      if (window.Tumblr && Tumblr.enable_dashboard_key_commands && !Tumblr.KeyCommands.suspended) {
+        Tumblr.KeyCommands.suspend();
+      }
+    } + '());';
     document.head.appendChild(script);
   }
 });
