@@ -511,22 +511,21 @@ UserScripts.register({
     }
   },
   play : function(current){
-    var self = this;
     var small = !!$X('.//img[contains(@class, "image_thumbnail")]', current)[0];
     if(small){
       var img = $X('.//div[starts-with(@id, "highres_photo")]', current)[0];
       if(img){
         if(img.style.display !== 'none'){
-          this.click($X('./a', img)[0]);
+          $X('./a', img)[0].click();
         } else {
-          this.click($X('./preceding-sibling::a[1]', img)[0]);
+          $X('./preceding-sibling::a[1]', img)[0].click();
         }
         return;
       }
     }
     if($X('.//div[contains(@id, "watch_") and .//a]', current).some(function(mov){
       if(mov.style.display !== 'none'){
-        self.click($X('.//a', mov)[0]);
+        $X('.//a', mov)[0].click();
         return true;
       }
       return false;
@@ -534,25 +533,18 @@ UserScripts.register({
       return;
     }
     if(small){
-      $X('.//img[contains(@src, "media.tumblr.com/tumblr_")]', current).forEach(function(timg, index){
-        self.click(timg);
+      $X('.//img[contains(@src, "media.tumblr.com/tumblr_")]', current).forEach(function(timg){
+        timg.click();
       });
     }
   },
   like : function(current){
-    var self = this;
     var like = $X('./descendant-or-self::a[contains(concat(" ", normalize-space(@class), " "), " like_button ")]', current)[0];
-    if(like) self.click(like);
+    if(like) like.click();
   },
   reblogCount: function(current){
     var count = $X('.//a[contains(concat(" ",@class," "), " reblog_count ")]', current)[0];
-    if(count)
-      this.click(count);
-  },
-  click : function(elm){
-    var ev = document.createEvent('MouseEvents');
-    ev.initMouseEvent('click', true, true, window, 1, 10, 50, 10, 50, 0, 0, 0, 0, 1, elm);
-    elm.dispatchEvent(ev);
+    if(count) count.click();
   },
   unload: function(){
     document.removeEventListener('keydown', this.wrap, false);
@@ -572,7 +564,11 @@ UserScripts.register({
   exec  : function(){
     // thx id:os0x, id:bardiche, id:syoichi
     var script = $N('script', { type: 'text/javascript' });
-    script.textContent = "javascript:window.key_commands_are_suspended = true;void 0;";
+    script.textContent = '(' + function() {
+      if (window.Tumblr && Tumblr.enable_dashboard_key_commands && !Tumblr.KeyCommands.suspended) {
+        Tumblr.KeyCommands.suspend();
+      }
+    } + '());';
     document.head.appendChild(script);
   }
 });
