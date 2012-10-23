@@ -3536,7 +3536,7 @@ Models.register({
   TWITTER_API : 'http://api.twitter.com/1/statuses/show.json',
 
   check : function(ps) {
-    return /photo|quote|link|video/.test(ps.type);
+    return /photo|quote|link/.test(ps.type);
   },
 
   getCSRFToken : function() {
@@ -3599,7 +3599,7 @@ Models.register({
     }
 
     return this.getCSRFToken().addCallback(function(csrftoken) {
-      sendContent._csrf_token = csrftoken;
+      sendContent._csrf = csrftoken;
       return request(self.POST_URL, {
         sendContent : sendContent
       });
@@ -3623,7 +3623,7 @@ Models.register({
         };
         sendContent.sitesense = JSON.stringify(sitesense);
         return self.getCSRFToken().addCallback(function(csrftoken) {
-          sendContent._csrf_token = csrftoken;
+          sendContent._csrf = csrftoken;
           return request(self.POST_URL, {
             sendContent : sendContent
           });
@@ -3641,7 +3641,7 @@ Models.register({
         var data = JSON.parse(res.responseText);
         sendContent.assimilator = JSON.stringify(data[0]);
         return self.getCSRFToken().addCallback(function(csrftoken) {
-          sendContent._csrf_token = csrftoken;
+          sendContent._csrf = csrftoken;
           return request(self.POST_URL, {
             sendContent : sendContent
           });
