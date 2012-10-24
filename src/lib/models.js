@@ -3524,7 +3524,7 @@ Models.register({
 
 Models.register({
   name      : 'GimmeBar',
-  ICON      : 'https://gimmebar.com/img/favicon.png',
+  ICON      : chrome.extension.getURL('skin/gimmebar.png'),
   LINK      : 'https://gimmebar.com/',
   LOGIN_URL : 'https://gimmebar.com/login',
 
