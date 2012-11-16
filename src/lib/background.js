@@ -538,7 +538,6 @@ var Sandbox = {
 
   initailize : function() {
     this.sandbox = document.createElement('iframe');
-    this.sandbox.sandbox = 'allow-scripts';
     this.sandbox.src = 'sandbox.html';
     document.body.appendChild(this.sandbox);
   },
