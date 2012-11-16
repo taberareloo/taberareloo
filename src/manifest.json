@@ -41,7 +41,7 @@
      "pages": [
        "sandbox.html"
      ],
-     "content_security_policy": "sandbox allow-scripts; 'unsafe-eval'"
+     "content_security_policy": "sandbox allow-scripts; script-src 'unsafe-eval'"
    },
    "web_accessible_resources": [
       "styles/dashboard.css",
