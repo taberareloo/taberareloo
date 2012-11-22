@@ -41,7 +41,7 @@
      "pages": [
        "sandbox.html"
      ],
-     "content_security_policy": "sandbox allow-scripts; 'unsafe-eval'"
+     "content_security_policy": "sandbox allow-scripts; script-src 'unsafe-eval'"
    },
    "web_accessible_resources": [
       "styles/dashboard.css",
@@ -100,7 +100,7 @@
      "16": "skin/fork16.png"
    },
    "manifest_version": 2,
-   "minimum_chrome_version": "21.0",
+   "minimum_chrome_version": "23.0",
    "default_locale": "en_US",
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",

@@ -758,19 +758,12 @@ function createFileEntryFromBlob(blob, ext) {
   return d;
 }
 
-var getURLObject = (function() {
-  var url = window.URL || window.webkitURL;
-  return function getURLObject() {
-    return url;
-  };
-})();
-
 function getURLFromFile(file) {
-  return getURLObject().createObjectURL(file);
+  return window.URL.createObjectURL(file);
 }
 
 function revokeObjectURL(url) {
-  getURLObject().revokeObjectURL(url);
+  window.URL.revokeObjectURL(url);
 }
 
 var KEY_ACCEL = (/mac/i.test(navigator.platform))? 'META' : 'CTRL';
