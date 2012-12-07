@@ -1543,7 +1543,7 @@ Models.register({
       ps = update({}, ps);
       ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
-      maxlen -= 21; // reserve for pic.twitter.com
+      maxlen -= 23; // reserve for pic.twitter.com
     }
     if (!template) {
       status = joinText([ps.description, (ps.body)? '"' + ps.body + '"' : '', ps.item, ps.itemUrl], ' ');
@@ -1704,8 +1704,8 @@ Models.register({
 
   getActualLength : function(status) {
     var ret = status.split('\n').map(function (s) {
-      s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890');
-      return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789');
+      s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890123');
+      return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789012');
     }).join('\n');
     return ret.length;
   }
