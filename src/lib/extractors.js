@@ -1140,7 +1140,7 @@ Extractors.register([
     name : 'Video - YouTube',
     ICON : 'http://youtube.com/favicon.ico',
     check : function(ctx){
-      if (ctx.href.match(/^http:\/\/.*\.youtube\.com\/watch\.*/)) {
+      if (ctx.href.match(/^https?:\/\/.*\.youtube\.com\/watch\.*/)) {
         return queryHash(createURI(ctx.href).search).v;
       }
       return false;
