@@ -2191,7 +2191,8 @@ Models.register({
     var self = this;
     return request(this.URL).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," userbox ")]', doc)[0])){
+      var token = doc.querySelector('input[name="authenticity_token"]');
+      if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," header-logged-in ")]', doc)[0] && token)){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       var form = formContents($X('descendant::form[@action="/gists"]', doc)[0]);
@@ -2204,10 +2205,11 @@ Models.register({
           content = joinText([ps.body, '', ps.itemUrl, '', ps.description], '\n\n');
           break;
       }
-      form['file_contents[gistfile1]'] = content;
-      form['file_name[gistfile1]'] = ps.item;
+      form['gist[files][][content]'] = content;
+      form['gist[description]'] = ps.item;
       // public
-      delete form['action_button'];
+      form['gist[public]'] = '1';
+      form['authenticity_token'] = token.value;
       return request(self.URL+'gists', {
         sendContent: form
       });
