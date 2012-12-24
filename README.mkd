@@ -12,12 +12,18 @@ Tombloo and Taberareloo are the Cross Post Support Tool for social bookmarks and
 Services example:
 
 +  Tumblr
++  Pinterest
 +  Delicious
++  Pinboard
 +  GoogleBookmarks
 +  FriendFeed
 +  Twitter
++  Google+
++  Pocket
 +  Instapaper
 +  Evernote
++  Gmail
++  GoogleCalendar
 
 and
 
@@ -26,6 +32,9 @@ and
 
 and
 
++  PickNaver
++  HatenaFotolife
++  Gyazo
 +  4u (these are Japanese Service)
 
 and others
