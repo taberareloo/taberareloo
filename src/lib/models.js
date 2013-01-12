@@ -1044,7 +1044,7 @@ Models.register({
       return succeed(this.currentUser);
     } else {
       var that = this;
-      return getCookies('.delicious.com', 'deluser').addCallback(function(cookies) {
+      return getCookies('.delicious.com', 'connect.sid').addCallback(function(cookies) {
         if (!cookies.length) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
