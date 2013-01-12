@@ -961,7 +961,7 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : 'https://www.delicious.com/favicon.ico',
+  ICON : 'https://delicious.com/img/favicon.ico',
   LINK : 'https://www.delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
@@ -1063,7 +1063,7 @@ Models.register({
   },
 
   getInfo : function(){
-    return request('http://delicious.com/save/quick', {method : 'POST'}).addCallback(function(res) {
+    return request('http://previous.delicious.com/save/quick', {method : 'POST'}).addCallback(function(res) {
       return JSON.parse(res.responseText);
     });
   },
@@ -1096,14 +1096,14 @@ Models.register({
   post : function(ps){
     var that = this;
     return this.getCurrentUser().addCallback(function(user) {
-      return request('http://www.delicious.com/save', {
+      return request('http://previous.delicious.com/save', {
         queryString :  {
           url   : ps.itemUrl,
           title : ps.item
         }
       }).addCallback(function(res){
         var doc = createHTML(res.responseText);
-        return request('http://www.delicious.com/save', {
+        return request('http://previous.delicious.com/save', {
           sendContent : that.transformForm(update(formContents(doc, true), {
             title       : ps.item,
             url         : ps.itemUrl,
