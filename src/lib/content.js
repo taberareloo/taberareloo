@@ -60,7 +60,7 @@ var TBRL = {
       'border: solid 1px silver;',
       'border-radius: 3px;',
       'display: block;',
-      'background-image: -webkit-linear-gradient(rgb(204, 204, 204), rgb(102, 102, 102));',
+      'background-image: linear-gradient(rgb(204, 204, 204), rgb(102, 102, 102));',
       'cursor: pointer;'
     ].join(''),
     'img' : [
