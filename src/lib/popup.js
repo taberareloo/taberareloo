@@ -267,6 +267,10 @@ Form.shortcutkeys = {
   }
 };
 
+Form.shortcutkeys[KEY_ACCEL + ' + 0'] = function(){
+  this.posters.allOff();
+};
+
 Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
   this.post();
 };
