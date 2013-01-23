@@ -270,6 +270,20 @@ Form.shortcutkeys = {
 Form.shortcutkeys[KEY_ACCEL + ' + 0'] = function(){
   this.posters.allOff();
 };
+Form.shortcutkeys[KEY_ACCEL + ' + DOWN'] = function(){
+  var toggle_detail = $('toggle_detail');
+  if (!toggle_detail.classList.contains('extended')){
+    toggle_detail.classList.add('extended');
+    this.toggle();
+  }
+};
+Form.shortcutkeys[KEY_ACCEL + ' + UP'] = function(){
+  var toggle_detail = $('toggle_detail');
+  if (toggle_detail.classList.contains('extended')){
+    toggle_detail.classList.remove('extended');
+    this.toggle();
+  }
+};
 
 Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
   this.post();
