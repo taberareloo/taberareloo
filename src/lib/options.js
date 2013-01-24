@@ -77,6 +77,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
   $('label_appendContentSource').appendChild($T(chrome.i18n.getMessage('label_appendContentSource')));
   $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
+  $('label_httpsWhitelist').appendChild($T(chrome.i18n.getMessage('label_httpsWhitelist')));
   $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
   $('save').value = chrome.i18n.getMessage('label_save');
 
@@ -155,6 +156,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var append_check = new Check('append_content_source', !!Config.entry["append_content_source"]);
   // notconvert to Text
   var notconvert_check = new Check('not_convert_text', !!Config.entry["not_convert_text"]);
+  // whitelist for https check
+  var https_whitelist = new Input('https_whitelist', Config.entry['https_whitelist']);
   // keyconfig
   var keyconfig_check = new Check("keyconfig", !!Config.post['keyconfig']);
   // shortcutkey quick link post
@@ -216,7 +219,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'twitter_template' : twittemp.body(),
           'trim_reblog_info'   : reblog_check.body(),
           'append_content_source'   : append_check.body(),
-          'not_convert_text'   : notconvert_check.body()
+          'not_convert_text'   : notconvert_check.body(),
+          'https_whitelist': https_whitelist.body()
         }
       });
       if(!tcheck){

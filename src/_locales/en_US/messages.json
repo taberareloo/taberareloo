@@ -90,6 +90,9 @@
   "label_notconvertText": {
     "message": "Not convert long Text post to Link"
   },
+  "label_httpsWhitelist": {
+    "message": "You can register domains of site that you want to allow posting https link."
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    is converted to\n    $modified$",
     "description": "when https link has found",
