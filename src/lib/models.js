@@ -91,18 +91,52 @@ var Tumblr = {
     }
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
-      return self.getForm(endpoint).addCallback(function(form){
+      return self.getForm(endpoint).addCallback(self.getTokenAndTumblelogs).addCallback(function(form){
         if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
           // convertToFormが非同期な場合
           ret = new Deferred();
           Tumblr[ps.type.capitalize()].convertToFormAsync(ps).addCallback(function(form2){
             update(form, form2);
             self.appendTags(form, ps);
-            request(endpoint, {sendContent : form}).addCallback(function(res){
-              ret.callback(res);
-            }).addErrback(function(err){
-              ret.errback(err);
-            });
+
+            if (form['photo[]']) {
+              request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
+                sendContent: form
+              }).addCallback(function(res){
+                var response = JSON.parse(res.response);
+
+                if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
+                  delete form['photo[]'];
+                  form['images[o1]'] = response.response[0].url;
+                  form['post[photoset_layout]'] = '1';
+                  form['post[photoset_order]'] = 'o1';
+
+                  return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+                    headers: {'Content-Type': 'application/json'},
+                    sendContent: JSON.stringify(form)
+                  });
+                }
+
+                ret.callback(res);
+              }).addCallback(function(res){
+                ret.callback(res);
+              }).addErrback(function(err){
+                ret.errback(err);
+              });
+            } else {
+              form['images[o1]'] = '';
+              form['post[photoset_layout]'] = '1';
+              form['post[photoset_order]'] = 'o1';
+
+              request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+                headers: {'Content-Type': 'application/json'},
+                sendContent: JSON.stringify(form)
+              }).addCallback(function(res){
+                ret.callback(res);
+              }).addErrback(function(err){
+                ret.errback(err);
+              });
+            }
           });
           return ret;
         } else {
@@ -110,7 +144,10 @@ var Tumblr = {
 
           self.appendTags(form, ps);
 
-          return request(endpoint, {sendContent : form});
+          return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+            headers: {'Content-Type': 'application/json'},
+            sendContent: JSON.stringify(form)
+          });
         }
       });
     });
@@ -129,19 +166,22 @@ var Tumblr = {
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      var form = formContents($X('id("edit_post")', doc)[0]);
-      delete form.preview_post;
-      form.redirect_to = Tumblr.TUMBLR_URL+'dashboard';
 
-      if(form.reblog_post_id){
-        self.trimReblogInfo(form);
-
-        // Tumblrから他サービスへポストするため画像URLを取得しておく
-        if(form['post[type]']==='photo')
-          form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
-      }
-
-      return form;
+      return {
+        form_key: Tumblr.token,
+        channel_id: Tumblr.id,
+        context_id: '',
+        context_page: 'dashboard',
+        custom_tweet: '',
+        'post[date]': '',
+        'post[draft_status]': '',
+        'post[publish_on]': '',
+        'post[slug]': '',
+        'is_rich_text[one]': '0',
+        'is_rich_text[three]': '0',
+        'is_rich_text[two]': '0',
+        'post[state]': '0'
+      };
     });
   },
 
@@ -152,7 +192,7 @@ var Tumblr = {
    * @return {Deferred}
    */
   appendTags : function(form, ps){
-    form['post[state]'] = (ps.private) ? 'private' : 0;
+    form['post[state]'] = (ps.private) ? 'private' : '0';
     if (TBRL.Config.post['post_with_queue']) {
       if (ps.type !== 'regular') {
         form['post[state]'] = 2;
@@ -241,7 +281,7 @@ var Tumblr = {
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      } else if($X('id("posts")', doc)[0]){
+      } else if($X('id("posts")', doc)[0] || /^{"errors":false,/.test(res.responseText)){
         return null;
       } else {
         if(res.responseText.match('more tomorrow')) {
@@ -272,16 +312,33 @@ var Tumblr = {
 
   getTumblelogs : function(){
     var self = this;
-    return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
+    return request(Tumblr.LINK + 'settings').addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("account_form")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      return $X('id("channel_id")//option[@value!=0]', doc).map(function(opt){
+      return Array.prototype.map.call(doc.querySelectorAll(
+        '#fixed_navigation > .vertical_tab > a[href^="/blog/"][href$="/settings"]'
+      ), function(a){
         return {
-          id : opt.value,
-          name: opt.textContent
+          id : a.getAttribute('href').replace(/^\/blog\/|\/settings/g, ''),
+          name: a.textContent
         };
       });
+    });
+  },
+
+  getTokenAndTumblelogs : function(form){
+    if (Tumblr.token && Tumblr.id) {
+      return form;
+    }
+
+    return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
+      var doc = createHTML(res.responseText);
+      if($X('id("account_form")', doc)[0])
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
+      form.form_key = Tumblr.token = $X('id("form_key")/@value', doc)[0];
+      form.channel_id = Tumblr.id = $X('//input[@name="t"]/@value', doc)[0];
+      return form
     });
   }
 };
@@ -304,14 +361,13 @@ Tumblr.Photo = {
 
       var form = {
         'post[type]'  : ps.type,
-        't'           : ps.item,
-        'u'           : ps.pageUrl,
         'post[two]'   : joinText([
           (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
           ps.description], '\n\n'),
-        'post[three]' : ps.pageUrl
+        'post[three]' : ps.pageUrl,
+        MAX_FILE_SIZE: '10485760'
       };
-      ps.file ? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
+      ps.file ? (form['photo[]'] = ps.file) : (form['photo_src[]'] = finalurl);
       ret.callback(form);
     }
 
