@@ -229,6 +229,9 @@ var Tumblr = {
     // メモをreblogフォームの適切なフィールドの末尾に追加する
     var form = ps.favorite.form;
     var that = this;
+
+    this.trimReblogInfo(form);
+
     if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
       return Tumblr[ps.type.capitalize()].convertToFormAsync({
         description : ps.description
