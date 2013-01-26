@@ -242,7 +242,10 @@ var Tumblr = {
         });
         that.appendTags(form, ps);
         return that.postForm(function(){
-          return request(ps.favorite.endpoint, {sendContent : form});
+          return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+            headers: {'Content-Type': 'application/json'},
+            sendContent: JSON.stringify(form)
+          });
         });
       });
     } else {
@@ -263,7 +266,10 @@ var Tumblr = {
       this.appendTags(form, ps);
 
       return this.postForm(function(){
-        return request(ps.favorite.endpoint, {sendContent : form});
+        return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+          headers: {'Content-Type': 'application/json'},
+          sendContent: JSON.stringify(form)
+        });
       });
     }
   },
