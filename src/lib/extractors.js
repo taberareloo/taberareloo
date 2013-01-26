@@ -433,7 +433,7 @@ Extractors.register([
           form_key: ctx.form_key,
           reblog_id: ctx.reblog_id,
           reblog_key: ctx.reblog_key,
-          post_type: false
+          post_type: ctx.post_type
       })}).addCallback(function(res){
         var response = JSON.parse(res.response);
         var post = response.post;
@@ -492,13 +492,9 @@ Extractors.register([
                 var xml = createXML(res.responseText);
                 var type = xml.getElementsByTagName('post')[0].getAttribute('type');
                 if(type === 'regular'){
-                  return request(url+'/text').addCallback(function(res){
-                    var textDoc = createHTML(res.responseText);
-                    var textForm = formContents($X('//form', textDoc)[0]);
-                    delete textForm.preview_post;
-                    textForm.redirect_to = that.TUMBLR_URL+'dashboard';
-                    return textForm;
-                  });
+                  ctx.post_type = 'text';
+
+                  return that.getForm(ctx, url);
                 } else {
                   return form;
                 }
@@ -524,6 +520,7 @@ Extractors.register([
       var m = unescapeHTML(this.getFrameUrl(doc)).match(/.+&pid=([^&]*)&rk=([^&]*)/);
       ctx.reblog_id = m[1];
       ctx.reblog_key = m[2];
+      ctx.post_type = false;
       return this.getFormKeyAndChannelId(ctx).addCallback(function(){
         return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + m[1] + '/' + m[2]);
       });
