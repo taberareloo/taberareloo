@@ -164,7 +164,7 @@ var Tumblr = {
     var self = this;
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
+      if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       return {
@@ -279,7 +279,7 @@ var Tumblr = {
     var self = this;
     return succeed().addCallback(fn).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0]){
+      if($X('id("logged_out_container")', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       } else if($X('id("posts")', doc)[0] || /^{"errors":false,/.test(res.responseText)){
         return null;
@@ -304,7 +304,7 @@ var Tumblr = {
     var self = this;
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
+      if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return self.token = $X('id("form_key")/@value', doc)[0];
     });
@@ -314,7 +314,7 @@ var Tumblr = {
     var self = this;
     return request(Tumblr.LINK + 'settings').addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
+      if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return Array.prototype.map.call(doc.querySelectorAll(
         '#fixed_navigation > .vertical_tab > a[href^="/blog/"][href$="/settings"]'
@@ -334,7 +334,7 @@ var Tumblr = {
 
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
+      if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
       form.form_key = Tumblr.token = $X('id("form_key")/@value', doc)[0];
       form.channel_id = Tumblr.id = $X('//input[@name="t"]/@value', doc)[0];
