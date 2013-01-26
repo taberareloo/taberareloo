@@ -325,8 +325,10 @@ var Tumblr = {
       var doc = createHTML(res.responseText);
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      var id = $X('//input[@name="t"]/@value', doc)[0];
       return Array.prototype.map.call(doc.querySelectorAll(
-        '#fixed_navigation > .vertical_tab > a[href^="/blog/"][href$="/settings"]'
+        '#fixed_navigation > .vertical_tab > ' +
+          'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + id + '/settings"])'
       ), function(a){
         return {
           id : a.getAttribute('href').replace(/^\/blog\/|\/settings/g, ''),
