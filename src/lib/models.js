@@ -469,7 +469,8 @@ Tumblr.Audio = {
   convertToForm : function(ps){
     var res = {
       'post[type]'  : ps.type,
-      'post[two]'   : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n')
+      'post[two]'   : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n'),
+      MAX_FILE_SIZE: '10485760'
     };
     if(ps.itemUrl)
       res['post[three]'] = ps.itemUrl;
