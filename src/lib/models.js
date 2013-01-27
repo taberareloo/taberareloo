@@ -91,7 +91,7 @@ var Tumblr = {
     }
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
-      return self.getForm(endpoint).addCallback(function(form){
+      return self.getForm(endpoint).addCallback(function postUpdate(form){
         if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
           // convertToFormが非同期な場合
           ret = new Deferred();
@@ -121,7 +121,14 @@ var Tumblr = {
               }).addCallback(function(res){
                 ret.callback(res);
               }).addErrback(function(err){
-                ret.errback(err);
+                if (self.retry) {
+                  return ret.errback(err);
+                }
+
+                Tumblr.form_key = Tumblr.channel_id = null;
+                self.retry = true;
+
+                return self.getForm(endpoint).addCallback(postUpdate);
               });
             } else {
               form['images[o1]'] = '';
@@ -134,7 +141,14 @@ var Tumblr = {
               }).addCallback(function(res){
                 ret.callback(res);
               }).addErrback(function(err){
-                ret.errback(err);
+                if (self.retry) {
+                  return ret.errback(err);
+                }
+
+                Tumblr.form_key = Tumblr.channel_id = null;
+                self.retry = true;
+
+                return self.getForm(endpoint).addCallback(postUpdate);
               });
             }
           });
@@ -147,6 +161,15 @@ var Tumblr = {
           return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
             headers: {'Content-Type': 'application/json'},
             sendContent: JSON.stringify(form)
+          }).addErrback(function(err){
+            if (self.retry) {
+              return err;
+            }
+
+            Tumblr.form_key = Tumblr.channel_id = null;
+            self.retry = true;
+
+            return self.getForm(endpoint).addCallback(postUpdate);
           });
         }
       });
@@ -176,10 +199,10 @@ var Tumblr = {
       'is_rich_text[two]': '0',
       'post[state]': '0'
     };
-    var ret = new Deferred();
     var that = this;
 
     if (form.form_key && form.channel_id) {
+      var ret = new Deferred();
       setTimeout(function () {
         ret.callback(form);
       }, 0);
@@ -300,6 +323,9 @@ var Tumblr = {
   postForm : function(fn){
     var self = this;
     return succeed().addCallback(fn).addCallback(function(res){
+      if (self.retry) {
+        self.retry = false;
+      }
       var doc = createHTML(res.responseText);
       if($X('id("logged_out_container")', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));

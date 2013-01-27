@@ -463,12 +463,16 @@ var onRequestsHandlers = {
     Models.initialize();
   },
   getCachedTumblrInfo: function(req, sender, func) {
-    if (Tumblr.form_key && Tumblr.channel_id) {
+    if (Tumblr.form_key && Tumblr.channel_id && !req.cacheClear) {
       func({
         form_key: Tumblr.form_key,
         channel_id: Tumblr.channel_id
       });
     } else {
+      if (req.cacheClear) {
+        Tumblr.form_key = Tumblr.channel_id = null;
+      }
+
       Tumblr.getForm(Tumblr.TUMBLR_URL + 'new/text').addCallback(function(form){
         func({
           form_key: form.form_key,

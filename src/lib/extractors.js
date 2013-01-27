@@ -430,7 +430,7 @@ Extractors.register([
       return request(this.TUMBLR_URL + 'svc/post/fetch', {
         headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
         sendContent: JSON.stringify({
-          form_key: ctx.form_key,
+          form_key: this.form_key,
           reblog_id: ctx.reblog_id,
           reblog_key: ctx.reblog_key,
           post_type: ctx.post_type
@@ -438,8 +438,8 @@ Extractors.register([
         var response = JSON.parse(res.response);
         var post = response.post;
         var form = {
-          form_key: ctx.form_key,
-          channel_id: ctx.channel_id,
+          form_key: that.form_key,
+          channel_id: that.channel_id,
           detached: true,
           reblog: true,
           reblog_id: ctx.reblog_id,
@@ -503,28 +503,43 @@ Extractors.register([
           }
           return form;
         }
+      }).addErrback(function(err){
+        if (that.retry) {
+          return err;
+        }
+
+        that.form_key = that.channel_id = null;
+
+        return that.getCache(true).addCallback(function (info) {
+          that.form_key = info.form_key;
+          that.channel_id = info.channel_id;
+          that.retry = true;
+
+          return that.extractByEndpoint(ctx, url);
+        });
       });
     },
     getFormKeyAndChannelId : function(ctx){
       var that = this;
-      var d = new Deferred();
 
       if (this.form_key && this.channel_id) {
+        var d = new Deferred();
         setTimeout(function () {
           d.callback();
         }, 0);
         return d;
       }
 
-      return this.getCache().addCallback(function (info) {
-        ctx.form_key = that.form_key = info.form_key;
-        ctx.channel_id = that.channel_id = info.channel_id;
+      return this.getCache(false).addCallback(function (info) {
+        that.form_key = info.form_key;
+        that.channel_id = info.channel_id;
       });
     },
-    getCache : function(){
+    getCache : function(cacheClear){
       var d = new Deferred();
       chrome.extension.sendMessage(TBRL.id, {
-        request: 'getCachedTumblrInfo'
+        request: 'getCachedTumblrInfo',
+        cacheClear: cacheClear
       }, function(res){
         d.callback(res);
       });
@@ -543,6 +558,12 @@ Extractors.register([
     extractByEndpoint : function(ctx, endpoint){
       var that = this;
       return this.getForm(ctx, endpoint).addCallback(function(form){
+        if (form.favorite) {
+          return form;
+        }
+        if (that.retry) {
+          that.retry = false;
+        }
         var result = update({
           type     : form['post[type]'],
           item     : ctx.title,
