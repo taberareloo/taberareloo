@@ -427,27 +427,56 @@ Extractors.register([
     },
     getForm : function(ctx, url){
       var that = this;
-      return request(url).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        var form = formContents($X('id("edit_post")', doc)[0]);
-        delete form.preview_post;
-        form.redirect_to = that.TUMBLR_URL+'dashboard';
-        if (form.reblog_post_id) {
-          // that.trimReblogInfo(form);
-          // Tumblrから他サービスへポストするため画像URLを取得しておく
-          if (form['post[type]'] === 'photo') {
-            var photoset = $X('id("current_photo")//iframe[contains(concat(" ", normalize-space(@class), " "), " photoset ")]', doc)[0];
-            if (photoset) {
-              // photo set path
-              return request(photoset.getAttribute("src")).addCallback(function(res) {
-                var doc2 = createHTML(res.responseText);
-                form.image = $X('//div[contains(concat(" ", normalize-space(@class), " "), " photoset ")]//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc2)[0];
-                return afterPhoto();
-              });
-            } else {
-              form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
-            }
-          }
+      return request(this.TUMBLR_URL + 'svc/post/fetch', {
+        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+        sendContent: JSON.stringify({
+          form_key: this.form_key,
+          reblog_id: ctx.reblog_id,
+          reblog_key: ctx.reblog_key,
+          post_type: ctx.post_type
+      })}).addCallback(function(res){
+        var response = JSON.parse(res.response);
+        var post = response.post;
+        var form = {
+          form_key: that.form_key,
+          channel_id: that.channel_id,
+          detached: true,
+          reblog: true,
+          reblog_id: ctx.reblog_id,
+          reblog_key: ctx.reblog_key,
+          errors: false,
+          created_post: true,
+          context_page: 'dashboard',
+          post_context_page: response.post_context_page,
+          silent: true,
+          context_id: '',
+          reblog_post_id: post.reblog_source.split('/post/')[1].split('/')[0],
+          'is_rich_text[one]': '0',
+          'is_rich_text[two]': '0',
+          'is_rich_text[three]': '0',
+          'post[slug]': post.slug,
+          'post[source_url]': post.source_url,
+          'post[date]': '',
+          'post[type]': post.type,
+          'post[one]': post.one,
+          'post[two]': post.two,
+          'post[three]': post.three,
+          'post[tags]': post.tags || '',
+          'post[publish_on]': '',
+          'post[state]': new String(post.state),
+          custom_tweet: ''
+        };
+
+        if (post.type === 'photo') {
+          form['post[photoset_layout]'] = post.photoset_layout;
+          form['post[photoset_order]'] = [];
+          post.photos.forEach(function (photo) {
+            var id = photo.id;
+            form['post[photoset_order]'].push(id);
+            form['images[' + id + ']'] = '';
+          });
+          form['post[photoset_order]'] = form['post[photoset_order]'].join(',');
+          form.image = post.photos[0].url;
         }
         return succeed().addCallback(afterPhoto);
         function afterPhoto() {
@@ -463,13 +492,9 @@ Extractors.register([
                 var xml = createXML(res.responseText);
                 var type = xml.getElementsByTagName('post')[0].getAttribute('type');
                 if(type === 'regular'){
-                  return request(url+'/text').addCallback(function(res){
-                    var textDoc = createHTML(res.responseText);
-                    var textForm = formContents($X('//form', textDoc)[0]);
-                    delete textForm.preview_post;
-                    textForm.redirect_to = that.TUMBLR_URL+'dashboard';
-                    return textForm;
-                  });
+                  ctx.post_type = 'text';
+
+                  return that.getForm(ctx, url);
                 } else {
                   return form;
                 }
@@ -478,15 +503,67 @@ Extractors.register([
           }
           return form;
         }
+      }).addErrback(function(err){
+        if (that.retry) {
+          return err;
+        }
+
+        that.form_key = that.channel_id = null;
+
+        return that.getCache(true).addCallback(function (info) {
+          that.form_key = info.form_key;
+          that.channel_id = info.channel_id;
+          that.retry = true;
+
+          return that.extractByEndpoint(ctx, url);
+        });
       });
     },
+    getFormKeyAndChannelId : function(ctx){
+      var that = this;
+
+      if (this.form_key && this.channel_id) {
+        var d = new Deferred();
+        setTimeout(function () {
+          d.callback();
+        }, 0);
+        return d;
+      }
+
+      return this.getCache(false).addCallback(function (info) {
+        that.form_key = info.form_key;
+        that.channel_id = info.channel_id;
+      });
+    },
+    getCache : function(cacheClear){
+      var d = new Deferred();
+      chrome.extension.sendMessage(TBRL.id, {
+        request: 'getCachedTumblrInfo',
+        cacheClear: cacheClear
+      }, function(res){
+        d.callback(res);
+      });
+      return d;
+    },
     extractByPage : function(ctx, doc){
+      var that = this;
       var m = unescapeHTML(this.getFrameUrl(doc)).match(/.+&pid=([^&]*)&rk=([^&]*)/);
-      return this.extractByEndpoint(ctx, this.TUMBLR_URL + 'reblog/' + m[1] + '/' + m[2]);
+      ctx.reblog_id = m[1];
+      ctx.reblog_key = m[2];
+      ctx.post_type = false;
+      return this.getFormKeyAndChannelId(ctx).addCallback(function(){
+        return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + m[1] + '/' + m[2]);
+      });
     },
     extractByEndpoint : function(ctx, endpoint){
       var that = this;
       return this.getForm(ctx, endpoint).addCallback(function(form){
+        if (form.favorite) {
+          return form;
+        }
+        if (that.retry) {
+          that.retry = false;
+        }
         var result = update({
           type     : form['post[type]'],
           item     : ctx.title,
