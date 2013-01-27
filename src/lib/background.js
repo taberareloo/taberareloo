@@ -461,6 +461,21 @@ var onRequestsHandlers = {
   },
   initialize: function(req, sender, func) {
     Models.initialize();
+  },
+  getCachedTumblrInfo: function(req, sender, func) {
+    if (Tumblr.form_key && Tumblr.channel_id) {
+      func({
+        form_key: Tumblr.form_key,
+        channel_id: Tumblr.channel_id
+      });
+    } else {
+      Tumblr.getForm(Tumblr.TUMBLR_URL + 'new/text').addCallback(function(form){
+        func({
+          form_key: form.form_key,
+          channel_id: form.channel_id
+        });
+      });
+    }
   }
 };
 

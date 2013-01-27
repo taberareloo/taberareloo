@@ -507,13 +507,28 @@ Extractors.register([
     },
     getFormKeyAndChannelId : function(ctx){
       var that = this;
-      return request(this.TUMBLR_URL + 'new/text').addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        if($X('id("logged_out_container")', doc)[0])
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-        ctx.form_key = $X('id("form_key")/@value', doc)[0];
-        ctx.channel_id = $X('//input[@name="t"]/@value', doc)[0];
+      var d = new Deferred();
+
+      if (this.form_key && this.channel_id) {
+        setTimeout(function () {
+          d.callback();
+        }, 0);
+        return d;
+      }
+
+      return this.getCache().addCallback(function (info) {
+        ctx.form_key = that.form_key = info.form_key;
+        ctx.channel_id = that.channel_id = info.channel_id;
       });
+    },
+    getCache : function(){
+      var d = new Deferred();
+      chrome.extension.sendMessage(TBRL.id, {
+        request: 'getCachedTumblrInfo'
+      }, function(res){
+        d.callback(res);
+      });
+      return d;
     },
     extractByPage : function(ctx, doc){
       var that = this;
