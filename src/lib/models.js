@@ -91,7 +91,7 @@ var Tumblr = {
     }
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
-      return self.getForm(endpoint).addCallback(self.getTokenAndTumblelogs).addCallback(function(form){
+      return self.getForm(endpoint).addCallback(function(form){
         if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
           // convertToFormが非同期な場合
           ret = new Deferred();
@@ -161,27 +161,40 @@ var Tumblr = {
    * @return {Deferred}
    */
   getForm : function(url){
-    var self = this;
+    var form = {
+      form_key: Tumblr.form_key,
+      channel_id: Tumblr.channel_id,
+      context_id: '',
+      context_page: 'dashboard',
+      custom_tweet: '',
+      'post[date]': '',
+      'post[draft_status]': '',
+      'post[publish_on]': '',
+      'post[slug]': '',
+      'is_rich_text[one]': '0',
+      'is_rich_text[three]': '0',
+      'is_rich_text[two]': '0',
+      'post[state]': '0'
+    };
+    var ret = new Deferred();
+    var that = this;
+
+    if (form.form_key && form.channel_id) {
+      setTimeout(function () {
+        ret.callback(form);
+      }, 0);
+      return ret;
+    }
+
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("logged_out_container")', doc)[0])
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
-      return {
-        form_key: Tumblr.token,
-        channel_id: Tumblr.id,
-        context_id: '',
-        context_page: 'dashboard',
-        custom_tweet: '',
-        'post[date]': '',
-        'post[draft_status]': '',
-        'post[publish_on]': '',
-        'post[slug]': '',
-        'is_rich_text[one]': '0',
-        'is_rich_text[three]': '0',
-        'is_rich_text[two]': '0',
-        'post[state]': '0'
-      };
+      form.form_key = Tumblr.form_key = $X('id("form_key")/@value', doc)[0];
+      form.channel_id = Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
+
+      return form;
     });
   },
 
@@ -335,21 +348,6 @@ var Tumblr = {
           name: a.textContent
         };
       });
-    });
-  },
-
-  getTokenAndTumblelogs : function(form){
-    if (Tumblr.token && Tumblr.id) {
-      return form;
-    }
-
-    return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
-      var doc = createHTML(res.responseText);
-      if($X('id("logged_out_container")', doc)[0])
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
-      form.form_key = Tumblr.token = $X('id("form_key")/@value', doc)[0];
-      form.channel_id = Tumblr.id = $X('//input[@name="t"]/@value', doc)[0];
-      return form
     });
   }
 };
