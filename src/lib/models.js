@@ -91,18 +91,66 @@ var Tumblr = {
     }
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
-      return self.getForm(endpoint).addCallback(function(form){
+      return self.getForm(endpoint).addCallback(function postUpdate(form){
         if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
           // convertToFormが非同期な場合
           ret = new Deferred();
           Tumblr[ps.type.capitalize()].convertToFormAsync(ps).addCallback(function(form2){
             update(form, form2);
             self.appendTags(form, ps);
-            request(endpoint, {sendContent : form}).addCallback(function(res){
-              ret.callback(res);
-            }).addErrback(function(err){
-              ret.errback(err);
-            });
+
+            if (form['photo[]']) {
+              request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
+                sendContent: form
+              }).addCallback(function(res){
+                var response = JSON.parse(res.response);
+
+                if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
+                  delete form['photo[]'];
+                  form['images[o1]'] = response.response[0].url;
+                  form['post[photoset_layout]'] = '1';
+                  form['post[photoset_order]'] = 'o1';
+
+                  return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+                    headers: {'Content-Type': 'application/json'},
+                    sendContent: JSON.stringify(form)
+                  });
+                }
+
+                ret.callback(res);
+              }).addCallback(function(res){
+                ret.callback(res);
+              }).addErrback(function(err){
+                if (self.retry) {
+                  return ret.errback(err);
+                }
+
+                Tumblr.form_key = Tumblr.channel_id = null;
+                self.retry = true;
+
+                return self.getForm(endpoint).addCallback(postUpdate);
+              });
+            } else {
+              form['images[o1]'] = '';
+              form['post[photoset_layout]'] = '1';
+              form['post[photoset_order]'] = 'o1';
+
+              request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+                headers: {'Content-Type': 'application/json'},
+                sendContent: JSON.stringify(form)
+              }).addCallback(function(res){
+                ret.callback(res);
+              }).addErrback(function(err){
+                if (self.retry) {
+                  return ret.errback(err);
+                }
+
+                Tumblr.form_key = Tumblr.channel_id = null;
+                self.retry = true;
+
+                return self.getForm(endpoint).addCallback(postUpdate);
+              });
+            }
           });
           return ret;
         } else {
@@ -110,7 +158,19 @@ var Tumblr = {
 
           self.appendTags(form, ps);
 
-          return request(endpoint, {sendContent : form});
+          return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+            headers: {'Content-Type': 'application/json'},
+            sendContent: JSON.stringify(form)
+          }).addErrback(function(err){
+            if (self.retry) {
+              return err;
+            }
+
+            Tumblr.form_key = Tumblr.channel_id = null;
+            self.retry = true;
+
+            return self.getForm(endpoint).addCallback(postUpdate);
+          });
         }
       });
     });
@@ -124,22 +184,38 @@ var Tumblr = {
    * @return {Deferred}
    */
   getForm : function(url){
-    var self = this;
+    var form = {
+      form_key: Tumblr.form_key,
+      channel_id: Tumblr.channel_id,
+      context_id: '',
+      context_page: 'dashboard',
+      custom_tweet: '',
+      'post[date]': '',
+      'post[draft_status]': '',
+      'post[publish_on]': '',
+      'post[slug]': '',
+      'is_rich_text[one]': '0',
+      'is_rich_text[three]': '0',
+      'is_rich_text[two]': '0',
+      'post[state]': '0'
+    };
+    var that = this;
+
+    if (form.form_key && form.channel_id) {
+      var ret = new Deferred();
+      setTimeout(function () {
+        ret.callback(form);
+      }, 0);
+      return ret;
+    }
+
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      var form = formContents($X('id("edit_post")', doc)[0]);
-      delete form.preview_post;
-      form.redirect_to = Tumblr.TUMBLR_URL+'dashboard';
+      if($X('id("logged_out_container")', doc)[0])
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
-      if(form.reblog_post_id){
-        self.trimReblogInfo(form);
-
-        // Tumblrから他サービスへポストするため画像URLを取得しておく
-        if(form['post[type]']==='photo')
-          form.image = $X('id("edit_post")//img[contains(@src, "media.tumblr.com/") or contains(@src, "data.tumblr.com/")]/@src', doc)[0];
-      }
+      form.form_key = Tumblr.form_key = $X('id("form_key")/@value', doc)[0];
+      form.channel_id = Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
 
       return form;
     });
@@ -152,7 +228,7 @@ var Tumblr = {
    * @return {Deferred}
    */
   appendTags : function(form, ps){
-    form['post[state]'] = (ps.private) ? 'private' : 0;
+    form['post[state]'] = (ps.private) ? 'private' : '0';
     if (TBRL.Config.post['post_with_queue']) {
       if (ps.type !== 'regular') {
         form['post[state]'] = 2;
@@ -189,6 +265,9 @@ var Tumblr = {
     // メモをreblogフォームの適切なフィールドの末尾に追加する
     var form = ps.favorite.form;
     var that = this;
+
+    this.trimReblogInfo(form);
+
     if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
       return Tumblr[ps.type.capitalize()].convertToFormAsync({
         description : ps.description
@@ -202,7 +281,10 @@ var Tumblr = {
         });
         that.appendTags(form, ps);
         return that.postForm(function(){
-          return request(ps.favorite.endpoint, {sendContent : form});
+          return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+            headers: {'Content-Type': 'application/json'},
+            sendContent: JSON.stringify(form)
+          });
         });
       });
     } else {
@@ -223,7 +305,10 @@ var Tumblr = {
       this.appendTags(form, ps);
 
       return this.postForm(function(){
-        return request(ps.favorite.endpoint, {sendContent : form});
+        return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+          headers: {'Content-Type': 'application/json'},
+          sendContent: JSON.stringify(form)
+        });
       });
     }
   },
@@ -238,10 +323,13 @@ var Tumblr = {
   postForm : function(fn){
     var self = this;
     return succeed().addCallback(fn).addCallback(function(res){
+      if (self.retry) {
+        self.retry = false;
+      }
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0]){
+      if($X('id("logged_out_container")', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      } else if($X('id("posts")', doc)[0]){
+      } else if($X('id("posts")', doc)[0] || /^{"errors":false,/.test(res.responseText)){
         return null;
       } else {
         if(res.responseText.match('more tomorrow')) {
@@ -264,7 +352,7 @@ var Tumblr = {
     var self = this;
     return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
+      if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return self.token = $X('id("form_key")/@value', doc)[0];
     });
@@ -272,14 +360,18 @@ var Tumblr = {
 
   getTumblelogs : function(){
     var self = this;
-    return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
+    return request(Tumblr.LINK + 'settings').addCallback(function(res){
       var doc = createHTML(res.responseText);
-      if($X('id("account_form")', doc)[0])
+      if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      return $X('id("channel_id")//option[@value!=0]', doc).map(function(opt){
+      var id = $X('//input[@name="t"]/@value', doc)[0];
+      return Array.prototype.map.call(doc.querySelectorAll(
+        '#fixed_navigation > .vertical_tab > ' +
+          'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + id + '/settings"])'
+      ), function(a){
         return {
-          id : opt.value,
-          name: opt.textContent
+          id : a.getAttribute('href').replace(/^\/blog\/|\/settings/g, ''),
+          name: a.textContent
         };
       });
     });
@@ -304,14 +396,13 @@ Tumblr.Photo = {
 
       var form = {
         'post[type]'  : ps.type,
-        't'           : ps.item,
-        'u'           : ps.pageUrl,
         'post[two]'   : joinText([
           (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
           ps.description], '\n\n'),
-        'post[three]' : ps.pageUrl
+        'post[three]' : ps.pageUrl,
+        MAX_FILE_SIZE: '10485760'
       };
-      ps.file ? (form['images[o1]'] = ps.file) : (form['photo_src'] = finalurl);
+      ps.file ? (form['photo[]'] = ps.file) : (form['photo_src[]'] = finalurl);
       ret.callback(form);
     }
 
