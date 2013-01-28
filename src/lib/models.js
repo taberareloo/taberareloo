@@ -424,7 +424,8 @@ Tumblr.Video = {
       'post[one]'  : getFlavor(ps, 'html') || ps.itemUrl,
       'post[two]'  : joinText([
         (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
-        ps.description], '\n\n')
+        ps.description], '\n\n'),
+      MAX_FILE_SIZE: '104857600'
     };
   }
 };
