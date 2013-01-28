@@ -455,7 +455,7 @@ Extractors.register([
           'is_rich_text[two]': '0',
           'is_rich_text[three]': '0',
           'post[slug]': post.slug,
-          'post[source_url]': post.source_url,
+          'post[source_url]': post.source_url || 'http://',
           'post[date]': '',
           'post[type]': post.type,
           'post[one]': post.one,
