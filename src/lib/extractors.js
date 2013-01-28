@@ -464,7 +464,10 @@ Extractors.register([
           'post[tags]': post.tags || '',
           'post[publish_on]': '',
           'post[state]': new String(post.state),
-          custom_tweet: ''
+          custom_tweet: '',
+          allow_photo_replies: '',
+          send_to_fbog: '',
+          send_to_twitter: ''
         };
 
         if (post.type === 'photo') {

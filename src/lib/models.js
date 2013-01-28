@@ -197,7 +197,10 @@ var Tumblr = {
       'is_rich_text[one]': '0',
       'is_rich_text[three]': '0',
       'is_rich_text[two]': '0',
-      'post[state]': '0'
+      'post[state]': '0',
+      allow_photo_replies: '',
+      send_to_fbog: '',
+      send_to_twitter: ''
     };
     var that = this;
 
