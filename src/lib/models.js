@@ -197,7 +197,10 @@ var Tumblr = {
       'is_rich_text[one]': '0',
       'is_rich_text[three]': '0',
       'is_rich_text[two]': '0',
-      'post[state]': '0'
+      'post[state]': '0',
+      allow_photo_replies: '',
+      send_to_fbog: '',
+      send_to_twitter: ''
     };
     var that = this;
 
@@ -365,10 +368,10 @@ var Tumblr = {
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       var id = $X('//input[@name="t"]/@value', doc)[0];
-      return Array.prototype.map.call(doc.querySelectorAll(
+      return Array.prototype.slice.call(doc.querySelectorAll(
         '#fixed_navigation > .vertical_tab > ' +
           'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + id + '/settings"])'
-      ), function(a){
+      )).reverse().map(function(a){
         return {
           id : a.getAttribute('href').replace(/^\/blog\/|\/settings/g, ''),
           name: a.textContent
@@ -424,7 +427,8 @@ Tumblr.Video = {
       'post[one]'  : getFlavor(ps, 'html') || ps.itemUrl,
       'post[two]'  : joinText([
         (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
-        ps.description], '\n\n')
+        ps.description], '\n\n'),
+      MAX_FILE_SIZE: '104857600'
     };
   }
 };
