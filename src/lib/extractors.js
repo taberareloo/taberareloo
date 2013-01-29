@@ -455,7 +455,7 @@ Extractors.register([
           'is_rich_text[two]': '0',
           'is_rich_text[three]': '0',
           'post[slug]': post.slug,
-          'post[source_url]': post.source_url,
+          'post[source_url]': post.source_url || 'http://',
           'post[date]': '',
           'post[type]': post.type,
           'post[one]': post.one,
@@ -464,7 +464,10 @@ Extractors.register([
           'post[tags]': post.tags || '',
           'post[publish_on]': '',
           'post[state]': new String(post.state),
-          custom_tweet: ''
+          custom_tweet: '',
+          allow_photo_replies: '',
+          send_to_fbog: '',
+          send_to_twitter: ''
         };
 
         if (post.type === 'photo') {
@@ -477,7 +480,22 @@ Extractors.register([
           });
           form['post[photoset_order]'] = form['post[photoset_order]'].join(',');
           form.image = post.photos[0].url;
+        } else if (post.type === 'audio') {
+          form['id3_tags[album]'] = post.id3_tags.Album || '';
+          form['id3_tags[artist]'] = post.id3_tags.Artist || '';
+          form['id3_tags[title]'] = post.id3_tags.Title || '';
+          form.album_art = '';
+          form.pre_upload = '';
+          form.preuploaded_url = '';
+          form.remove_album_art = '';
+        } else if (post.type === 'video') {
+          form.keep_video = '';
+          form.pre_upload = '';
+          form.preuploaded_ch = '';
+          form.preuploaded_url = '';
+          form.valid_embed_code = '';
         }
+
         return succeed().addCallback(afterPhoto);
         function afterPhoto() {
           if(TBRL.config.entry['not_convert_text'] && form['post[type]'] === 'link'){
