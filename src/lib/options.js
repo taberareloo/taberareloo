@@ -77,6 +77,8 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
   $('label_appendContentSource').appendChild($T(chrome.i18n.getMessage('label_appendContentSource')));
   $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
+  $('label_tumblr2twitter').appendChild($T(chrome.i18n.getMessage('label_tumblr2twitter')));
+  $('label_tumblr2facebook').appendChild($T(chrome.i18n.getMessage('label_tumblr2facebook')));
   $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
   $('save').value = chrome.i18n.getMessage('label_save');
 
@@ -155,6 +157,10 @@ connect(document, 'onDOMContentLoaded', document, function(){
   var append_check = new Check('append_content_source', !!Config.entry["append_content_source"]);
   // notconvert to Text
   var notconvert_check = new Check('not_convert_text', !!Config.entry["not_convert_text"]);
+  // tumblr2twitter
+  var tumblr2twitter = new Check('tumblr2twitter', !!Config.entry["tumblr2twitter"]);
+  // tumblr2facebook
+  var tumblr2facebook = new Check('tumblr2facebook', !!Config.entry["tumblr2facebook"]);
   // keyconfig
   var keyconfig_check = new Check("keyconfig", !!Config.post['keyconfig']);
   // shortcutkey quick link post
@@ -216,7 +222,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
           'twitter_template' : twittemp.body(),
           'trim_reblog_info'   : reblog_check.body(),
           'append_content_source'   : append_check.body(),
-          'not_convert_text'   : notconvert_check.body()
+          'not_convert_text'   : notconvert_check.body(),
+          'tumblr2twitter'   : tumblr2twitter.body(),
+          'tumblr2facebook'   : tumblr2facebook.body()
         }
       });
       if(!tcheck){

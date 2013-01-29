@@ -199,8 +199,8 @@ var Tumblr = {
       'is_rich_text[two]': '0',
       'post[state]': '0',
       allow_photo_replies: '',
-      send_to_fbog: '',
-      send_to_twitter: ''
+      send_to_fbog: TBRL.Config.entry.tumblr2facebook ? 'on' : '',
+      send_to_twitter: TBRL.Config.entry.tumblr2twitter ? 'on' : ''
     };
     var that = this;
 
