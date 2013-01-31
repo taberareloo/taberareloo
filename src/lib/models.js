@@ -92,78 +92,49 @@ var Tumblr = {
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
     return this.postForm(function(){
       return self.getForm(endpoint).addCallback(function postUpdate(form){
-        if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
-          // convertToFormが非同期な場合
-          ret = new Deferred();
-          Tumblr[ps.type.capitalize()].convertToFormAsync(ps).addCallback(function(form2){
-            update(form, form2);
-            self.appendTags(form, ps);
-
-            if (form['photo[]']) {
-              request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
-                sendContent: form
-              }).addCallback(function(res){
-                var response = JSON.parse(res.response);
-
-                if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
-                  delete form['photo[]'];
-                  form['images[o1]'] = response.response[0].url;
-                  form['post[photoset_layout]'] = '1';
-                  form['post[photoset_order]'] = 'o1';
-
-                  return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-                    headers: {'Content-Type': 'application/json'},
-                    sendContent: JSON.stringify(form)
-                  });
-                }
-
-                ret.callback(res);
-              }).addCallback(function(res){
-                ret.callback(res);
-              }).addErrback(function(err){
-                if (self.retry) {
-                  return ret.errback(err);
-                }
-
-                Tumblr.form_key = Tumblr.channel_id = null;
-                self.retry = true;
-
-                return self.getForm(endpoint).addCallback(postUpdate);
-              });
-            } else {
-              form['images[o1]'] = '';
-              form['post[photoset_layout]'] = '1';
-              form['post[photoset_order]'] = 'o1';
-
-              request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-                headers: {'Content-Type': 'application/json'},
-                sendContent: JSON.stringify(form)
-              }).addCallback(function(res){
-                ret.callback(res);
-              }).addErrback(function(err){
-                if (self.retry) {
-                  return ret.errback(err);
-                }
-
-                Tumblr.form_key = Tumblr.channel_id = null;
-                self.retry = true;
-
-                return self.getForm(endpoint).addCallback(postUpdate);
-              });
-            }
-          });
-          return ret;
-        } else {
-          update(form, Tumblr[ps.type.capitalize()].convertToForm(ps));
-
+        var type;
+        type = ps.type.capitalize();
+        return Tumblr[type].convertToForm(ps).addCallback(function(form2){
+          // merging forms
+          update(form, form2);
           self.appendTags(form, ps);
 
-          return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-            headers: {'Content-Type': 'application/json'},
-            sendContent: JSON.stringify(form)
-          }).addErrback(function(err){
+          return (function () {
+            if (type === 'Photo') {
+              if (form['photo[]']) {
+                return request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
+                  sendContent: form
+                }).addCallback(function(res){
+                  var response = JSON.parse(res.response);
+
+                  if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
+                    delete form['photo[]'];
+                    form['images[o1]'] = response.response[0].url;
+                    form['post[photoset_layout]'] = '1';
+                    form['post[photoset_order]'] = 'o1';
+
+                    return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+                      headers: {'Content-Type': 'application/json'},
+                      sendContent: JSON.stringify(form)
+                    });
+                  }
+
+                  return res;
+                });
+              } else {
+                form['images[o1]'] = '';
+                form['post[photoset_layout]'] = '1';
+                form['post[photoset_order]'] = 'o1';
+              }
+            }
+
+            return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+              headers: {'Content-Type': 'application/json'},
+              sendContent: JSON.stringify(form)
+            });
+          }()).addErrback(function(err){
             if (self.retry) {
-              return err;
+              throw err;
             }
 
             Tumblr.form_key = Tumblr.channel_id = null;
@@ -171,7 +142,7 @@ var Tumblr = {
 
             return self.getForm(endpoint).addCallback(postUpdate);
           });
-        }
+        });
       });
     });
   },
@@ -271,40 +242,12 @@ var Tumblr = {
 
     this.trimReblogInfo(form);
 
-    if (Tumblr[ps.type.capitalize()].convertToFormAsync) {
-      return Tumblr[ps.type.capitalize()].convertToFormAsync({
-        description : ps.description
-      }).addCallback(function(res) {
-        items(res).forEach(function(item) {
-          var name = item[0], value = item[1];
-          if (!value) {
-            return;
-          }
-          if (form[name]) {
-            form[name] += '\n\n' + value;
-          }
-          else {
-            form[name] = value;
-          }
-        });
-        that.appendTags(form, ps);
-        return that.postForm(function(){
-          return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-            headers: {'Content-Type': 'application/json'},
-            sendContent: JSON.stringify(form)
-          });
-        });
-      });
-    } else {
-      items(Tumblr[ps.type.capitalize()].convertToForm({
-        description : ps.description
-      })).forEach(function(item) {
+    return Tumblr[ps.type.capitalize()].convertToForm({
+      description : ps.description
+    }).addCallback(function(res) {
+      items(res).forEach(function(item) {
         var name = item[0], value = item[1];
         if (!value) {
-          return;
-        }
-        if (name === "itemUrl" &&
-            value.indexOf('http://') !== 0) {
           return;
         }
         if (form[name]) {
@@ -314,16 +257,14 @@ var Tumblr = {
           form[name] = value;
         }
       });
-
-      this.appendTags(form, ps);
-
-      return this.postForm(function(){
+      that.appendTags(form, ps);
+      return that.postForm(function(){
         return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
           headers: {'Content-Type': 'application/json'},
           sendContent: JSON.stringify(form)
         });
       });
-    }
+    });
   },
 
   /**
@@ -394,16 +335,16 @@ var Tumblr = {
 
 Tumblr.Regular = {
   convertToForm : function(ps){
-    return {
+    return succeed({
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
       'post[two]'  : joinText([getFlavor(ps, 'html'), ps.description], '\n\n')
-    };
+    });
   }
 };
 
 Tumblr.Photo = {
-  convertToFormAsync : function(ps){
+  convertToForm : function(ps){
     var ret = new Deferred();
     function callback(finalurl) {
 
@@ -432,14 +373,14 @@ Tumblr.Photo = {
 
 Tumblr.Video = {
   convertToForm : function(ps){
-    return {
+    return succeed({
       'post[type]' : ps.type,
       'post[one]'  : getFlavor(ps, 'html') || ps.itemUrl,
       'post[two]'  : joinText([
         (ps.item? ps.item.link(ps.pageUrl) : '') + (ps.author? ' (via ' + ps.author.link(ps.authorUrl) + ')' : ''),
         ps.description], '\n\n'),
       MAX_FILE_SIZE: '104857600'
-    };
+    });
   }
 };
 
@@ -450,32 +391,32 @@ Tumblr.Link = {
     } else {
       var thumb = '';
     }
-    return {
+    return succeed({
       'post[type]'  : ps.type,
       'post[one]'   : ps.item,
       'post[two]'   : ps.itemUrl,
       'post[three]' : joinText([thumb, getFlavor(ps, 'html'), ps.description], '\n\n')
-    };
+    });
   }
 };
 
 Tumblr.Conversation = {
   convertToForm : function(ps){
-    return {
+    return succeed({
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
       'post[two]'  : joinText([getFlavor(ps, 'html'), ps.description], '\n\n')
-    };
+    });
   }
 };
 
 Tumblr.Quote = {
   convertToForm : function(ps){
-    return {
+    return succeed({
       'post[type]' : ps.type,
       'post[one]'  : getFlavor(ps, 'html'),
       'post[two]'  : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n')
-    };
+    });
   }
 };
 
@@ -488,7 +429,7 @@ Tumblr.Audio = {
     };
     if(ps.itemUrl)
       res['post[three]'] = ps.itemUrl;
-    return res;
+    return succeed(res);
   }
 };
 
