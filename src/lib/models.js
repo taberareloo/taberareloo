@@ -280,7 +280,12 @@ var Tumblr = {
           if (!value) {
             return;
           }
-          form[name] += '\n\n' + value;
+          if (form[name]) {
+            form[name] += '\n\n' + value;
+          }
+          else {
+            form[name] = value;
+          }
         });
         that.appendTags(form, ps);
         return that.postForm(function(){
@@ -302,7 +307,12 @@ var Tumblr = {
             value.indexOf('http://') !== 0) {
           return;
         }
-        form[name] += '\n\n' + value;
+        if (form[name]) {
+          form[name] += '\n\n' + value;
+        }
+        else {
+          form[name] = value;
+        }
       });
 
       this.appendTags(form, ps);
