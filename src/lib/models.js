@@ -99,6 +99,10 @@ var Tumblr = {
           update(form, form2);
           self.appendTags(form, ps);
 
+          if (TBRL.Config.post.multi_tumblelogs && !Tumblr.blogs.some(function(id){ return id === form.channel_id; })) {
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', form.channel_id));
+          }
+
           return (function () {
             if (type === 'Photo') {
               if (form['photo[]']) {
@@ -325,12 +329,16 @@ var Tumblr = {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
       Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
+      Tumblr.blogs = [Tumblr.channel_id];
       return Array.prototype.slice.call(doc.querySelectorAll(
         '#fixed_navigation > .vertical_tab > ' +
           'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + Tumblr.channel_id + '/settings"])'
       )).reverse().map(function(a){
+        var id = a.getAttribute('href').replace(/^\/blog\/|\/settings/g, '');
+        Tumblr.blogs.push(id);
+
         return {
-          id : a.getAttribute('href').replace(/^\/blog\/|\/settings/g, ''),
+          id : id,
           name: a.textContent
         };
       });
