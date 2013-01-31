@@ -466,8 +466,8 @@ Extractors.register([
           'post[state]': new String(post.state),
           custom_tweet: '',
           allow_photo_replies: '',
-          send_to_fbog: '',
-          send_to_twitter: ''
+          send_to_fbog: TBRL.config.entry.tumblr2facebook ? 'on' : '',
+          send_to_twitter: TBRL.config.entry.tumblr2twitter ? 'on' : ''
         };
 
         if (post.type === 'photo') {

@@ -90,6 +90,12 @@
   "label_notconvertText": {
     "message": "長文を含むTextポストをLinkポストに変換しない"
   },
+  "label_tumblr2twitter": {
+    "message": "Tumblrへの投稿をTwitterでも共有する"
+  },
+  "label_tumblr2facebook": {
+    "message": "Tumblrへの投稿をFacebookでも共有する"
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    は\n    $modified$\n    に変換されました。",
     "description": "httpsのリンクが見つかった",
