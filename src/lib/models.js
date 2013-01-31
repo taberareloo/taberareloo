@@ -179,6 +179,15 @@ var Tumblr = {
       return succeed(form);
     }
 
+    if (TBRL.Config.post.multi_tumblelogs) {
+      return Models.getMultiTumblelogs().addCallback(function(){
+        form.form_key = Tumblr.form_key;
+        form.channel_id = Tumblr.channel_id;
+
+        return form;
+      });
+    }
+
     return request(url).addCallback(function(res){
       var doc = createHTML(res.responseText);
       if($X('id("logged_out_container")', doc)[0])
