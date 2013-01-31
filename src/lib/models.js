@@ -176,11 +176,7 @@ var Tumblr = {
     var that = this;
 
     if (form.form_key && form.channel_id) {
-      var ret = new Deferred();
-      setTimeout(function () {
-        ret.callback(form);
-      }, 0);
-      return ret;
+      return succeed(form);
     }
 
     return request(url).addCallback(function(res){
@@ -345,9 +341,8 @@ Tumblr.Regular = {
 
 Tumblr.Photo = {
   convertToForm : function(ps){
-    var ret = new Deferred();
-    function callback(finalurl) {
-
+    // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
+    return (ps.itemUrl ? getFinalUrl(ps.itemUrl) : succeed(null)).addCallback(function (finalUrl) {
       var form = {
         'post[type]'  : ps.type,
         'post[two]'   : joinText([
@@ -356,18 +351,9 @@ Tumblr.Photo = {
         'post[three]' : ps.pageUrl,
         MAX_FILE_SIZE: '10485760'
       };
-      ps.file ? (form['photo[]'] = ps.file) : (form['photo_src[]'] = finalurl);
-      ret.callback(form);
-    }
-
-    if (ps.itemUrl) {
-      // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
-      getFinalUrl(ps.itemUrl).addCallback(callback);
-    } else {
-      setTimeout(callback, 0, null);
-    }
-
-    return ret;
+      ps.file ? (form['photo[]'] = ps.file) : (form['photo_src[]'] = finalUrl);
+      return form;
+    });
   }
 };
 
@@ -1606,20 +1592,16 @@ Models.register({
         link_q        : (ps.itemUrl) ? '"' + ps.itemUrl + '"' : null
       });
     }
-    var ret = new Deferred();
-    (TBRL.Config['post']['always_shorten_url']
+    return (TBRL.Config['post']['always_shorten_url']
       ? shortenUrls(status, Models[self.SHORTEN_SERVICE])
       : succeed(status)
     ).addCallback(function(status) {
       var len = self.getActualLength(status);
-      if (len <= maxlen) {
-        ret.callback(status);
+      if (len > maxlen) {
+        throw 'too many characters to post (' + (len - maxlen) + ' over)';
       }
-      else {
-        ret.errback('too many characters to post (' + (len - maxlen) + ' over)');
-      }
+      return status;
     });
-    return ret;
   },
 
   post : function(ps) {
