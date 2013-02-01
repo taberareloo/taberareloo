@@ -99,6 +99,10 @@ var Tumblr = {
           update(form, form2);
           self.appendTags(form, ps);
 
+          if (TBRL.Config.post.multi_tumblelogs && !Tumblr.blogs.some(function(id){ return id === form.channel_id; })) {
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', form.channel_id));
+          }
+
           return (function () {
             if (type === 'Photo') {
               if (form['photo[]']) {
@@ -177,6 +181,15 @@ var Tumblr = {
 
     if (form.form_key && form.channel_id) {
       return succeed(form);
+    }
+
+    if (TBRL.Config.post.multi_tumblelogs) {
+      return Models.getMultiTumblelogs(true).addCallback(function(){
+        form.form_key = Tumblr.form_key;
+        form.channel_id = Tumblr.channel_id;
+
+        return form;
+      });
     }
 
     return request(url).addCallback(function(res){
@@ -314,13 +327,18 @@ var Tumblr = {
       var doc = createHTML(res.responseText);
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      var id = $X('//input[@name="t"]/@value', doc)[0];
+      Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
+      Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
+      Tumblr.blogs = [Tumblr.channel_id];
       return Array.prototype.slice.call(doc.querySelectorAll(
         '#fixed_navigation > .vertical_tab > ' +
-          'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + id + '/settings"])'
+          'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + Tumblr.channel_id + '/settings"])'
       )).reverse().map(function(a){
+        var id = a.getAttribute('href').replace(/^\/blog\/|\/settings/g, '');
+        Tumblr.blogs.push(id);
+
         return {
-          id : a.getAttribute('href').replace(/^\/blog\/|\/settings/g, ''),
+          id : id,
           name: a.textContent
         };
       });
@@ -3653,7 +3671,7 @@ Models.getPostConfig = function(config, name, ps, model) {
 };
 
 Models.multipleTumblelogs = [];
-Models.getMultiTumblelogs = function() {
+Models.getMultiTumblelogs = function(throwError) {
   Models.removeMultiTumblelogs();
   return Tumblr.getTumblelogs().addCallback(function(blogs) {
     return blogs.map(function(blog) {
@@ -3668,6 +3686,10 @@ Models.getMultiTumblelogs = function() {
       return model;
     });
   }).addErrback(function(e) {
+    if (throwError && !(Tumblr.form_key && Tumblr.channel_id)) {
+      throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
+    }
+
     alert('Multiple Tumblelog'+ ': ' +
       (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
