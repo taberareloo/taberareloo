@@ -184,7 +184,7 @@ var Tumblr = {
     }
 
     if (TBRL.Config.post.multi_tumblelogs) {
-      return Models.getMultiTumblelogs().addCallback(function(){
+      return Models.getMultiTumblelogs(true).addCallback(function(){
         form.form_key = Tumblr.form_key;
         form.channel_id = Tumblr.channel_id;
 
@@ -3671,7 +3671,7 @@ Models.getPostConfig = function(config, name, ps, model) {
 };
 
 Models.multipleTumblelogs = [];
-Models.getMultiTumblelogs = function() {
+Models.getMultiTumblelogs = function(throwError) {
   Models.removeMultiTumblelogs();
   return Tumblr.getTumblelogs().addCallback(function(blogs) {
     return blogs.map(function(blog) {
@@ -3686,6 +3686,10 @@ Models.getMultiTumblelogs = function() {
       return model;
     });
   }).addErrback(function(e) {
+    if (throwError && !(Tumblr.form_key && Tumblr.channel_id)) {
+      throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
+    }
+
     alert('Multiple Tumblelog'+ ': ' +
       (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });

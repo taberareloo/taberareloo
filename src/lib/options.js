@@ -663,7 +663,7 @@ TumbleList.prototype = {
   clicked: function(ev){
     var self = this;
     $D(this.field);
-    background.Models.getMultiTumblelogs().addCallback(function(models){
+    background.Models.getMultiTumblelogs(false).addCallback(function(models){
       self.field.appendChild(models.reduce(function(df, model) {
         df.appendChild(self.createElement(model));
         return df;
