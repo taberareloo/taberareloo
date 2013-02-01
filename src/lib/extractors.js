@@ -523,7 +523,7 @@ Extractors.register([
         }
       }).addErrback(function(err){
         if (that.retry) {
-          return err;
+          throw err;
         }
 
         that.form_key = that.channel_id = null;
@@ -541,11 +541,7 @@ Extractors.register([
       var that = this;
 
       if (this.form_key && this.channel_id) {
-        var d = new Deferred();
-        setTimeout(function () {
-          d.callback();
-        }, 0);
-        return d;
+        return succeed();
       }
 
       return this.getCache(false).addCallback(function (info) {
