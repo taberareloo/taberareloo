@@ -2796,7 +2796,7 @@ Models.register({
           {
             external : {
               name     : 'file',
-              filename : fileName + '.png',
+              filename : fileName,
               put      : {},
               size     : fileSize
             }
@@ -2805,6 +2805,13 @@ Models.register({
             inlined : {
               name        : 'batchid',
               content     : String(Date.now()),
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'client',
+              content     : 'sharebox',
               contentType : 'text/plain'
             }
           },
@@ -2826,6 +2833,13 @@ Models.register({
             inlined : {
               name        : 'use_upload_size_pref',
               content     : 'true',
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'album_abs_position',
+              content     : '0',
               contentType : 'text/plain'
             }
           }
@@ -2863,7 +2877,7 @@ Models.register({
   },
 
   upload : function(file, oz) {
-    return this.openUploadSession(file.fileName, file.length, oz).addCallback(function(session) {
+    return this.openUploadSession(file.name, file.size, oz).addCallback(function(session) {
       if (!session) {
         throw new Error("Couldn't upload an image properly");
         return null;
