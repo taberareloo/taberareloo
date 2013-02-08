@@ -1710,40 +1710,40 @@ Models.register({
 
   upload : function(ps, status, file) {
     var self = this;
-    var RECEVIER_URL = 'https://upload.twitter.com/receiver.html';
-    var UPLOAD_URL = 'https://upload.twitter.com/1/statuses/update_with_media.json';
+    var UPLOAD_URL = 'https://upload.twitter.com/i/tweet/create_with_media.iframe';
     var SIZE_LIMIT = 3145728;
 
-    if (file.fileSize > SIZE_LIMIT) {
+    if (file.size > SIZE_LIMIT) {
       throw new Error('exceed the photo size limit (' + SIZE_LIMIT + ')');
+    }
+    else if (file.type === 'image/gif') {
+      throw new Error('GIF is not supported');
     }
 
     return this.getToken().addCallback(function(token) {
       return fileToBinaryString(file).addCallback(function(binary) {
-        return request(RECEVIER_URL, {
+        return request(UPLOAD_URL, {
+          sendContent : {
+            status                  : status,
+            'media_data[]'          : window.btoa(binary),
+            iframe_callback         : 'window.top.swift_tweetbox_taberareloo',
+            post_authenticity_token : token.authenticity_token
+          },
           headers : {
             Referer : self.URL
           }
         }).addCallback(function(res) {
-          return request(UPLOAD_URL, {
-            sendContent : {
-              status                  : status,
-              'media_data[]'          : window.btoa(binary),
-              include_entities        : 'true',
-              post_authenticity_token : token.authenticity_token
-            },
-            headers : {
-              Referer            : RECEVIER_URL,
-              'X-Phx'            : true,
-              'X-Requested-With' : 'XMLHttpRequest'
-            }
-          }).addCallback(function(res) {
-            var json = JSON.parse(res.responseText);
-            if (json.error) {
-              throw new Error(json.error);
-            }
-            return json;
-          });
+          var html = res.responseText;
+          var doc  = createHTML(res.responseText);
+          var json = html.extract(/window.top.swift_tweetbox_taberareloo\((\{.+\})\);/);
+          json = JSON.parse(json);
+        }).addErrback(function(e) {
+          var res  = e.message;
+          var html = res.responseText;
+          var doc  = createHTML(res.responseText);
+          var json = html.extract(/window.top.swift_tweetbox_taberareloo\((\{.+\})\);/);
+          json = JSON.parse(json);
+          throw new Error(json.error);
         });
       });
     });
@@ -2796,7 +2796,7 @@ Models.register({
           {
             external : {
               name     : 'file',
-              filename : fileName + '.png',
+              filename : fileName,
               put      : {},
               size     : fileSize
             }
@@ -2805,6 +2805,13 @@ Models.register({
             inlined : {
               name        : 'batchid',
               content     : String(Date.now()),
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'client',
+              content     : 'sharebox',
               contentType : 'text/plain'
             }
           },
@@ -2826,6 +2833,13 @@ Models.register({
             inlined : {
               name        : 'use_upload_size_pref',
               content     : 'true',
+              contentType : 'text/plain'
+            }
+          },
+          {
+            inlined : {
+              name        : 'album_abs_position',
+              content     : '0',
               contentType : 'text/plain'
             }
           }
@@ -2863,7 +2877,7 @@ Models.register({
   },
 
   upload : function(file, oz) {
-    return this.openUploadSession(file.fileName, file.length, oz).addCallback(function(session) {
+    return this.openUploadSession(file.name, file.size, oz).addCallback(function(session) {
       if (!session) {
         throw new Error("Couldn't upload an image properly");
         return null;
