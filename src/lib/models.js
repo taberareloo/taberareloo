@@ -3607,6 +3607,48 @@ Models.register({
   }
 });
 
+Models.register({
+  name      : 'mixi',
+  ICON      : 'http://mixi.jp/favicon.ico',
+  LINK      : 'http://mixi.jp/',
+  URL       : 'http://mixi.jp/',
+
+  check : function(ps) {
+    return /link/.test(ps.type);
+  },
+
+  post : function(ps) {
+    var self = this;
+    var checkKey = '5e4317cedfc5858733a2740d1f59ab4088e370a7';
+    return request(
+      [self.URL, 'share.pl?k=', checkKey, '&u=', ps.pageUrl].join('')
+    ).addCallback(function(res) {
+      if (res.responseText.indexOf('share_form') < 0) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+
+      var doc       = createHTML(res.responseText);
+      var postUrl   = doc.querySelector('form[name="share_form"]').getAttribute('action');
+      var postKey   = doc.querySelector('input[name="post_key"]').value;
+      var url       = doc.querySelector('input[name="u"]').value;
+      var key       = doc.querySelector('input[name="k"]').value;
+      var privacyId = doc.querySelector('input[name="selected_privacy_id"]').value;
+      var imageKey  = doc.querySelector('input[name="selected_image_pkey"]').value;
+      return request(self.URL + 'share.pl?mode=share', {
+        method : 'POST',
+        sendContent : {
+          post_key            : postKey,
+          selected_privacy_id : privacyId,
+          selected_image_pkey : imageKey,
+          u                   : url,
+          k                   : key,
+          comment             : ps.description
+        }
+      });
+    });
+  }
+});
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
