@@ -3635,7 +3635,10 @@ Models.register({
     var self = this;
     var checkKey = '5e4317cedfc5858733a2740d1f59ab4088e370a7';
     return request(
-      [self.URL, 'share.pl?k=', checkKey, '&u=', ps.pageUrl].join('')
+      self.URL + 'share.pl?' + queryString({
+        k : checkKey,
+        u : ps.pageUrl
+      })
     ).addCallback(function(res) {
       if (res.responseText.indexOf('share_form') < 0) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -3647,17 +3650,25 @@ Models.register({
       var url       = doc.querySelector('input[name="u"]').value;
       var key       = doc.querySelector('input[name="k"]').value;
       var privacyId = doc.querySelector('input[name="selected_privacy_id"]').value;
-      var imageKey  = doc.querySelector('input[name="selected_image_pkey"]').value;
+
+      var sendContent = {
+        post_key            : postKey,
+        selected_privacy_id : privacyId,
+        u                   : url,
+        k                   : key,
+        comment             : ps.description
+      };
+
+      if (doc.querySelector('input[name="selected_image_uri"]')) {
+        var imageUrl  = doc.querySelector('input[name="selected_image_uri"]').value;
+        sendContent.selected_image_uri = imageUrl;
+        var imageKey  = doc.querySelector('input[name="selected_image_pkey"]').value;
+        sendContent.selected_image_pkey = imageKey;
+      }
+
       return request(self.URL + 'share.pl?mode=share', {
-        method : 'POST',
-        sendContent : {
-          post_key            : postKey,
-          selected_privacy_id : privacyId,
-          selected_image_pkey : imageKey,
-          u                   : url,
-          k                   : key,
-          comment             : ps.description
-        }
+        method      : 'POST',
+        sendContent : sendContent
       });
     });
   }
