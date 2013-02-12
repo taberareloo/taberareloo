@@ -1040,3 +1040,11 @@ function getCookies(domain, name) {
   });
   return ret;
 }
+
+function isJSON(json) {
+  try {
+    return !!JSON.parse(json);
+  } catch (err) {
+    return false;
+  }
+}
