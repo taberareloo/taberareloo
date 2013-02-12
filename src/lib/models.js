@@ -289,18 +289,35 @@ var Tumblr = {
       if (self.retry) {
         self.retry = false;
       }
-      var doc = createHTML(res.responseText);
+
+      var response = res.responseText;
+
+      if (isJSON(response)) {
+        var errors = JSON.parse(response).errors;
+        if (errors) {
+          if (Array.isArray(errors)) {
+            // daily post limit
+            throw new Error(errors.join(''));
+          } else if (errors.type) {
+            // daily photo upload limit
+            throw new Error(errors.type);
+          } else {
+            // unexpected error
+            throw new Error(JSON.stringify(errors));
+          }
+        }
+        return null;
+      }
+
+      var doc = createHTML(response);
       if($X('id("logged_out_container")', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      } else if($X('id("posts")', doc)[0] || /^{"errors":false,/.test(res.responseText)){
+      } else if($X('id("posts")', doc)[0]){
         return null;
+      } else if(response.match('more tomorrow')) {
+        throw new Error('You\'ve exceeded your daily post limit.');
       } else {
-        if(res.responseText.match('more tomorrow')) {
-          throw new Error('You\'ve exceeded your daily post limit.');
-        } else {
-          var doc = createHTML(res.responseText);
-          throw new Error(doc.getElementById('errors').textContent.trim());
-        }
+        throw new Error(doc.getElementById('errors').textContent.trim());
       }
     });
   },
