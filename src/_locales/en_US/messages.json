@@ -148,7 +148,7 @@
     "message": "will you reopen?",
     "description": "when confirm reopen"
   },
-  "error_http404": {
+  "error_http403": {
     "message": "Forbidden",
     "description": "when response status is 403"
   },
