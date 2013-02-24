@@ -1029,7 +1029,7 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : 'https://delicious.com/img/favicon.ico',
+  ICON : chrome.extension.getURL('skin/delicious.png'),
   LINK : 'https://www.delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
