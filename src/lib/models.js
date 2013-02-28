@@ -2516,22 +2516,45 @@ Models.register({
 
         if (scope.scopeType === 'anyone') {
           aclEntries.push({
-            scopeType   : "anyone",
-            name        : "Anyone",
-            id          : "anyone",
+            scopeType   : 'presets',
+            name        : 'Anyone',
+            id          : 1,
             me          : true,
             requiresKey : false
           });
         }
-        else if (scope.scopeType != 'user') {
-          aclEntries.push({
-            scopeType   : scope.scopeType,
-            name        : scope.name,
-            id          : scope.id,
-            me          : false,
-            requiresKey : scope.requiresKey,
-            groupType   : scope.groupType
-          });
+        else {
+          var id = scope.id.split('.')[1];
+          if (id === '1c') {
+            aclEntries.push({
+              scopeType   : 'presets',
+              name        : scope.name,
+              id          : 3,
+              me          : false,
+              requiresKey : scope.requiresKey,
+              groupType   : scope.groupType
+            });
+          }
+          else if (id === '1f') {
+            aclEntries.push({
+              scopeType   : 'presets',
+              name        : scope.name,
+              id          : 4,
+              me          : false,
+              requiresKey : scope.requiresKey,
+              groupType   : scope.groupType
+            });
+          }
+          else if (scope.scopeType != 'user') {
+            aclEntries.push({
+              scopeType   : scope.scopeType,
+              name        : scope.name,
+              id          : id,
+              me          : false,
+              requiresKey : scope.requiresKey,
+              groupType   : scope.groupType
+            });
+          }
         }
       }
 
@@ -2575,14 +2598,19 @@ Models.register({
 
   getSnippetFromURL : function(url, oz) {
     var self = this;
+    var data = [];
+    data.push(url);
+    data.push(false, false);
+    data.push(null, null, null, null, null, null, null, null, null);
+    data.push(true);
     return request(this.HOME_URL + this.SNIPPET_URL + '?' + queryString({
-      c      : url,
-      t      : 1,
+      hl     : 'en',
       _reqid : this.getReqid(),
       rt     : 'j'
     }), {
       sendContent : {
-        at : oz[1][15]
+        'f.req' : JSON.stringify(data),
+        at      : oz[1][15]
       }
     }).addCallback(function(res) {
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
@@ -2713,19 +2741,20 @@ Models.register({
     var scopes = JSON.parse(ps.scope);
 
     for (var i = 0, len = scopes.length ; i < len ; i++) {
-      aclEntries.push({
-        scope : scopes[i],
-        role  : 20
-      });
-      aclEntries.push({
-        scope : scopes[i],
-        role  : 60
-      });
+      var scope = scopes[i];
+      if (scope.scopeType == 'presets') {
+        aclEntries.push([
+          null, null, scope.id
+        ]);
+      }
+      else {
+        aclEntries.push([
+          null, scope.id
+        ]);
+      }
     }
 
-    return JSON.stringify({
-      aclEntries : aclEntries
-    });
+    return [aclEntries, null];
   },
 
   _post : function(ps, oz) {
@@ -2778,26 +2807,37 @@ Models.register({
         }
       }
 
-      spar.push(null);
-      spar.push(self.createScopeSpar(ps));
-      spar.push(true, [], true, true, null, [], false, false);
+      spar.push(null, null);
+      spar.push(true, [], false, null, null, [], null, false);
+      spar.push(null, null);
+      spar.push(ps.upload ? oz[2][0] : null);
+      spar.push(null, null);
+      spar.push(null, null, null, null, null);
+      spar.push(false, false, !!ps.upload);
+      spar.push(null, null, null, null);
       if (ps.upload) {
-        spar.push(null, null, oz[2][0]);
+        spar.push(null); // medialayout
       }
+      else {
+        spar.push(null);
+      }
+      spar.push(null);
 
-      spar = JSON.stringify(spar);
+      spar.push([]);
+
+      spar.push(self.createScopeSpar(ps));
+
+      spar.push(null, null, null, null, null, null);
 
       var url = self.HOME_URL + self.BASE_URL + self.POST_URL;
       return request(url + '?' + queryString({
+        hl     : 'en',
         _reqid : self.getReqid(),
         rt     : 'j'
       }), {
         sendContent : {
-          spar : spar,
-          at   : oz[1][15]
-        },
-        headers : {
-          Origin : self.HOME_URL
+          'f.req' : JSON.stringify(spar),
+          at      : oz[1][15]
         }
       });
     });
@@ -2925,96 +2965,83 @@ Models.register({
 
   _getStreams : function() {
     var self = this;
-    this.getOZData().addCallback(function(oz) {
-      self.getInitialData(12).addCallback(function(data) {
-        var circles = [];
-        if (data) {
-          data[0].forEach(function(circle) {
-            var code, id, name, has;
-            code = circle[0][0];
-            id   = [oz[2][0], code].join('.');
-            name = circle[1][0];
-            if (code && name) {
-              has = false;
-              circles.forEach(function(c) {
-                if (!has && c[0].id === id) {
-                  has = true;
-                }
-              });
-              if (!has) {
-                circles.push([{
-                  scopeType   : 'focusGroup',
-                  name        : name,
-                  id          : id,
-                  me          : false,
-                  requiresKey : false,
-                  groupType   : 'p'
-                }]);
+    this.getInitialData(12).addCallback(function(data) {
+      var circles = [];
+      if (data) {
+        data[0].forEach(function(circle) {
+          var code, id, name, has;
+          id   = circle[0][0];
+          name = circle[1][0];
+          if (id && name) {
+            has = false;
+            circles.forEach(function(c) {
+              if (!has && c[0].id === id) {
+                has = true;
               }
+            });
+            if (!has) {
+              circles.push([{
+                scopeType   : 'focusGroup',
+                name        : name,
+                id          : id,
+                me          : false,
+                requiresKey : false,
+                groupType   : 'p'
+              }]);
             }
-          });
-        }
+          }
+        });
+      }
 
-        var presets = [
-          [{
-            scopeType   : 'focusGroup',
-            name        : 'Your circles',
-            id          : [oz[2][0], '1c'].join('.'),
-            me          : false,
-            requiresKey : false,
-            groupType   : 'a'
-          }],
-          [{
-            scopeType   : 'focusGroup',
-            name        : 'Extended circles',
-            id          : [oz[2][0], '1f'].join('.'),
-            me          : false,
-            requiresKey : false,
-            groupType   : 'e'
-          }],
-          [{
-            scopeType   : 'anyone',
-            name        : 'Anyone',
-            id          : 'anyone',
-            me          : true,
-            requiresKey : false
-          }]
-        ];
+      var presets = [
+        [{
+          scopeType   : 'presets',
+          name        : 'Your circles',
+          id          : 3,
+          me          : false,
+          requiresKey : false,
+          groupType   : 'a'
+        }],
+        [{
+          scopeType   : 'presets',
+          name        : 'Extended circles',
+          id          : 4,
+          me          : false,
+          requiresKey : false,
+          groupType   : 'e'
+        }],
+        [{
+          scopeType   : 'presets',
+          name        : 'Anyone',
+          id          : 1,
+          me          : true,
+          requiresKey : false
+        }]
+      ];
 
-        self.streams = {
-          presets : presets,
-          circles : circles
-        };
-      });
+      self.streams = {
+        presets : presets,
+        circles : circles
+      };
     });
   },
 
   getPages : function() {
     var self = this;
-    var url = 'https://plus.google.com/u/0/_/pages/get/';
-    return request(url + '?'
-      + queryString({
-        _reqid : this.getReqid(),
-        rt     : 'j'
-      })
-    ).addCallback(function(res) {
-      var text = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
-      return Sandbox.evalJSON(text).addCallback(function(json) {
-        var data = self.getDataByKey(json[0], 'ope.gmppr');
-        var pages = [];
-        if (data) {
-          data[1].forEach(function(page) {
-            if (page[2]) {
-              pages.push({
-                id   : page[30],
-                name : page[4][3],
-                icon : page[3]
-              });
-            }
-          });
-        }
-        return pages;
-      });
+    return this.getInitialData(104).addCallback(function(data) {
+      var pages = [];
+      if (data && data[1] && data[1][1] && data[1][1][0]) {
+        data[1][1][0].forEach(function(page) {
+          if (page[0]) {
+            pages.push({
+              id   : page[0][30],
+              name : page[0][4][3],
+              icon : page[0][3]
+            });
+          }
+        });
+      }
+      return pages;
     });
   }
 });
@@ -3791,7 +3818,7 @@ Models.googlePlusPages = [];
 Models.getGooglePlusPages = function() {
   Models.removeGooglePlusPages();
   return Models['Google+'].getPages().addCallback(function(pages) {
-    return pages.map(function(page) {
+    return pages.reverse().map(function(page) {
       var model = update({}, Models['Google+']);
       model.name     = 'Google+ Page - ' + page.name;
       model.ICON     = 'http:' + page.icon;
@@ -3799,9 +3826,9 @@ Models.getGooglePlusPages = function() {
       model.BASE_URL = 'b/' + page.id + '/';
       model.is_pages = true;
       Models.register(model, 'Google+', true);
-      Models.googlePlusPages.push(model);
+      Models.googlePlusPages.unshift(model);
       return model;
-    });
+    }).reverse();
   }).addErrback(function(e) {
     alert('Google+ Pages'+ ': ' +
       (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
