@@ -99,11 +99,11 @@
      "16": "skin/fork16.png"
    },
    "manifest_version": 2,
-   "minimum_chrome_version": "23.0",
+   "minimum_chrome_version": "25.0",
    "default_locale": "en_US",
    "description": "Yet Another Tombloo on Chromium",
    "name": "Taberareloo",
-   "permissions": [ "http://*/*", "https://*/*", "tabs", "bookmarks", "contextMenus", "cookies", "unlimited_storage", "notifications", "webRequest" ],
+   "permissions": [ "http://*/*", "https://*/*", "tabs", "bookmarks", "contextMenus", "cookies", "unlimited_storage", "notifications", "webRequest", "webRequestBlocking" ],
    "version": "2.0.77",
    "incognito": "split"
 }

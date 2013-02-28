@@ -3691,6 +3691,202 @@ Models.register({
   }
 });
 
+Models.register({
+  name      : 'App.Net',
+  ICON      : chrome.extension.getURL('skin/appnet.ico'),
+  LINK      : 'https://alpha.app.net/',
+  LOGIN_URL : 'https://account.app.net/login/',
+
+  POST_URL   : 'https://alpha.app.net/omo-api-proxy/0/posts',
+  UPLOAD_URL : 'https://alpha.app.net/omo-api-proxy/0/files',
+
+  check : function(ps) {
+    return /regular|photo|quote|link|video/.test(ps.type);
+  },
+
+  getCSRFToken : function() {
+    var self = this;
+    return getCookies('.app.net', 'mt_sessionid').addCallback(function(cookies) {
+      if (!cookies.length) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
+      return getCookies('alpha.app.net', 'csrftoken').addCallback(function(cookies) {
+        if (cookies.length) {
+          return cookies[cookies.length-1].value;
+        } else {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
+      });
+    });
+  },
+
+  post : function(ps) {
+    var self = this;
+    ps = update({}, ps);
+    if (ps.type === 'photo') {
+      return Models['Gmail'].download(ps).addCallback(function(file) {
+        ps.file = file;
+        return self.upload(ps);
+      });
+    } else {
+      return this._post(ps);
+    }
+  },
+
+  _post : function(ps, fileInfo) {
+    var self = this;
+
+    var maxLength = 256;
+    if (fileInfo) {
+      maxLength -= 31;
+    }
+
+    var text = '';
+    if (ps.type === 'regular') {
+      text = joinText([ps.item, ps.description], "\n");
+    }
+    else {
+      text = joinText([
+        (ps.item || ps.page) ? (ps.item || ps.page) : '', ps.pageUrl,
+        (ps.body) ? '“' + strip_tags(ps.body) + '”' : ''], "\n");
+      text = joinText([ps.description, text], "\n\n");
+    }
+
+    if (text.length > maxLength) {
+      text = text.substring(0, maxLength - 3) + '...';
+    }
+
+    if (fileInfo) {
+      text += ' photos.app.net/{post_id}/1';
+    }
+
+    var sendContent = {
+      text : text
+    };
+
+    if (fileInfo) {
+      sendContent = update({
+        reply_to    : null,
+        annotations : [{
+          type : 'net.app.core.oembed',
+          value : {
+            '+net.app.core.file' : {
+              file_token : fileInfo.file_token,
+              format     : 'oembed',
+              file_id    : fileInfo.id
+            }
+          }
+        }]
+      }, sendContent);
+    }
+
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      this.setRefererHeader,
+      { urls: [this.LINK + '*'] },
+      [ "blocking", "requestHeaders" ]
+    );
+
+    return this.getCSRFToken().addCallback(function(csrftoken) {
+      return request(self.POST_URL + '?' + queryString({
+        include_post_annotations : 1
+      }), {
+        sendContent : JSON.stringify(sendContent),
+        headers : {
+          'Content-Type'              : 'application/json',
+          'X-ADN-Migration-Overrides' : queryString({
+            disable_min_max_id : 1,
+            response_envelope  : 1,
+            follow_pagination  : 1,
+            pagination_ids     : 1
+          }),
+          'X-CSRFToken'      : csrftoken,
+          'X-Requested-With' : 'XMLHttpRequest'
+        }
+      }).addCallback(function(res) {
+        chrome.webRequest.onBeforeSendHeaders.removeListener(
+          self.setRefererHeader,
+          { urls: [self.LINK + '*'] },
+          [ "blocking", "requestHeaders" ]
+        );
+      }).addErrback(function(e) {
+        var res  = e.message;
+        var data = JSON.parse(res.responseText);
+        if (data.meta.error_message) {
+          throw new Error(data.meta.error_message);
+        }
+        else {
+          throw new Error('Could not post a content');
+        }
+      });
+    });
+  },
+
+  upload : function(ps) {
+    var self = this;
+
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      this.setRefererHeader,
+      { urls: [this.LINK + '*'] },
+      [ "blocking", "requestHeaders" ]
+    );
+
+    return this.getCSRFToken().addCallback(function(csrftoken) {
+      return request(self.UPLOAD_URL, {
+        sendContent : {
+          content : ps.file,
+          type    : 'net.app.alpha.attachment'
+        },
+        headers : {
+          'X-ADN-Migration-Overrides' : queryString({
+            disable_min_max_id : 1,
+            response_envelope  : 1,
+            follow_pagination  : 1,
+            pagination_ids     : 1
+          }),
+          'X-CSRFToken'      : csrftoken,
+          'X-Requested-With' : 'XMLHttpRequest'
+        }
+      }).addCallback(function(res) {
+        chrome.webRequest.onBeforeSendHeaders.removeListener(
+          self.setRefererHeader,
+          { urls: [self.LINK + '*'] },
+          [ "blocking", "requestHeaders" ]
+        );
+        var data = JSON.parse(res.responseText);
+        return self._post(ps, data.data);
+      }).addErrback(function(e) {
+        var res  = e.message;
+        var data = JSON.parse(res.responseText);
+        if (data.meta.error_message) {
+          throw new Error(data.meta.error_message);
+        }
+        else {
+          throw new Error('Could not upload an image');
+        }
+      });
+    });
+  },
+
+  setRefererHeader : function(details) {
+    var LINK = 'https://alpha.app.net/';
+    var found = false;
+    for (var i = 0; i < details.requestHeaders.length; ++i) {
+      if (details.requestHeaders[i].name === 'Referer') {
+        details.requestHeaders[i].value = LINK;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      details.requestHeaders.push({
+        name  : 'Referer',
+        value : LINK
+      });
+    }
+    return {requestHeaders: details.requestHeaders};
+   }
+});
+
 function shortenUrls(text, model){
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
   if(!reUrl.test(text))
