@@ -3737,9 +3737,6 @@ Models.register({
     var self = this;
 
     var maxLength = 256;
-    if (fileInfo) {
-      maxLength -= 31;
-    }
 
     var text = '';
     if (ps.type === 'regular') {
@@ -3754,10 +3751,6 @@ Models.register({
 
     if (text.length > maxLength) {
       text = text.substring(0, maxLength - 3) + '...';
-    }
-
-    if (fileInfo) {
-      text += ' photos.app.net/{post_id}/1';
     }
 
     var sendContent = {
