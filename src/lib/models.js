@@ -3744,7 +3744,7 @@ Models.register({
     }
     else {
       text = joinText([
-        (ps.item || ps.page) ? (ps.item || ps.page) : '', ps.pageUrl,
+        (ps.item || ps.page) ? (ps.item || ps.page) : ps.pageUrl,
         (ps.body) ? '“' + strip_tags(ps.body) + '”' : ''], "\n");
       text = joinText([ps.description, text], "\n\n");
     }
@@ -3756,6 +3756,18 @@ Models.register({
     var sendContent = {
       text : text
     };
+
+    if ((ps.item || ps.page) && ps.pageUrl) {
+      sendContent = update({
+        entities : {
+          links : [{
+            url : ps.pageUrl,
+            pos : (ps.description ? ps.description.length + 2 : 0),
+            len : (ps.item || ps.page).length
+          }]
+        }
+      }, sendContent);
+    }
 
     if (fileInfo) {
       sendContent = update({
