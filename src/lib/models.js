@@ -3759,7 +3759,6 @@ Models.register({
 
     if (fileInfo) {
       sendContent = update({
-        reply_to    : null,
         annotations : [{
           type : 'net.app.core.oembed',
           value : {
