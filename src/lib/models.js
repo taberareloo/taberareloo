@@ -3784,11 +3784,7 @@ Models.register({
       }, sendContent);
     }
 
-    chrome.webRequest.onBeforeSendHeaders.addListener(
-      this.setRefererHeader,
-      { urls: [this.LINK + '*'] },
-      [ "blocking", "requestHeaders" ]
-    );
+    this.addBeforeSendHeader();
 
     return this.getCSRFToken().addCallback(function(csrftoken) {
       return request(self.POST_URL + '?' + queryString({
@@ -3807,12 +3803,9 @@ Models.register({
           'X-Requested-With' : 'XMLHttpRequest'
         }
       }).addCallback(function(res) {
-        chrome.webRequest.onBeforeSendHeaders.removeListener(
-          self.setRefererHeader,
-          { urls: [self.LINK + '*'] },
-          [ "blocking", "requestHeaders" ]
-        );
+        self.removeBeforeSendHeader();
       }).addErrback(function(e) {
+        self.removeBeforeSendHeader();
         var res  = e.message;
         var data = JSON.parse(res.responseText);
         if (data.meta.error_message) {
@@ -3828,11 +3821,7 @@ Models.register({
   upload : function(ps) {
     var self = this;
 
-    chrome.webRequest.onBeforeSendHeaders.addListener(
-      this.setRefererHeader,
-      { urls: [this.LINK + '*'] },
-      [ "blocking", "requestHeaders" ]
-    );
+    this.addBeforeSendHeader();
 
     return this.getCSRFToken().addCallback(function(csrftoken) {
       return request(self.UPLOAD_URL, {
@@ -3851,14 +3840,11 @@ Models.register({
           'X-Requested-With' : 'XMLHttpRequest'
         }
       }).addCallback(function(res) {
-        chrome.webRequest.onBeforeSendHeaders.removeListener(
-          self.setRefererHeader,
-          { urls: [self.LINK + '*'] },
-          [ "blocking", "requestHeaders" ]
-        );
+        self.removeBeforeSendHeader();
         var data = JSON.parse(res.responseText);
         return self._post(ps, data.data);
       }).addErrback(function(e) {
+        self.removeBeforeSendHeader();
         var res  = e.message;
         var data = JSON.parse(res.responseText);
         if (data.meta.error_message) {
@@ -3869,6 +3855,22 @@ Models.register({
         }
       });
     });
+  },
+
+  addBeforeSendHeader : function() {
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      this.setRefererHeader,
+      { urls: [this.LINK + '*'] },
+      [ "blocking", "requestHeaders" ]
+    );
+  },
+
+  removeBeforeSendHeader : function() {
+    chrome.webRequest.onBeforeSendHeaders.removeListener(
+      this.setRefererHeader,
+      { urls: [this.LINK + '*'] },
+      [ "blocking", "requestHeaders" ]
+    );
   },
 
   setRefererHeader : function(details) {
