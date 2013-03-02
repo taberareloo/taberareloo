@@ -3738,13 +3738,29 @@ Models.register({
 
     var maxLength = 256;
 
+    var sendContent = {};
+
     var text = '';
     if (ps.type === 'regular') {
       text = joinText([ps.item, ps.description], "\n");
     }
     else {
+      var title = (ps.item || ps.page || '');
+      if (ps.pageUrl && title && !title.match(/[#@]/)) {
+        sendContent.entities = {
+          links : [{
+            url : ps.pageUrl,
+            pos : (ps.description ? ps.description.length + 2 : 0),
+            len : title.length
+          }]
+        };
+        text = title;
+      }
+      else {
+        text = joinText([title, ps.pageUrl], "\n");
+      }
       text = joinText([
-        (ps.item || ps.page) ? (ps.item || ps.page) : ps.pageUrl,
+        text,
         (ps.body) ? '“' + strip_tags(ps.body) + '”' : ''], "\n");
       text = joinText([ps.description, text], "\n\n");
     }
@@ -3752,36 +3768,19 @@ Models.register({
     if (text.length > maxLength) {
       text = text.substring(0, maxLength - 3) + '...';
     }
-
-    var sendContent = {
-      text : text
-    };
-
-    if ((ps.type !== 'regular') && (ps.item || ps.page) && ps.pageUrl) {
-      sendContent = update({
-        entities : {
-          links : [{
-            url : ps.pageUrl,
-            pos : (ps.description ? ps.description.length + 2 : 0),
-            len : (ps.item || ps.page).length
-          }]
-        }
-      }, sendContent);
-    }
+    sendContent.text = text;
 
     if (fileInfo) {
-      sendContent = update({
-        annotations : [{
-          type : 'net.app.core.oembed',
-          value : {
-            '+net.app.core.file' : {
-              file_token : fileInfo.file_token,
-              format     : 'oembed',
-              file_id    : fileInfo.id
-            }
+      sendContent.annotations = [{
+        type  : 'net.app.core.oembed',
+        value : {
+          '+net.app.core.file' : {
+            file_token : fileInfo.file_token,
+            format     : 'oembed',
+            file_id    : fileInfo.id
           }
-        }]
-      }, sendContent);
+        }
+      }];
     }
 
     this.addBeforeSendHeader();
