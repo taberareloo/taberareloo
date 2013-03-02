@@ -559,6 +559,36 @@ var onRequestHandlers = {
       contextMenu: true
     }, TBRL.createContext(TBRL.getContextMenuTarget()));
     TBRL.share(ctx, Extractors["Text"], true);
+  },
+  contextMenusAddGooglePlusCommunityCategory: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext(TBRL.getContextMenuTarget()));
+    chrome.extension.sendMessage(TBRL.id, {
+      request: "addGooglePlusCommunityCategory",
+      show   : false,
+      content: {
+        page    : ctx.title,
+        pageUrl : ctx.href
+      }
+    }, function(res){ });
+  },
+  contextMenusRemoveGooglePlusCommunityCategory: function(req, sender, func) {
+    func({});
+    var content = req.content;
+    var ctx = update({
+      contextMenu: true
+    }, TBRL.createContext(TBRL.getContextMenuTarget()));
+    chrome.extension.sendMessage(TBRL.id, {
+      request: "removeGooglePlusCommunityCategory",
+      show   : false,
+      content: {
+        page    : ctx.title,
+        pageUrl : ctx.href
+      }
+    }, function(res){ });
   }
 };
 
