@@ -3757,7 +3757,7 @@ Models.register({
       text : text
     };
 
-    if ((ps.item || ps.page) && ps.pageUrl) {
+    if ((ps.type !== 'regular') && (ps.item || ps.page) && ps.pageUrl) {
       sendContent = update({
         entities : {
           links : [{
@@ -3873,23 +3873,29 @@ Models.register({
     );
   },
 
-  setRefererHeader : function(details) {
-    var LINK = 'https://alpha.app.net/';
+  setHTTPHeader : function(headers, name, value) {
     var found = false;
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
-      if (details.requestHeaders[i].name === 'Referer') {
-        details.requestHeaders[i].value = LINK;
+    for (var i = 0; i < headers.length; ++i) {
+      if (headers.name === name) {
+        headers.value = value;
         found = true;
         break;
       }
     }
     if (!found) {
-      details.requestHeaders.push({
-        name  : 'Referer',
-        value : LINK
+      headers.push({
+        name  : name,
+        value : value
       });
     }
-    return {requestHeaders: details.requestHeaders};
+    return headers;
+  },
+
+  setRefererHeader : function(details) {
+    var headers = details.requestHeaders;
+    headers = Models['App.Net'].setHTTPHeader(headers, 'Referer', 'https://alpha.app.net/');
+//    headers = Models['App.Net'].setHTTPHeader(headers, 'Origin',  'https://alpha.app.net');
+    return {requestHeaders: headers};
    }
 });
 
