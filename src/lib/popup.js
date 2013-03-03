@@ -549,21 +549,34 @@ function Streams(posters, scope) {
   $('widgets').appendChild(container);
 
   var streams = background.Models['Google+'].getStreams();
-  if (streams) {
+  var communities = background.Models['Google+'].getCommunities();
+  if (streams || communities.length) {
     $D(selectBox);
     selectBox.appendChild(
       $N('option', {value : '', selected : 'selected'}, 'Select Google+ Stream (or same as last one)')
     );
-    for (var i = 0, len = streams.presets.length ; i < len ; i++) {
-      var preset = streams.presets[i];
-      selectBox.appendChild($N('option', {value : JSON.stringify(preset)}, preset[0].name));
+    if (streams && streams.presets.length) {
+      for (var i = 0, len = streams.presets.length ; i < len ; i++) {
+        var preset = streams.presets[i];
+        selectBox.appendChild($N('option', {value : JSON.stringify(preset)}, preset[0].name));
+      }
     }
-    var optGroup = $N('optgroup', {label : 'Stream'});
-    for (var i = 0, len = streams.circles.length ; i < len ; i++) {
-      var circle = streams.circles[i];
-      optGroup.appendChild($N('option', {value : JSON.stringify(circle)}, circle[0].name));
+    if (streams && streams.circles.length) {
+      var optGroup = $N('optgroup', {label : 'Stream'});
+      for (var i = 0, len = streams.circles.length ; i < len ; i++) {
+        var circle = streams.circles[i];
+        optGroup.appendChild($N('option', {value : JSON.stringify(circle)}, circle[0].name));
+      }
+      selectBox.appendChild(optGroup);
     }
-    selectBox.appendChild(optGroup);
+    if (communities.length) {
+      var optGroup = $N('optgroup', {label : 'Community Category'});
+      for (var i = 0, len = communities.length ; i < len ; i++) {
+        var category = communities[i];
+        optGroup.appendChild($N('option', {value : JSON.stringify(category)}, category[0].name));
+      }
+      selectBox.appendChild(optGroup);
+    }
     posters.hooks.push(function() {
       if (this.body().some(function(poster) { return poster.name === 'Google+'; })) {
         selectBox.removeAttribute('disabled');

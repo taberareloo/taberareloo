@@ -2740,6 +2740,10 @@ Models.register({
 
     var scopes = JSON.parse(ps.scope);
 
+    if (scopes[0].scopeType === 'community') {
+      return [[[null, null, null, [scopes[0].id]]]];
+    }
+
     for (var i = 0, len = scopes.length ; i < len ; i++) {
       var scope = scopes[i];
       if (scope.scopeType == 'presets') {
@@ -2808,7 +2812,9 @@ Models.register({
       }
 
       spar.push(null, null);
-      spar.push(true, [], false, null, null, [], null, false);
+      var scopes = JSON.parse(ps.scope);
+      spar.push((scopes[0].scopeType !== 'community'));
+      spar.push([], false, null, null, [], null, false);
       spar.push(null, null);
       spar.push(ps.upload ? oz[2][0] : null);
       spar.push(null, null);
@@ -2823,7 +2829,12 @@ Models.register({
       }
       spar.push(null);
 
-      spar.push([]);
+      if (scopes[0].scopeType === 'community') {
+        spar.push([[scopes[0].id, scopes[0].category]]);
+      }
+      else {
+        spar.push([]);
+      }
 
       spar.push(self.createScopeSpar(ps));
 
@@ -3043,6 +3054,161 @@ Models.register({
       }
       return pages;
     });
+  },
+
+  getCommunities : function() {
+    var communities = localStorage.getItem('google_plus_communities');
+    if (communities) {
+      communities = JSON.parse(communities);
+    }
+    else {
+      communities = [];
+    }
+    return communities;
+  },
+
+  setCommunities : function(communities) {
+    communities.sort(function(a, b) {
+      if (b[0].name > a[0].name) return -1;
+      if (b[0].name < a[0].name) return 1;
+      return 0;
+    });
+    localStorage.setItem('google_plus_communities', JSON.stringify(communities));
+  },
+
+  getCommunityCategories : function(community_id) {
+    var self = this;
+    return this.getOZData().addCallback(function(oz) {
+      var url = self.HOME_URL + self.BASE_URL + '_/communities/members';
+      return request(url + '?' + queryString({
+        hl     : 'en',
+        _reqid : self.getReqid(),
+        rt     : 'j'
+      }), {
+        sendContent : {
+          'f.req' : JSON.stringify([community_id, null]),
+          at      : oz[1][15]
+        }
+      }).addCallback(function(res) {
+        var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
+        return Sandbox.evalJSON(initialData).addCallback(function(json) {
+          var data = self.getDataByKey(json[0], 'sq.gsmr');
+          var categories = [];
+          if (data && data[1] && data[1][2] && data[1][2][0]) {
+            data[1][2][0].forEach(function(category) {
+              categories.push({
+                id   : category[0],
+                name : category[1]
+              });
+            });
+          }
+          return categories;
+        });
+      });
+    });
+  },
+
+  addCommunityCategory : function(url, title) {
+    var self = this;
+
+    var regex = url.match(/\/\/plus\.google\.com\/(?:u\/0\/)?communities\/(\d+)\/stream\/([^?]+)/);
+    if (regex) {
+      this.removeCommunityCategory(url, title, true);
+      var communities = this.getCommunities();
+      var name = title.replace(/ - Google\+$/, '');
+      communities.push([{
+        scopeType : 'community',
+        name      : name,
+        id        : regex[1],
+        category  : regex[2]
+      }]);
+      TBRL.Notification.notify({
+        title   : name,
+        message : 'Added'
+      });
+      this.setCommunities(communities);
+      return true;
+    }
+
+    regex = url.match(/\/\/plus\.google\.com\/(?:u\/0\/)?communities\/(\d+)$/);
+    if (regex) {
+      this.getCommunityCategories(regex[1]).addCallback(function(categories) {
+        self.removeCommunityCategory(url, title, true);
+        var communities = self.getCommunities();
+        var name = title.replace(/ - Google\+$/, '');
+        categories.forEach(function(category) {
+          communities.push([{
+            scopeType : 'community',
+            name      : name + ' - ' + category.name,
+            id        : regex[1],
+            category  : category.id
+          }]);
+        });
+        TBRL.Notification.notify({
+          title   : name,
+          message : 'Added all categories'
+        });
+        self.setCommunities(communities);
+      });
+      return true;
+    }
+
+    return false;
+  },
+
+  removeCommunityCategoryById : function(id, category) {
+    var communities = this.getCommunities();
+    var _communities = [];
+
+    var found = false;
+    communities.forEach(function(community) {
+      if (community[0].id == id) {
+        if (category) {
+          if (community[0].category == category) {
+            found = true;
+          }
+          else {
+            _communities.push(community);
+          }
+        }
+        else {
+          found = true;
+        }
+      }
+      else {
+        _communities.push(community);
+      }
+    });
+    this.setCommunities(_communities);
+    return found;
+  },
+
+  removeCommunityCategory : function(url, title, no_nitify) {
+    var regex = url.match(/\/\/plus\.google\.com\/(?:u\/0\/)?communities\/(\d+)\/stream\/([^?]+)/);
+    if (regex) {
+      var found = this.removeCommunityCategoryById(regex[1], regex[2]);
+      if (found && !no_nitify) {
+        TBRL.Notification.notify({
+          title   : title.replace(/ - Google\+$/, ''),
+          message : 'Removed'
+        });
+      }
+      return found;
+    }
+
+    regex = url.match(/\/\/plus\.google\.com\/(?:u\/0\/)?communities\/(\d+)$/);
+    if (regex) {
+      var found = this.removeCommunityCategoryById(regex[1]);
+      if (found && !no_nitify) {
+        TBRL.Notification.notify({
+          title   : title.replace(/ - Google\+$/, ''),
+          message : 'Removed all categories'
+        });
+      }
+      return found;
+    }
+
+    return false;
   }
 });
 

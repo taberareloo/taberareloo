@@ -479,6 +479,14 @@ var onRequestsHandlers = {
 
       Tumblr.getForm(Tumblr.TUMBLR_URL + 'new/text').addCallback(sendInfo);
     }
+  },
+  addGooglePlusCommunityCategory: function(req, sender, func) {
+    var ps = req.content;
+    Models['Google+'].addCommunityCategory(ps.pageUrl, ps.page);
+  },
+  removeGooglePlusCommunityCategory: function(req, sender, func) {
+    var ps = req.content;
+    Models['Google+'].removeCommunityCategory(ps.pageUrl, ps.page);
   }
 };
 

@@ -136,4 +136,44 @@
       });
     }
   });
+  var googlePlusCommunitiesURLs = [
+    'https://plus.google.com/communities/*',
+    'https://plus.google.com/u/0/communities/*'
+  ];
+  chrome.contextMenus.create({
+    type: 'separator',
+    contexts: ['all'],
+    parentId: id,
+    documentUrlPatterns: googlePlusCommunitiesURLs
+  });
+  var sub_id = chrome.contextMenus.create({
+    title: 'Google+ Community ...',
+    contexts: ['all'],
+    parentId: id,
+    documentUrlPatterns: googlePlusCommunitiesURLs
+  });
+  chrome.contextMenus.create({
+    title: 'Add to destinations',
+    contexts: ['all'],
+    parentId: sub_id,
+    documentUrlPatterns: googlePlusCommunitiesURLs,
+    onclick: function(info, tab) {
+      chrome.tabs.sendMessage(tab.id, {
+        request: 'contextMenusAddGooglePlusCommunityCategory',
+        content: info
+      });
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Remove from destinations',
+    contexts: ['all'],
+    parentId: sub_id,
+    documentUrlPatterns: googlePlusCommunitiesURLs,
+    onclick: function(info, tab) {
+      chrome.tabs.sendMessage(tab.id, {
+        request: 'contextMenusRemoveGooglePlusCommunityCategory',
+        content: info
+      });
+    }
+  });
 })();
