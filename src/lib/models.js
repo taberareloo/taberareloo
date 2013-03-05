@@ -3746,7 +3746,7 @@ Models.register({
     }
     else {
       var title = (ps.item || ps.page || '');
-      if (ps.pageUrl && title && !title.match(/[#@]/)) {
+      if (ps.pageUrl && title && !title.match(/(#|(^|\s)@)/)) {
         sendContent.entities = {
           links : [{
             url : ps.pageUrl,
