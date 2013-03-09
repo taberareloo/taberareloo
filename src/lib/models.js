@@ -3706,17 +3706,12 @@ Models.register({
 
   getCSRFToken : function() {
     var self = this;
-    return getCookies('.app.net', 'mt_sessionid').addCallback(function(cookies) {
-      if (!cookies.length) {
+    return getCookies('alpha.app.net', 'csrftoken').addCallback(function(cookies) {
+      if (cookies.length) {
+        return cookies[cookies.length-1].value;
+      } else {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
-      return getCookies('alpha.app.net', 'csrftoken').addCallback(function(cookies) {
-        if (cookies.length) {
-          return cookies[cookies.length-1].value;
-        } else {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-        }
-      });
     });
   },
 
@@ -3807,6 +3802,9 @@ Models.register({
         self.removeBeforeSendHeader();
         var res  = e.message;
         var data = JSON.parse(res.responseText);
+        if (data.meta.code === 403) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
         if (data.meta.error_message) {
           throw new Error(data.meta.error_message);
         }
@@ -3846,6 +3844,9 @@ Models.register({
         self.removeBeforeSendHeader();
         var res  = e.message;
         var data = JSON.parse(res.responseText);
+        if (data.meta.code === 403) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
         if (data.meta.error_message) {
           throw new Error(data.meta.error_message);
         }
