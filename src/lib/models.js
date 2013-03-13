@@ -3471,6 +3471,10 @@ Models.register({
   BOOKMARK_URL : 'http://pinterest.com/pin/create/bookmarklet/',
   UPLOAD_URL   : 'http://pinterest.com/pin/create/',
 
+  is_new_api   : false,
+  POST_URL_2   : 'http://pinterest.com/resource/PinResource/create/',
+  UPLOAD_URL_2 : 'http://pinterest.com/upload-image/',
+
   timer : null,
 
   initialize : function() {
@@ -3517,16 +3521,26 @@ Models.register({
     var self = this;
     return request(this.BOOKMARK_URL).addCallback(function(res) {
       var doc = createHTML(res.responseText);
-      if (check_login && !$X('id("id_board")/@value', doc)[0]) {
-        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      }
       var boards = [];
+      // for old UI
       $X('//div[@class="BoardList"]//ul/li', doc).forEach(function(li) {
         boards.push({
           id   : $X('./@data', li)[0],
-          name : $X('./span/text()', li)[0]
+          name : $X('./span/text()', li)[0].trim()
         });
+        self.is_new_api = false;
       });
+      // for new UI
+      $X('//div[@class="boardPickerInner"]//ul/li[@class="boardPickerItem"]', doc).forEach(function(li) {
+        boards.push({
+          id   : $X('./@data-id', li)[0],
+          name : $X('./text()', li).join("\n").trim()
+        });
+        self.is_new_api = true;
+      });
+      if (check_login && !boards.length) {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+      }
       return self.boards = boards;
     });
   },
@@ -3543,29 +3557,16 @@ Models.register({
   },
 
   post : function(ps) {
+    return this.is_new_api ? this._post_2(ps) : this._post(ps);
+  },
+
+  _post : function(ps) {
     var self = this;
 
-    var caption = '';
-    if (ps.description || ps.body) {
-      caption = joinText([
-        ps.description,
-        (ps.body) ? '“' + ps.body + '”' : ''
-      ], "\n\n", true);
-    }
-    else {
-      caption = ps.item || ps.page;
-    }
-
-    if (caption.length > 400) {
-      caption = caption.substring(0, 400) + '...';
-    }
+    var caption = this._make_caption(ps);
 
     var sendContent = {};
     if (ps.file) {
-      caption = joinText([
-        caption,
-        '(via ' + ps.pageUrl + ' )'
-      ], "\n\n", true);
       sendContent = {
         details : caption,
         link    : ps.pageUrl,
@@ -3598,6 +3599,105 @@ Models.register({
         });
       });
     });
+  },
+
+  _post_2 : function(ps) {
+    var self = this;
+
+    var data = {
+      options : {
+        board_id    : null,
+        description : self._make_caption(ps),
+        link        : ps.pageUrl,
+        image_url   : ps.itemUrl,
+        method      : 'bookmarklet',
+        is_video    : 'false'
+      },
+      context : {
+        app_version : 'ceac'
+      }
+    };
+
+    return (ps.pinboard
+      ? succeed([{id : ps.pinboard}])
+      : self._getBoards(true))
+    .addCallback(function(boards) {
+      data.options.board_id = boards[0].id;
+      return self.getCSRFToken().addCallback(function(csrftoken) {
+        return (ps.file
+          ? self._upload(ps.file, data, csrftoken)
+          : succeed(data)
+        ).addCallback(function(data) {
+          return request(self.POST_URL_2, {
+            sendContent : {
+              data : JSON.stringify(data)
+            },
+            headers : {
+              'X-CSRFToken'      : csrftoken,
+              'X-NEW-APP'        : 1,
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
+          }).addCallback(function(res) {
+            var json = JSON.parse(res.responseText);
+            if (json && json.error) {
+              throw new Error('Could not post an image');
+            }
+          });
+        })
+      });
+    });
+  },
+
+  _upload : function(file, data, csrftoken) {
+    var self = this;
+    return request(self.UPLOAD_URL_2 + '?' + queryString({
+        img : file.name
+      }),
+      {
+      sendContent : {
+        img : file
+      },
+      headers : {
+        'X-CSRFToken'      : csrftoken,
+        'X-File-Name'      : file.name,
+        'X-Requested-With' : 'XMLHttpRequest'
+      }
+    }).addCallback(function(res) {
+      var json = JSON.parse(res.responseText);
+      if (json && !json.success) {
+        throw new Error('Could not upload an image');
+      }
+      data.options.link      = '';
+      data.options.image_url = json.image_url;
+      data.options.method    = 'uploaded';
+      return data;
+    });
+  },
+
+  _make_caption : function(ps) {
+    var caption = '';
+    if (ps.description || ps.body) {
+      caption = joinText([
+        ps.description,
+        (ps.body) ? '“' + ps.body + '”' : ''
+      ], "\n\n", true);
+    }
+    else {
+      caption = ps.item || ps.page;
+    }
+
+    if (caption.length > 400) { // Max length seems 500 on UI, but no limit in API
+      caption = caption.substring(0, 400) + '...';
+    }
+
+    if (ps.file) {
+      caption = joinText([
+        caption,
+        '(via ' + ps.pageUrl + ' )'
+      ], "\n\n", true);
+    }
+
+    return caption;
   }
 });
 
