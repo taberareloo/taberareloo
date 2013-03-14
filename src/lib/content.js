@@ -76,7 +76,7 @@ var TBRL = {
       'font-size: 11pt;'
     ].join('')
   },
-  id     : chrome.extension.getURL('').match(/chrome-extension:\/\/([^\/]+)\//)[1],
+  id     : chrome.runtime.id,
   ldr_plus_taberareloo : false,
   init : function(config){
     TBRL.config = config;
