@@ -1112,17 +1112,59 @@ Models.register({
       return succeed(this.currentUser);
     } else {
       var that = this;
-      return getCookies('.delicious.com', 'connect.sid').addCallback(function(cookies) {
-        if (!cookies.length) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-        }
-        return that.getInfo().addCallback(function(info) {
-          if (!info.is_logged_in) {
-            throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+      var deferred = new Deferred();
+
+      function getLocalStorageItem(tab_id) {
+        var deferred2 = new Deferred();
+        chrome.tabs.sendMessage(tab_id, {
+          request : 'getLocalStorageItem',
+          key     : 'user'
+        },
+        function(res) {
+          if (!res || !res.value) {
+            deferred2.callback(null);
           }
-          return info.logged_in_username;
+          else {
+            deferred2.callback(JSON.parse(res.value));
+          }
         });
+        return deferred2;
+      }
+
+      chrome.tabs.query({
+        url        : 'https://delicious.com/*',
+        windowType : 'normal'
+      }, function (tabs) {
+        if (tabs.length === 0) {
+          chrome.tabs.create({
+            url      : 'https://delicious.com/',
+            selected : false
+          },
+          function(tab) {
+            chrome.tabs.onUpdated.addListener(function(tab_id, info, _tab) {
+              if ((tab_id === tab.id) && (info.status === 'complete')) {
+                getLocalStorageItem(tab_id).addCallback(function(info) {
+                  chrome.tabs.remove(tab_id);
+                  if (!info || !info.username) {
+                    deferred.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
+                  }
+                  deferred.callback(info.username);
+                });
+              }
+            });
+          });
+        }
+        else {
+          getLocalStorageItem(tabs[0].id).addCallback(function(info) {
+            if (!info || !info.username) {
+              deferred.errback(new Error(chrome.i18n.getMessage('error_notLoggedin', that.name)));
+            }
+            deferred.callback(info.username);
+          });
+        }
       });
+
+      return deferred;
     }
     function extractUsername(username) {
       var matched = decodeURIComponent(username).match(/^(.*?) /);

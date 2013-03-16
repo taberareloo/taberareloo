@@ -394,6 +394,12 @@ var onRequestHandlers = {
       });
     });
   },
+  getLocalStorageItem : function(req, sender, func) {
+    func({
+      key   : req.key,
+      value : window.localStorage.getItem(req.key)
+    });
+  },
   contextMenus: function(req, sender, func) {
     func({});
     var content = req.content;
