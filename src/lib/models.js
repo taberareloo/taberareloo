@@ -3552,13 +3552,23 @@ Models.register({
   },
 
   post : function(ps) {
-    return this.is_new_api ? this._post_2(ps) : this._post(ps);
+    var self = this;
+    return (ps.pinboard
+      ? succeed([{id : ps.pinboard}])
+      : self._getBoards(true))
+    .addCallback(function(boards) {
+      return self.getCSRFToken().addCallback(function(csrftoken) {
+        return self.is_new_api
+          ? self._post_2(ps, boards[0].id, csrftoken)
+          : self._post(ps, boards[0].id, csrftoken);
+      });
+    });
   },
 
-  _post : function(ps) {
+  _post : function(ps, board_id, csrftoken) {
     var self = this;
 
-    var caption = this._make_caption(ps);
+    var caption = self._make_caption(ps);
 
     var sendContent = {};
     if (ps.file) {
@@ -3576,32 +3586,25 @@ Models.register({
         img_url : ps.itemUrl
       };
     }
+    sendContent.board = board_id;
+    sendContent.csrfmiddlewaretoken = csrftoken;
 
-    return (ps.pinboard
-      ? succeed([{id : ps.pinboard}])
-      : self._getBoards(true))
-    .addCallback(function(boards) {
-      sendContent.board = boards[0].id;
-      return self.getCSRFToken().addCallback(function(csrftoken) {
-        sendContent.csrfmiddlewaretoken = csrftoken;
-        return request(self.UPLOAD_URL, {
-          sendContent : sendContent
-        }).addCallback(function(res) {
-          var json = JSON.parse(res.responseText);
-          if (json && json.status && (json.status === 'fail')) {
-            throw new Error(json.message);
-          }
-        });
-      });
+    return request(self.UPLOAD_URL, {
+      sendContent : sendContent
+    }).addCallback(function(res) {
+      var json = JSON.parse(res.responseText);
+      if (json && json.status && (json.status === 'fail')) {
+        throw new Error(json.message);
+      }
     });
   },
 
-  _post_2 : function(ps) {
+  _post_2 : function(ps, board_id, csrftoken) {
     var self = this;
 
     var data = {
       options : {
-        board_id    : null,
+        board_id    : board_id,
         description : self._make_caption(ps),
         link        : ps.pageUrl,
         image_url   : ps.itemUrl,
@@ -3613,32 +3616,24 @@ Models.register({
       }
     };
 
-    return (ps.pinboard
-      ? succeed([{id : ps.pinboard}])
-      : self._getBoards(true))
-    .addCallback(function(boards) {
-      data.options.board_id = boards[0].id;
-      return self.getCSRFToken().addCallback(function(csrftoken) {
-        return (ps.file
-          ? self._upload(ps.file, data, csrftoken)
-          : succeed(data)
-        ).addCallback(function(data) {
-          return request(self.POST_URL_2, {
-            sendContent : {
-              data : JSON.stringify(data)
-            },
-            headers : {
-              'X-CSRFToken'      : csrftoken,
-              'X-NEW-APP'        : 1,
-              'X-Requested-With' : 'XMLHttpRequest'
-            }
-          }).addCallback(function(res) {
-            var json = JSON.parse(res.responseText);
-            if (json && json.error) {
-              throw new Error('Could not post an image');
-            }
-          });
-        })
+    return (ps.file
+      ? self._upload(ps.file, data, csrftoken)
+      : succeed(data)
+    ).addCallback(function(data) {
+      return request(self.POST_URL_2, {
+        sendContent : {
+          data : JSON.stringify(data)
+        },
+        headers : {
+          'X-CSRFToken'      : csrftoken,
+          'X-NEW-APP'        : 1,
+          'X-Requested-With' : 'XMLHttpRequest'
+        }
+      }).addCallback(function(res) {
+        var json = JSON.parse(res.responseText);
+        if (json && json.error) {
+          throw new Error('Could not post an image');
+        }
       });
     });
   },

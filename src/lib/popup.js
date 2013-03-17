@@ -615,9 +615,6 @@ function Pinboards(posters) {
   var boards = background.Models['Pinterest'].getBoards();
   if (boards && boards.length) {
     $D(selectBox);
-    selectBox.appendChild(
-      $N('option', {value : ''}, 'Select Pinterest Board (or same as last one)')
-    );
     for (var i = 0, len = boards.length ; i < len ; i++) {
       var board = boards[i];
       selectBox.appendChild($N('option', {value : board.id}, board.name));
