@@ -1112,16 +1112,11 @@ Models.register({
       return succeed(this.currentUser);
     } else {
       var that = this;
-      return getCookies('.delicious.com', 'connect.sid').addCallback(function(cookies) {
-        if (!cookies.length) {
+      return this.getInfo().addCallback(function(info) {
+        if (!info.is_logged_in) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
-        return that.getInfo().addCallback(function(info) {
-          if (!info.is_logged_in) {
-            throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-          }
-          return info.logged_in_username;
-        });
+        return info.logged_in_username;
       });
     }
     function extractUsername(username) {
