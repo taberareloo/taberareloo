@@ -11,6 +11,9 @@
     "message": "Entry Contents / etc.",
     "description": "entry setting tab"
   },
+  "label_patch": {
+    "message": "Patches"
+  },
   "label_about": {
     "message": "About",
     "description": "about tab"
@@ -29,6 +32,12 @@
   },
   "label_clear": {
     "message": "clear"
+  },
+  "label_install": {
+    "message": "Install"
+  },
+  "label_uninstall": {
+    "message": "Uninstall"
   },
   "label_tagAutoComplete": {
     "message": "Tag Auto Complete"
@@ -116,6 +125,9 @@
   },
   "confirm_https": {
     "message": "Allow posting https link?"
+  },
+  "confirm_delete": {
+    "message": "Are you sure to delete this patch?"
   },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",

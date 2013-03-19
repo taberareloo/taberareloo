@@ -18,6 +18,7 @@
   <li class="tab"><p id="label_services" class="services"></p></li>
   <li class="tab"><p id="label_post"     class="post"></p></li>
   <li class="tab"><p id="label_entry"    class="entry"></p></li>
+  <li class="tab"><p id="label_patch"    class="patch"></p></li>
   <li class="tab"><p id="label_about"    class="about"></p></li>
 </ul>
 <div id="container">
@@ -254,6 +255,24 @@
       </div>
       <div class="option">
       <p id="label_tumblr2facebook"></p><input id="tumblr2facebook_checkbox" type="checkbox" name="tumblr2facebook">
+      </div>
+    </div>
+    <div id="patch" class="slide">
+      <div class="option">
+        <label id="label_patch_file" for="patch_file"></label><input id="patch_file" type="file" accept="text/javascript">
+        <button id="button_patch_install">
+      </div>
+      <div class="option">
+        <table id="patch_table">
+        <thead>
+        <tr>
+          <th id="label_patch_name"></th>
+          <th id="label_patch_enabled"></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody id="patch_body"></tbody>
+        </table>
       </div>
     </div>
     <div id="about" class="slide">

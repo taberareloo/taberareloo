@@ -1,4 +1,4 @@
-(function() {
+chrome.contextMenus.removeAll(function() {
   var id = chrome.contextMenus.create({
     title: 'Share ...',
     contexts: ['all']
@@ -176,4 +176,27 @@
       });
     }
   });
-})();
+  var patchFileURLs = [
+    'http://*/*.tbpb.js',
+    'https://*/*.tbpb.js'
+  ];
+  chrome.contextMenus.create({
+    type: 'separator',
+    contexts: ['page'],
+    parentId: id,
+    documentUrlPatterns: patchFileURLs
+  });
+  chrome.contextMenus.create({
+    title: 'Patch - Install this',
+    contexts: ['page'],
+    parentId: id,
+    documentUrlPatterns: patchFileURLs,
+    onclick: function(info, tab) {
+      Patches.install(info.pageUrl).addCallback(function(res) {
+        if (res) {
+          window.location.reload();
+        }
+      });
+    }
+  });
+});

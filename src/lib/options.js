@@ -6,7 +6,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
 
   // smoothing slide
   var inner     = $('inner');
-  var slides = ['services', 'post', 'entry', 'about'];
+  var slides = ['services', 'post', 'entry', 'patch', 'about'];
   var tabs = $A(document.getElementsByClassName('tab'));
   var now_active = 0;
   tabs[now_active].classList.add('active');
@@ -28,6 +28,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_services').appendChild($T(chrome.i18n.getMessage('label_postConfig')));
   $('label_post').appendChild($T(chrome.i18n.getMessage('label_post')));
   $('label_entry').appendChild($T(chrome.i18n.getMessage('label_entry')));
+  $('label_patch').appendChild($T(chrome.i18n.getMessage('label_patch')));
   $('label_about').appendChild($T(chrome.i18n.getMessage('label_about')));
   $('label_tagprovider').appendChild($T(chrome.i18n.getMessage('label_tagprovider')));
   $('label_keyconfig').appendChild($T(chrome.i18n.getMessage('label_keyconfig')));
@@ -245,6 +246,9 @@ connect(document, 'onDOMContentLoaded', document, function(){
       alert(chrome.i18n.getMessage('error_keyConfliction'));
     }
   });
+
+  // patches
+  var patches = new Patches();
 });
 
 function Services(){
@@ -725,6 +729,97 @@ GooglePlusPagesList.prototype = {
     background.Models.removeGooglePlusPages();
   }
 };
+
+// Patches
+function Patches() {
+  $('label_patch_name').appendChild($T(chrome.i18n.getMessage('label_patch')));
+  $('label_patch_enabled').appendChild($T(chrome.i18n.getMessage('label_enable')));
+  $('label_patch_file').appendChild($T(chrome.i18n.getMessage('label_patch') + ' (*.tbpb.js) : '));
+  var button_install = $('button_patch_install');
+  button_install.appendChild($T(chrome.i18n.getMessage('label_install')));
+  connect(button_install, 'onclick', button_install, function(ev) {
+    var patch_file = $('patch_file');
+    if (patch_file.files.length && /\.tbpb\.js$/.test(patch_file.files[0].name)) {
+      background.Patches.install(patch_file.files[0]).addCallback(function(res) {
+        if (res) {
+          refreshTable();
+          background.window.location.reload();
+        }
+      });
+    }
+  });
+
+  function refreshTable() {
+    var tbody = $('patch_body');
+    for (var i = 0, len = tbody.childNodes.length ; i < len ; i++) {
+      tbody.removeChild(tbody.childNodes[0]);
+    }
+    createTable();
+  }
+
+  function createTable() {
+    var tbody = $('patch_body');
+    var df = $DF();
+
+    background.Patches.values.forEach(function(patch) {
+      var preference = background.Patches.getPreferences(patch.name) || {};
+      var tds = [];
+      var name = patch.name.replace(/\./g, '_');
+      tds.push($N('td', null, $N('a', {
+        class  : 'patch_name',
+        href   : patch.fileEntry.toURL(),
+        target : '_blank'
+      }, patch.name)));
+      var checkbox_enabled = $N('input', {
+        type  : 'checkbox',
+        id    : name + '_enabled',
+        name  : name + '_enabled'
+      });
+      checkbox_enabled.checked = !preference.disabled;
+      connect(checkbox_enabled, 'onclick', checkbox_enabled, function(ev) {
+        if (this.checked) {
+          background.Patches.setPreferences(patch.name, update(preference, {
+            disabled : false
+          }));
+          background.Patches._register(patch.fileEntry);
+        }
+        else {
+          background.Patches.setPreferences(patch.name, update(preference, {
+            disabled : true
+          }));
+        }
+        background.window.location.reload();
+      });
+      tds.push($N('td', {
+        class : 'patch_enabled'
+      }, checkbox_enabled));
+
+      var button_uninstall = $N('button', {
+        id    : name + '_uninstall',
+        name  : name + '_uninstall'
+      }, chrome.i18n.getMessage('label_uninstall'));
+      connect(button_uninstall, 'onclick', button_uninstall, function(ev) {
+        if (confirm(chrome.i18n.getMessage('confirm_delete'))) {
+          background.Patches.uninstall(patch.name).addCallback(function(fileEntry) {
+            tr.parentNode.removeChild(tr);
+            background.window.location.reload();
+          });
+        }
+      });
+      tds.push($N('td', {
+        class : 'patch_uninstall'
+      }, button_uninstall));
+
+      var tr = $N('tr', {
+        class: 'patch',
+        id: name
+      }, tds);
+      df.appendChild(tr);
+    });
+    tbody.appendChild(df);
+  }
+  createTable();
+}
 
 })();
 
