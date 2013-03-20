@@ -487,6 +487,18 @@ var onRequestsHandlers = {
   removeGooglePlusCommunityCategory: function(req, sender, func) {
     var ps = req.content;
     Models['Google+'].removeCommunityCategory(ps.pageUrl, ps.page);
+  },
+  installPatchFile: function(req, sender, func) {
+    Patch.install(req.content.url);
+  },
+  uninstallPatchFile: function(req, sender, func) {
+    Patch.uninstall(req.content.url);
+  },
+  listPatchFiles: function(req, sender, func) {
+    Patch.list();
+  },
+  removePatchFiles: function(req, sender, func) {
+    Patch.removeAll();
   }
 };
 
@@ -587,3 +599,142 @@ var Sandbox = {
   }
 };
 Sandbox.initailize();
+
+var Patch = {
+  dirEntry : null,
+
+  initailize : function() {
+    var self = this;
+    var deferred = new Deferred();
+    var rfs = window.requestFileSystem || window.webkitRequestFileSystem;
+    rfs(PERSISTENT, 1024 * 1024,
+      function(fs) {
+        fs.root.getDirectory("taberareloo", {create : true},
+          function(dirEntry) {
+            self.dirEntry = dirEntry;
+            deferred.callback(dirEntry);
+          },
+          function(e) {
+            deferred.errback(new Error(e.message));
+          }
+        );
+      },
+      function (e) {
+        deferred.errback(new Error(e.message));
+      }
+    );
+    return deferred;
+  },
+
+  install : function(url) {
+    var self = this;
+
+    var fileName = url.replace(/\\/g,'/').replace(/.*\//, '');
+
+    request(url, {
+      responseType: 'blob'
+    }).addCallback(function(res) {
+      var blob = res.response;
+      switch (blob.type) {
+        case 'text/plain' :
+        case 'text/javascript' :
+        case 'application/x-javascript' :
+          break;
+        default : return;
+      }
+      if (!blob.size) {
+        return;
+      }
+      self.dirEntry.getFile(fileName, {create: true},
+        function(fileEntry) {
+          fileEntry.createWriter(function(fileWriter) {
+            fileWriter.onwriteend = function() {
+              this.onwriteend = null;
+              this.truncate(this.position);
+console.log('Install patch: ' + fileEntry.toURL());
+              var script = document.createElement('script');
+              script.src = fileEntry.toURL();
+              document.body.appendChild(script);
+              TBRL.Notification.notify({
+                title   : fileName,
+                message : 'Installed'
+              });
+            };
+            fileWriter.write(blob);
+          });
+        }
+      );
+    });
+  },
+
+  uninstall : function(fileEntry) {
+    var self = this;
+
+    function remove(fileName) {
+      self.dirEntry.getFile(fileName, {},
+        function(fileEntry) {
+console.log('Uninstall patch: ' + fileEntry.toURL());
+          fileEntry.remove(function() {
+            TBRL.Notification.notify({
+              title   : fileName,
+              message : 'Uninstalled'
+            });
+          });
+        },
+        function(e) {
+        }
+      );
+    }
+
+    if (typeof fileEntry === 'string') {
+      var fileName = fileEntry.replace(/\\/g,'/').replace(/.*\//, '');
+      remove(fileName);
+    }
+    else {
+      fileEntry.file(function(file) {
+        remove(file.name);
+      });
+    }
+  },
+
+  load : function() {
+    this.dirEntry.createReader().readEntries(function(fileEntries) {
+      for (var i = 0, len = fileEntries.length ; i < len ; i++) {
+        var fileEntry = fileEntries[i];
+console.log('Load patch: ' + fileEntry.toURL());
+        var script = document.createElement('script');
+        script.src = fileEntry.toURL();
+        document.body.appendChild(script);
+      }
+    });
+  },
+
+  list : function() {
+    this.dirEntry.createReader().readEntries(function(fileEntries) {
+      var files = [];
+      for (var i = 0, len = fileEntries.length ; i < len ; i++) {
+        var fileEntry = fileEntries[i];
+        files.push(fileEntry.fullPath);
+      }
+      if (files.length) {
+        alert(files.join("\n"));
+      }
+      else {
+        alert('No patches');
+      }
+    });
+  },
+
+  removeAll : function() {
+    var self = this;
+    this.dirEntry.createReader().readEntries(function(fileEntries) {
+      for (var i = 0, len = fileEntries.length ; i < len ; i++) {
+        var fileEntry = fileEntries[i];
+        self.uninstall(fileEntry);
+      }
+    });
+  }
+};
+Patch.initailize().addCallback(function() {
+  Patch.load();
+});

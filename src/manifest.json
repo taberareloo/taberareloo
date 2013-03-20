@@ -43,6 +43,7 @@
      ],
      "content_security_policy": "sandbox allow-scripts; script-src 'unsafe-eval'"
    },
+   "content_security_policy": "script-src 'self' filesystem:; object-src 'self'",
    "web_accessible_resources": [
       "styles/dashboard.css",
       "styles/reader.css",

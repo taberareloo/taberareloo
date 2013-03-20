@@ -176,4 +176,52 @@
       });
     }
   });
+  var patchFileURLs = [
+    'http://*/*.js',
+    'https://*/*.js'
+  ];
+  chrome.contextMenus.create({
+    type: 'separator',
+    contexts: ['all'],
+    parentId: id
+  });
+  var patch_sub_id = chrome.contextMenus.create({
+    title: 'Patch ...',
+    contexts: ['all'],
+    parentId: id
+  });
+  chrome.contextMenus.create({
+    title: 'Install this',
+    contexts: ['page'],
+    parentId: patch_sub_id,
+    documentUrlPatterns: patchFileURLs,
+    onclick: function(info, tab) {
+      Patch.install(info.pageUrl);
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Uninstall this',
+    contexts: ['page'],
+    parentId: patch_sub_id,
+    documentUrlPatterns: patchFileURLs,
+    onclick: function(info, tab) {
+      Patch.uninstall(info.pageUrl);
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'List',
+    contexts: ['all'],
+    parentId: patch_sub_id,
+    onclick: function(info, tab) {
+      Patch.list();
+    }
+  });
+  chrome.contextMenus.create({
+    title: 'Remove all',
+    contexts: ['all'],
+    parentId: patch_sub_id,
+    onclick: function(info, tab) {
+      Patch.removeAll();
+    }
+  });
 })();
