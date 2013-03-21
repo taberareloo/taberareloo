@@ -734,12 +734,12 @@ GooglePlusPagesList.prototype = {
 function Patches() {
   $('label_patch_name').appendChild($T(chrome.i18n.getMessage('label_patch')));
   $('label_patch_enabled').appendChild($T(chrome.i18n.getMessage('label_enable')));
-  $('label_patch_file').appendChild($T(chrome.i18n.getMessage('label_patch') + ' (*.tbpb.js) : '));
+  $('label_patch_file').appendChild($T(chrome.i18n.getMessage('label_patch') + ' (*.tbrl.js) : '));
   var button_install = $('button_patch_install');
   button_install.appendChild($T(chrome.i18n.getMessage('label_install')));
   connect(button_install, 'onclick', button_install, function(ev) {
     var patch_file = $('patch_file');
-    if (patch_file.files.length && /\.tbpb\.js$/.test(patch_file.files[0].name)) {
+    if (patch_file.files.length && /\.tbrl\.js$/.test(patch_file.files[0].name)) {
       background.Patches.install(patch_file.files[0]).addCallback(function(res) {
         if (res) {
           refreshTable();
@@ -765,11 +765,17 @@ function Patches() {
       var preference = background.Patches.getPreferences(patch.name) || {};
       var tds = [];
       var name = patch.name.replace(/\./g, '_');
-      tds.push($N('td', null, $N('a', {
+      var td_children = [];
+      td_children.push($N('a', {
         class  : 'patch_name',
         href   : patch.fileEntry.toURL(),
         target : '_blank'
-      }, patch.name)));
+      }, patch.metadata.name || patch.name));
+      if (patch.metadata.description) {
+        td_children.push($N('br', null));
+        td_children.push($N('span', null, patch.metadata.description));
+      }
+      tds.push($N('td', null, td_children));
       var checkbox_enabled = $N('input', {
         type  : 'checkbox',
         id    : name + '_enabled',
@@ -781,7 +787,6 @@ function Patches() {
           background.Patches.setPreferences(patch.name, update(preference, {
             disabled : false
           }));
-          background.Patches._register(patch.fileEntry);
         }
         else {
           background.Patches.setPreferences(patch.name, update(preference, {
@@ -800,7 +805,7 @@ function Patches() {
       }, chrome.i18n.getMessage('label_uninstall'));
       connect(button_uninstall, 'onclick', button_uninstall, function(ev) {
         if (confirm(chrome.i18n.getMessage('confirm_delete'))) {
-          background.Patches.uninstall(patch.name).addCallback(function(fileEntry) {
+          background.Patches.uninstall(patch).addCallback(function() {
             tr.parentNode.removeChild(tr);
             background.window.location.reload();
           });

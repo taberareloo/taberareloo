@@ -177,8 +177,8 @@ chrome.contextMenus.removeAll(function() {
     }
   });
   var patchFileURLs = [
-    'http://*/*.tbpb.js',
-    'https://*/*.tbpb.js'
+    'http://*/*.tbrl.js',
+    'https://*/*.tbrl.js'
   ];
   chrome.contextMenus.create({
     type: 'separator',
