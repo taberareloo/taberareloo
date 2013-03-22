@@ -291,7 +291,9 @@ console.log('Load patch: ' + fileEntry.fullPath);
       try {
         data = JSON.parse(metadata);
       }
-      catch(e) {}
+      catch(e) {
+        alert(chrome.i18n.getMessage('warning_metadata'));
+      }
       return data;
     });
   },

@@ -120,6 +120,9 @@
       }
     }
   },
+  "warning_metadata": {
+    "message": "Could not parse a metadata JSON of the patch. The metadata may be wrong."
+  },
   "all_off": {
     "message": "All Off"
   },
