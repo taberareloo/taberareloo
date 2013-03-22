@@ -764,6 +764,7 @@ function Patches() {
     background.Patches.values.forEach(function(patch) {
       var preference = background.Patches.getPreferences(patch.name) || {};
       var tds = [];
+
       var name = patch.name.replace(/\./g, '_');
       var td_children = [];
       td_children.push($N('a', {
@@ -776,6 +777,11 @@ function Patches() {
         td_children.push($N('span', null, patch.metadata.description));
       }
       tds.push($N('td', null, td_children));
+
+      tds.push($N('td', {
+        class : 'patch_version'
+      }, patch.metadata.version || ''));
+
       var checkbox_enabled = $N('input', {
         type  : 'checkbox',
         id    : name + '_enabled',
