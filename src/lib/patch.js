@@ -192,26 +192,32 @@ console.log('Uninstall patch: ' + fileEntry.fullPath);
     return (
       metadata ? succeed(metadata) : this.getMetadata(fileEntry)
     ).addCallback(function(metadata) {
-      var script = null;
-      if (
-        !disabled &&
-        (
-          metadata.include &&
-          Array.isArray(metadata.include) &&
-          (metadata.include.indexOf('background') !== -1)
-        )
-      ) {
-        var patch = this[fileName] || {};
-        if (patch.dom) {
-          patch.dom.parentNode.removeChild(patch.dom);
-        }
-        script = document.createElement('script');
-        script.src = fileEntry.toURL();
-        document.body.appendChild(script);
+      if (metadata) {
+        var script = null;
+        if (
+          !disabled &&
+          (
+            metadata.include &&
+            Array.isArray(metadata.include) &&
+            (metadata.include.indexOf('background') !== -1)
+          )
+        ) {
+          var patch = this[fileName] || {};
+          if (patch.dom) {
+            patch.dom.parentNode.removeChild(patch.dom);
+          }
+          script = document.createElement('script');
+          script.src = fileEntry.toURL();
+          document.body.appendChild(script);
 console.log('Load patch: ' + fileEntry.fullPath);
+        }
+        url = url || preference.origin || metadata.downloadURL;
+        return self._register(fileEntry, metadata, url, script);
       }
-      url = url || preference.origin || metadata.downloadURL;
-      return self._register(fileEntry, metadata, url, script);
+// Clear an invalid format file
+//      else {
+//        fileEntry.remove(function() {});
+//      }
     });
   },
 
