@@ -106,11 +106,7 @@ var Patches = MochiKit.Base.update(new Repository(), {
                     this.truncate(this.position);
                     self.loadAndRegister(fileEntry, metadata, url).addCallback(function(patch) {
 console.log('Install patch: ' + fileEntry.fullPath);
-                      TBRL.Notification.notify({
-                        title   : fileName,
-                        message : 'Installed',
-                        timeout : 3
-                      });
+                      alert(chrome.i18n.getMessage('message_installed', fileName));
                       deferred.callback(patch);
                     });
                   };
@@ -165,11 +161,7 @@ console.log('Install patch: ' + fileEntry.fullPath);
           function() {
             self.unregister(patch);
 console.log('Uninstall patch: ' + fileEntry.fullPath);
-            TBRL.Notification.notify({
-              title   : fileEntry.name,
-              message : 'Uninstalled',
-              timeout : 3
-            });
+            alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
             deferred.callback();
           },
           function(e) {

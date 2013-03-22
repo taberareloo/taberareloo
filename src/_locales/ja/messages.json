@@ -132,6 +132,12 @@
   "confirm_delete": {
     "message": "このパッチを削除してもよろしいですか？"
   },
+  "message_installed": {
+    "message": "$1 をインストールしました。"
+  },
+  "message_uninstalled": {
+    "message": "$1 をアンインストールしました。"
+  },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
     "description": "ポストに失敗した",
