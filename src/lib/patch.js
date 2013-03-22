@@ -108,7 +108,8 @@ var Patches = MochiKit.Base.update(new Repository(), {
 console.log('Install patch: ' + fileEntry.fullPath);
                       TBRL.Notification.notify({
                         title   : fileName,
-                        message : 'Installed'
+                        message : 'Installed',
+                        timeout : 3
                       });
                       deferred.callback(patch);
                     });
@@ -166,7 +167,8 @@ console.log('Install patch: ' + fileEntry.fullPath);
 console.log('Uninstall patch: ' + fileEntry.fullPath);
             TBRL.Notification.notify({
               title   : fileEntry.name,
-              message : 'Uninstalled'
+              message : 'Uninstalled',
+              timeout : 3
             });
             deferred.callback();
           },
