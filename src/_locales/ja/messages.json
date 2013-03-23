@@ -11,6 +11,9 @@
     "message": "エントリ内容/他",
     "description": "エントリ設定タブ"
   },
+  "label_patch": {
+    "message": "パッチ"
+  },
   "label_about": {
     "message": "Taberarelooについて",
     "description": "Taberarelooについてのタブ"
@@ -29,6 +32,12 @@
   },
   "label_clear": {
     "message": "クリア"
+  },
+  "label_install": {
+    "message": "インストール"
+  },
+  "label_uninstall": {
+    "message": "アンインストール"
   },
   "label_tagAutoComplete": {
     "message": "タグの自動決定"
@@ -111,11 +120,23 @@
       }
     }
   },
+  "warning_metadata": {
+    "message": "パッチのメタデータが取得できません。メタデータのJSONが間違っている可能性があります。"
+  },
   "all_off": {
     "message": "全てOFF"
   },
   "confirm_https": {
     "message": "httpsリンクのポストを許可しますか?"
+  },
+  "confirm_delete": {
+    "message": "このパッチを削除してもよろしいですか？"
+  },
+  "message_installed": {
+    "message": "$1 をインストールしました。"
+  },
+  "message_uninstalled": {
+    "message": "$1 をアンインストールしました。"
   },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",

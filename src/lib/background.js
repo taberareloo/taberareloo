@@ -491,6 +491,9 @@ var onRequestsHandlers = {
   removeGooglePlusCommunityCategory: function(req, sender, func) {
     var ps = req.content;
     Models['Google+'].removeCommunityCategory(ps.pageUrl, ps.page);
+  },
+  loadPatchesInContent: function(req, sender, func) {
+    Patches.loadInTab(sender.tab);
   }
 };
 

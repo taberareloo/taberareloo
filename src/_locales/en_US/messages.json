@@ -11,6 +11,9 @@
     "message": "Entry Contents / etc.",
     "description": "entry setting tab"
   },
+  "label_patch": {
+    "message": "Patches"
+  },
   "label_about": {
     "message": "About",
     "description": "about tab"
@@ -29,6 +32,12 @@
   },
   "label_clear": {
     "message": "clear"
+  },
+  "label_install": {
+    "message": "Install"
+  },
+  "label_uninstall": {
+    "message": "Uninstall"
   },
   "label_tagAutoComplete": {
     "message": "Tag Auto Complete"
@@ -111,11 +120,23 @@
       }
     }
   },
+  "warning_metadata": {
+    "message": "Could not parse a metadata JSON of the patch. The metadata may be wrong."
+  },
   "all_off": {
     "message": "All Off"
   },
   "confirm_https": {
     "message": "Allow posting https link?"
+  },
+  "confirm_delete": {
+    "message": "Are you sure to delete this patch?"
+  },
+  "message_installed": {
+    "message": "$1 has been installed."
+  },
+  "message_uninstalled": {
+    "message": "$1 has been uninstalled."
   },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",

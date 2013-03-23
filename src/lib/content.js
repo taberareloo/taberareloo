@@ -599,3 +599,9 @@ chrome.extension.onMessage.addListener(function(req, sender, func){
     return true;
   }
 });
+
+(function() {
+  chrome.extension.sendMessage(TBRL.id, {
+    request: "loadPatchesInContent"
+  }, function(res) {});
+})();
