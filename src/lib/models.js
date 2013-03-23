@@ -3119,7 +3119,8 @@ Models.register({
       }]);
       TBRL.Notification.notify({
         title   : name,
-        message : 'Added'
+        message : 'Added',
+        timeout : 3
       });
       this.setCommunities(communities);
       return true;
@@ -3141,7 +3142,8 @@ Models.register({
         });
         TBRL.Notification.notify({
           title   : name,
-          message : 'Added all categories'
+          message : 'Added all categories',
+          timeout : 3
         });
         self.setCommunities(communities);
       });
@@ -3185,7 +3187,8 @@ Models.register({
       if (found && !no_nitify) {
         TBRL.Notification.notify({
           title   : title.replace(/ - Google\+$/, ''),
-          message : 'Removed'
+          message : 'Removed',
+          timeout : 3
         });
       }
       return found;
@@ -3197,7 +3200,8 @@ Models.register({
       if (found && !no_nitify) {
         TBRL.Notification.notify({
           title   : title.replace(/ - Google\+$/, ''),
-          message : 'Removed all categories'
+          message : 'Removed all categories',
+          timeout : 3
         });
       }
       return found;
