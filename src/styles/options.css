@@ -188,3 +188,21 @@ table.option_table th {
   border-style: solid !important;
   border-color: #bbb !important;
 }
+
+table#patch_table {
+  width: 100%;
+}
+tr.patch:nth-of-type(odd) {
+  background-color: #F1F1F1;
+}
+tr.patch:nth-of-type(even) {
+  background-color: white;
+}
+div.option a.patch_name {
+  text-decoration: underline;
+  color: blue;
+}
+td.patch_enabled,
+td.patch_uninstall {
+  text-align: center;
+}
