@@ -290,6 +290,7 @@ var TBRL = {
       var message = opt.message || '';
       var timeout = typeof opt.timeout === 'number' ? opt.timeout * 1000 : null;
       var onclick = opt.onclick || null;
+      var onclose = opt.onclose || null;
       try {
         var notification = this.NOTIFIER.createNotification(icon, title, message);
         notification.replaceId = id;
@@ -302,6 +303,9 @@ var TBRL = {
         }
         if (onclick) {
           notification.onclick = onclick;
+        }
+        if (onclose) {
+          notification.onclose = onclose;
         }
         notification.show();
         return notification;
