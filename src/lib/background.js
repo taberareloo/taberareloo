@@ -67,8 +67,8 @@ var GlobalFileEntryCache = { };
 
 var TBRL = {
   // default config
-  VERSION: chrome.app.getDetails().version,
-  ID: chrome.app.getDetails().id,
+  VERSION: chrome.runtime.getManifest().version,
+  ID: chrome.runtime.id,
   Config: {
     'services': {
     },
