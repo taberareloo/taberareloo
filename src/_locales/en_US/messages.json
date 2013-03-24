@@ -138,6 +138,9 @@
   "message_uninstalled": {
     "message": "$1 has been uninstalled."
   },
+  "message_released": {
+    "message": "A new version has been released.\nClick here to open the new patch."
+  },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",
     "description": "when post failed",

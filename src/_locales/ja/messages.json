@@ -138,6 +138,9 @@
   "message_uninstalled": {
     "message": "$1 をアンインストールしました。"
   },
+  "message_released": {
+    "message": "新しいバージョンがリリースされています。\nここをクリックすると新しいパッチを開きます。"
+  },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
     "description": "ポストに失敗した",

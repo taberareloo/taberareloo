@@ -208,20 +208,25 @@ console.log('Load patch: ' + fileEntry.fullPath);
         url = url || preference.origin || metadata.downloadURL;
         return self._register(fileEntry, metadata, url, script);
       }
-// Clear an invalid format file
-//      else {
-//        fileEntry.remove(function() {});
-//      }
+      else {
+        fileEntry.remove(function() {});
+      }
     });
   },
 
   load : function() {
     var self = this;
     this.dirEntry.createReader().readEntries(function(fileEntries) {
+      var ds = {};
       for (var i = 0, len = fileEntries.length ; i < len ; i++) {
         var fileEntry = fileEntries[i];
-        self.loadAndRegister(fileEntry);
+        ds[fileEntry.name] = self.loadAndRegister(fileEntry);
       }
+      return new DeferredHash(ds).addCallback(function(ress) {
+        self.values.forEach(function(patch) {
+          self.check(patch);
+        });
+      });
     });
   },
 
@@ -348,6 +353,74 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
     match_pattern += input.split('*').map(regEscape).join('.*');
     match_pattern += '$)';
     return match_pattern;
+  },
+
+  check : function(patch) {
+    var self = this;
+
+    if (!patch.metadata.version || !patch.metadata.downloadURL) return false;
+
+    var url      = patch.metadata.downloadURL;
+    var fileName = url.replace(/\\/g,'/').replace(/.*\//, '');
+    return request(url, {
+      responseType: 'blob'
+    }).addCallback(function(res) {
+      return self.getMetadata(res.response).addCallback(function(metadata) {
+        if (!metadata || !metadata.version) return false;
+        var compare = self.versionComparator(metadata.version, patch.metadata.version);
+        if (compare > 0) {
+console.log('Found new version: ' + url);
+          TBRL.Notification.notify({
+            title   : fileName,
+            message : chrome.i18n.getMessage('message_released'),
+            timeout : 10,
+            onclick : function () {
+              window.open(url, '');
+              this.cancel();
+            }
+          });
+          return true;
+        }
+        return false;
+      });
+    });
+  },
+
+  versionComparator : function(a, b) {
+    a = a.split(/\._/);
+    b = b.split(/\._/);
+    var c = 0;
+
+    function isInt(n) {
+      return (n || '').match(/^\d+$/) !== null;
+    }
+
+    for (var i = 0, mx = Math.max(a.length, b.length) ; i < mx ; i++) {
+      var ai = a[i], bi = b[i];
+      switch(i) {
+      case a.length:
+        return isInt(ai) ? -1 : 1;
+      case b.length:
+        return isInt(bi) ? 1 : -1;
+      default:
+        var aiInt = isInt(ai), biInt = isInt(bi);
+        if (aiInt && biInt) {
+          ai = parseInt(ai, 10);
+          bi = parseInt(bi, 10);
+          c = ai === bi ? 0 : ai > bi ? 1 : -1;
+          if (c !== 0) break;
+        } else if (aiInt) {
+          return 1;
+        } else if (biInt) {
+          return -1;
+        } else {
+          c = ai === bi ? 0 : ai > bi ? 1 : -1;
+          break;
+        }
+      }
+    }
+
+    return c;
   }
 });
 Patches.initailize().addCallback(function() {
