@@ -1142,7 +1142,7 @@ Extractors.register([
       var author = $X('//div[@class="byline"]/a', ctx.document)[0];
       return {
         type      : 'video',
-        item      : $X('//div[@class="title"]/text()', ctx.document)[0].trim(),
+        item      : $X('//meta[@property="og:title"]/@content', ctx.document)[0],
         itemUrl   : ctx.href,
         author    : author.textContent,
         authorUrl : author.href
