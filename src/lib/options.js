@@ -749,6 +749,12 @@ function Patches() {
     }
   });
 
+  var button_check_updates = $('button_check_updates');
+  button_check_updates.appendChild($T(chrome.i18n.getMessage('label_check_updates')));
+  connect(button_check_updates, 'onclick', button_check_updates, function(ev) {
+    background.Patches.check_updates();
+  });
+
   function refreshTable() {
     var tbody = $('patch_body');
     for (var i = 0, len = tbody.childNodes.length ; i < len ; i++) {

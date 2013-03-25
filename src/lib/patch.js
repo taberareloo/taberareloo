@@ -136,7 +136,7 @@ console.log('Install patch: ' + fileEntry.fullPath);
     if (typeof file === 'string') {
       var url      = file;
       var fileName = url.replace(/\\/g,'/').replace(/.*\//, '');
-      return request(url, {
+      return request(url + '?_=' + (new Date()).getTime(), {
         responseType: 'blob'
       }).addCallback(function(res) {
         return save(fileName, res.response, url).addCallback(function(patch) {
@@ -223,9 +223,10 @@ console.log('Load patch: ' + fileEntry.fullPath);
         ds[fileEntry.name] = self.loadAndRegister(fileEntry);
       }
       return new DeferredHash(ds).addCallback(function(ress) {
-        self.values.forEach(function(patch) {
-          self.check(patch);
-        });
+        var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
+        if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
+          self.check_updates();
+        }
       });
     });
   },
@@ -355,14 +356,22 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
     return match_pattern;
   },
 
-  check : function(patch) {
+  check_updates : function() {
+    var self = this;
+    this.setLocalCookie('patch_last_checked', (new Date()).getTime());
+    this.values.forEach(function(patch) {
+      self.check_update(patch);
+    });
+  },
+
+  check_update : function(patch) {
     var self = this;
 
     if (!patch.metadata.version || !patch.metadata.downloadURL) return false;
 
     var url      = patch.metadata.downloadURL;
     var fileName = url.replace(/\\/g,'/').replace(/.*\//, '');
-    return request(url, {
+    return request(url + '?_=' + (new Date()).getTime(), {
       responseType: 'blob'
     }).addCallback(function(res) {
       return self.getMetadata(res.response).addCallback(function(metadata) {
@@ -373,7 +382,6 @@ console.log('Found new version: ' + url);
           TBRL.Notification.notify({
             title   : fileName,
             message : chrome.i18n.getMessage('message_released'),
-            timeout : 10,
             onclick : function () {
               window.open(url, '');
               this.cancel();
@@ -421,6 +429,14 @@ console.log('Found new version: ' + url);
     }
 
     return c;
+  },
+
+  setLocalCookie : function(key, value) {
+    document.cookie = escape(key) + '=' + escape(value);
+  },
+
+  getLocalCookie : function(key) {
+    return unescape(document.cookie.replace(new RegExp("(?:^|.*;\\s*)" + unescape(key).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*"), "$1"));
   }
 });
 Patches.initailize().addCallback(function() {
