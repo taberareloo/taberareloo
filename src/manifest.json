@@ -1,10 +1,10 @@
 {
    "background": {
       "scripts": [
+       "third_party/SparkMD5/spark-md5.min.js",
        "lib/Base.js",
        "lib/DOM.js",
        "lib/Async.js",
-       "lib/md5.js",
        "lib/proto.js",
        "lib/utils.js",
        "lib/repository.js",
