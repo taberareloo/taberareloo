@@ -1086,7 +1086,7 @@ Models.register({
   },
 
   getRecommendedTags: function(url) {
-    return request('http://feeds.delicious.com/v2/json/urlinfo/' + MD5.hex_md5(url)).addCallback(function(res){
+    return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url)).addCallback(function(res){
       var result = JSON.parse(res.responseText);
       if (result.length) {
         var top_tags = result[0].top_tags;
