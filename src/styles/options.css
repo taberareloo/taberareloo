@@ -189,6 +189,9 @@ table.option_table th {
   border-color: #bbb !important;
 }
 
+#button_check_updates {
+  float: right;
+}
 table#patch_table {
   width: 100%;
 }

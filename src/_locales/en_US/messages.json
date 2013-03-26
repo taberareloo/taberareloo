@@ -105,6 +105,9 @@
   "label_tumblr2facebook": {
     "message": "Share Tumblr posts on your Facebook"
   },
+  "label_check_updates": {
+    "message": "Check Updates"
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    is converted to\n    $modified$",
     "description": "when https link has found",
