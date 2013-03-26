@@ -376,8 +376,6 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
     }).addCallback(function(res) {
       return self.getMetadata(res.response).addCallback(function(metadata) {
         if (!metadata || !metadata.version) return false;
-        var compare = self.versionComparator(metadata.version, patch.metadata.version);
-
         if (semver.gt(metadata.version, patch.metadata.version)) {
           console.log('Found new version: ' + url);
           TBRL.Notification.notify({
