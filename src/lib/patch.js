@@ -377,8 +377,9 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
       return self.getMetadata(res.response).addCallback(function(metadata) {
         if (!metadata || !metadata.version) return false;
         var compare = self.versionComparator(metadata.version, patch.metadata.version);
-        if (compare > 0) {
-console.log('Found new version: ' + url);
+
+        if (semver.gt(metadata.version, patch.metadata.version)) {
+          console.log('Found new version: ' + url);
           TBRL.Notification.notify({
             title   : fileName,
             message : chrome.i18n.getMessage('message_released'),
@@ -392,43 +393,6 @@ console.log('Found new version: ' + url);
         return false;
       });
     });
-  },
-
-  versionComparator : function(a, b) {
-    a = a.split(/\._/);
-    b = b.split(/\._/);
-    var c = 0;
-
-    function isInt(n) {
-      return (n || '').match(/^\d+$/) !== null;
-    }
-
-    for (var i = 0, mx = Math.max(a.length, b.length) ; i < mx ; i++) {
-      var ai = a[i], bi = b[i];
-      switch(i) {
-      case a.length:
-        return isInt(ai) ? -1 : 1;
-      case b.length:
-        return isInt(bi) ? 1 : -1;
-      default:
-        var aiInt = isInt(ai), biInt = isInt(bi);
-        if (aiInt && biInt) {
-          ai = parseInt(ai, 10);
-          bi = parseInt(bi, 10);
-          c = ai === bi ? 0 : ai > bi ? 1 : -1;
-          if (c !== 0) break;
-        } else if (aiInt) {
-          return 1;
-        } else if (biInt) {
-          return -1;
-        } else {
-          c = ai === bi ? 0 : ai > bi ? 1 : -1;
-          break;
-        }
-      }
-    }
-
-    return c;
   },
 
   setLocalCookie : function(key, value) {

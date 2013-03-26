@@ -2,6 +2,7 @@
    "background": {
       "scripts": [
        "third_party/SparkMD5/spark-md5.min.js",
+       "third_party/semver/semver.js",
        "lib/Base.js",
        "lib/DOM.js",
        "lib/Async.js",
