@@ -225,7 +225,7 @@ console.log('Load patch: ' + fileEntry.fullPath);
       return new DeferredHash(ds).addCallback(function(ress) {
         var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
         if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
-          self.check_updates();
+          self.checkUpdates();
         }
       });
     });
@@ -303,7 +303,7 @@ console.log('Load patch: ' + fileEntry.fullPath);
     this.values.forEach(function(patch) {
       var pattern = null;
       if (patch.metadata.match && Array.isArray(patch.metadata.match)) {
-        var parsed = patch.metadata.match.map(self.parse_match_pattern).filter(function(pattern) {
+        var parsed = patch.metadata.match.map(self.parseMatchPattern).filter(function(pattern) {
           return (pattern !== null);
         });
         pattern = new RegExp(parsed.join('|'));
@@ -325,7 +325,7 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
     });
   },
 
-  parse_match_pattern : function(input) {
+  parseMatchPattern : function(input) {
     if (typeof input !== 'string') return null;
     var match_pattern = '(?:^';
     var regEscape = function(s) {return s.replace(/[[^$.|?*+(){}\\]/g, '\\$&');};
@@ -356,15 +356,15 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
     return match_pattern;
   },
 
-  check_updates : function() {
+  checkUpdates : function() {
     var self = this;
     this.setLocalCookie('patch_last_checked', (new Date()).getTime());
     this.values.forEach(function(patch) {
-      self.check_update(patch);
+      self.checkUpdate(patch);
     });
   },
 
-  check_update : function(patch) {
+  checkUpdate : function(patch) {
     var self = this;
 
     if (!patch.metadata.version || !patch.metadata.downloadURL) return false;
