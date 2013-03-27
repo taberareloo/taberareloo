@@ -150,7 +150,7 @@ var TBRL = {
                 title: p.name,
                 message: 'Posting... Done',
                 timeout: 3,
-                id: notification.replaceId
+                id: notification.tag
               });
               if (n) {
                 notifications.push(n);
@@ -161,10 +161,10 @@ var TBRL = {
               TBRL.Notification.notify({
                 title: p.name,
                 message: 'Posting... Error',
-                id: notification.replaceId,
+                id: notification.tag,
                 onclick: function () {
                   window.open(ps.pageUrl, '');
-                  this.cancel();
+                  this.close();
                 }
               });
               return res;
@@ -190,7 +190,7 @@ var TBRL = {
           setTimeout(function () {
             notifications.forEach(function(notification) {
               try {
-                notification.cancel();
+                notification.close();
               } catch (e) {}
             });
           }, 500);
@@ -276,7 +276,6 @@ var TBRL = {
   },
   Notification: {
     ICON: chrome.extension.getURL('skin/fork64.png'),
-    NOTIFIER: window.webkitNotifications || window.Notifications,
     ID: 0,
     contents: {},
     generateUniqueID: function() {
@@ -292,12 +291,15 @@ var TBRL = {
       var onclick = opt.onclick || null;
       var onclose = opt.onclose || null;
       try {
-        var notification = this.NOTIFIER.createNotification(icon, title, message);
-        notification.replaceId = id;
+        var notification = new Notification(title, {
+          body: message,
+          tag: id,
+          icon: icon
+        });
         if (timeout !== null) {
-          notification.ondisplay = function () {
+          notification.onshow = function () {
             setTimeout(function () {
-              notification.cancel();
+              notification.close();
             }, timeout);
           };
         }
@@ -307,7 +309,6 @@ var TBRL = {
         if (onclose) {
           notification.onclose = onclose;
         }
-        notification.show();
         return notification;
       }
       catch(e) {
