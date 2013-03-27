@@ -45,7 +45,6 @@ div#container {
 div#inner {
   width: 500%;
   height: 100%;
-  -webkit-transition: margin-left 0.1s ease-out;
   transition: margin-left 0.1s ease-out;
 }
 div.slide {
