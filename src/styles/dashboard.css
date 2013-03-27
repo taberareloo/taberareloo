@@ -14,5 +14,5 @@ div#FLASH_MESSAGE{
   min-width : 1em;
   text-align : center;
 
-  transition: opacity -left 0.4s ease-out;
+  transition: opacity 0.4s ease-out;
 }
