@@ -231,13 +231,13 @@ UserScripts.register([
           show(flash);
           flash.style.marginLeft = (-(flash.offsetWidth/2))+'px';
           setTimeout(function(){
-            flash.style.webkitTransition = 'opacity '+(Math.floor(duration / 100)/10)+'s ease-out';
+            flash.style.transition = 'opacity '+(Math.floor(duration / 100)/10)+'s ease-out';
             flash.style.opacity = '0';
           }, 0);
         };
         function hide(target){
           target.style.display='none';
-          target.style.webkitTransition = '';
+          target.style.transition = '';
         }
         function show(target, style){
           target.style.display=(style || '');
@@ -366,10 +366,10 @@ UserScripts.register([
     notify: function(elm, hide){
       var duration = 600;
       if(!hide) this.FlashMessage.showFlashMessageWindow('ReBlog', duration);
-      elm.style.webkitTransition = '';
+      elm.style.transition = '';
       elm.style.backgroundColor = 'salmon';
       setTimeout(function(){
-        elm.style.webkitTransition = 'background-color '+(Math.floor(duration / 100)/10)+'s ease-out';
+        elm.style.transition = 'background-color '+(Math.floor(duration / 100)/10)+'s ease-out';
         elm.style.backgroundColor = '';
       }, 0);
     },

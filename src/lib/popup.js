@@ -1198,12 +1198,12 @@ Tags.prototype = {
   },
 
   notify: function(){
-    // notify => --webkit-transition
+    // notify => -transition
     var tags = this.tags;
-    tags.style.webkitTransition = '';
+    tags.style.transition = '';
     tags.style.backgroundColor = '#ccf0ff';
     setTimeout(function(){
-      tags.style.webkitTransition = 'background-color 0.5s ease-out';
+      tags.style.transition = 'background-color 0.5s ease-out';
       tags.style.backgroundColor = 'white';
     }, 0);
 

@@ -383,7 +383,7 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
             message : chrome.i18n.getMessage('message_released'),
             onclick : function () {
               window.open(url, '');
-              this.cancel();
+              this.close();
             }
           });
           return true;
