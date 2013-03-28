@@ -1540,6 +1540,7 @@ Extractors.register([
         "* {\n" +
         "  cursor: crosshair !important;\n" +
         "  -webkit-user-select: none;\n" +
+        "  user-select: none;\n" +
         "}\n" +
         "div.taberareloo_capture_size {\n" +
         "  padding: 5px !important;\n" +
