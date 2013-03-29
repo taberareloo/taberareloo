@@ -428,7 +428,7 @@ function Pic(ps, toggle) {
     var w = ps.originalWidth || width;
     var h = ps.originalHeight || height;
     self.size.appendChild($T(w + ' × ' + h));
-    wait(0).addCallback(function(){
+    wait(0.3).addCallback(function(){
       Form.resize();
     });
   });
