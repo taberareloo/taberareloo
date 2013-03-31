@@ -294,7 +294,7 @@ var TBRL = {
         var notification = new Notification(title, {
           body: message,
           tag: id,
-          iconUrl: icon
+          icon: icon
         });
         if (timeout !== null) {
           notification.onshow = function () {
