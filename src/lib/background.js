@@ -251,7 +251,6 @@ var TBRL = {
   Popup: {
     count: 0,
     open: function(tab, ps) {
-      var height = 'height=200';
       var id = 'QuickPost' + (TBRL.Popup.count++);
       var query = queryString({
         'quick': 'true',
@@ -261,11 +260,13 @@ var TBRL = {
         'ps': ps,
         'tab': tab
       };
-      window.open(
-          chrome.extension.getURL('popup.html') + query,
-          id,
-          height +
-          ',width=450,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no');
+      chrome.windows.create({
+        url     : chrome.extension.getURL('popup.html') + query,
+        width   : 450,
+        height  : 200,
+        focused : true,
+        type    : 'popup'
+      });
     },
     defaultSuggester: 'HatenaBookmark',
     tags: null,
