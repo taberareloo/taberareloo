@@ -276,7 +276,7 @@ console.log('Load patch: ' + fileEntry.fullPath);
     ).addCallback(function(script) {
       var in_metadata = false;
       var metadata    = '';
-      script.split("\n").forEach(function(line) {
+      script.split(/\r?\n/).forEach(function(line) {
         if (!in_metadata && (line === '// ==Taberareloo==')) {
           in_metadata = true;
         }
