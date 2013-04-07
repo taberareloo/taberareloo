@@ -1,12 +1,68 @@
-chrome.contextMenus.removeAll(function() {
-  var id = chrome.contextMenus.create({
-    title: 'Share ...',
-    contexts: ['all']
-  });
-  chrome.contextMenus.create({
+var Menus = MochiKit.Base.update(new Repository(), {
+  separators : 0,
+
+  _register : function(createProperties, parent, target, after) {
+    var name = '';
+
+    if (createProperties.type === 'separator') {
+      name = 'separator_' + (++this.separators);
+    }
+    else {
+      name = createProperties.title;
+    }
+
+    this.register({
+      name       : name,
+      parent     : parent,
+      properties : createProperties
+    }, target, after);
+
+    return this[name];
+  },
+
+  top_menu : null,
+  creating : false,
+
+  create : function(topMenuProperties) {
+    var self = this;
+
+    if (topMenuProperties) {
+      this.top_menu = topMenuProperties;
+    }
+    if (this.creating || !this.top_menu) {
+      callLater(0.5, Menus.create);
+      return;
+    }
+    this.creating = true;
+
+    chrome.contextMenus.removeAll(function() {
+      if (self.top_menu.generatedId) {
+        delete self.top_menu.generatedId;
+      }
+      var top_menu_id = chrome.contextMenus.create(self.top_menu);
+
+      self.values.forEach(function(menu) {
+        if (menu.parent && self[menu.parent]) {
+          menu.properties.parentId = self[menu.parent].id || top_menu_id;
+        }
+        else {
+          menu.properties.parentId = top_menu_id;
+        }
+        if (menu.properties.generatedId) {
+          delete menu.properties.generatedId;
+        }
+        self[menu.name].id = chrome.contextMenus.create(menu.properties);
+      });
+
+      self.creating = false;
+    });
+  }
+});
+
+(function() {
+  Menus._register({
     title: 'Taberareloo',
     contexts: ['all'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenus',
@@ -14,10 +70,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Quote',
     contexts: ['selection'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusQuote',
@@ -25,10 +80,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Link',
     contexts: ['link'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusLink',
@@ -36,10 +90,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Photo',
     contexts: ['image'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusImage',
@@ -47,10 +100,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Photo - Upload from Cache',
     contexts: ['image'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusImageCache',
@@ -58,10 +110,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Video',
     contexts: ['video'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusVideo',
@@ -69,10 +120,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Audio',
     contexts: ['audio'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusAudio',
@@ -80,10 +130,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Photo - Flickr',
     contexts: ['all'],
-    parentId: id,
     documentUrlPatterns: ['http://www.flickr.com/photos/*/*/*'],
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
@@ -92,10 +141,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Photo - Capture',
     contexts: ['all'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusCapture',
@@ -103,10 +151,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Photo - Search - GoogleImage',
     contexts: ['image'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusSearchGoogleImage',
@@ -114,10 +161,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Photo - Background Image',
     contexts: ['all'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusBGImage',
@@ -125,10 +171,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Text',
     contexts: ['all'],
-    parentId: id,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
         request: 'contextMenusText',
@@ -140,22 +185,19 @@ chrome.contextMenus.removeAll(function() {
     'https://plus.google.com/communities/*',
     'https://plus.google.com/u/0/communities/*'
   ];
-  chrome.contextMenus.create({
+  Menus._register({
     type: 'separator',
     contexts: ['all'],
-    parentId: id,
     documentUrlPatterns: googlePlusCommunitiesURLs
   });
-  var sub_id = chrome.contextMenus.create({
+  Menus._register({
     title: 'Google+ Community ...',
     contexts: ['all'],
-    parentId: id,
     documentUrlPatterns: googlePlusCommunitiesURLs
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Add to destinations',
     contexts: ['all'],
-    parentId: sub_id,
     documentUrlPatterns: googlePlusCommunitiesURLs,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
@@ -163,11 +205,10 @@ chrome.contextMenus.removeAll(function() {
         content: info
       });
     }
-  });
-  chrome.contextMenus.create({
+  }, 'Google+ Community ...');
+  Menus._register({
     title: 'Remove from destinations',
     contexts: ['all'],
-    parentId: sub_id,
     documentUrlPatterns: googlePlusCommunitiesURLs,
     onclick: function(info, tab) {
       chrome.tabs.sendMessage(tab.id, {
@@ -175,21 +216,19 @@ chrome.contextMenus.removeAll(function() {
         content: info
       });
     }
-  });
+  }, 'Google+ Community ...');
   var patchFileURLs = [
     'http://*/*.tbrl.js',
     'https://*/*.tbrl.js'
   ];
-  chrome.contextMenus.create({
+  Menus._register({
     type: 'separator',
     contexts: ['page'],
-    parentId: id,
     documentUrlPatterns: patchFileURLs
   });
-  chrome.contextMenus.create({
+  Menus._register({
     title: 'Patch - Install this',
     contexts: ['page'],
-    parentId: id,
     documentUrlPatterns: patchFileURLs,
     onclick: function(info, tab) {
       Patches.install(info.pageUrl).addCallback(function(res) {
@@ -199,4 +238,9 @@ chrome.contextMenus.removeAll(function() {
       });
     }
   });
+})();
+
+Menus.create({
+  title: 'Share ...',
+  contexts: ['all']
 });
