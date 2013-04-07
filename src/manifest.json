@@ -11,8 +11,8 @@
        "lib/repository.js",
        "lib/models.js",
        "lib/background.js",
-       "lib/patch.js",
-       "lib/menu.js"
+       "lib/menu.js",
+       "lib/patch.js"
       ]
    },
    "content_scripts": [ {
