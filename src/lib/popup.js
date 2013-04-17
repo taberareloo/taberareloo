@@ -295,7 +295,12 @@ Form.resize = function() {
     var root = document.body;
     var height = root.scrollHeight - window.innerHeight;
     var width  = root.scrollWidth  - window.innerWidth;
-    window.resizeBy(width, height);
+    chrome.windows.getCurrent({}, function(win) {
+      chrome.windows.update(win.id, {
+        width  : win.width + width,
+        height : win.height + height
+      });
+    });
     Form.nowResizing = false;
   } else {
     callLater(0.5, Form.resize);
