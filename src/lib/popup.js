@@ -74,6 +74,12 @@ function Form(ps) {
     } else {
       this.delete();
     }
+    if (!isPopup) {
+      background.localStorage.setItem('popup_position', JSON.stringify({
+        top  : window.screenY,
+        left : window.screenX
+      }));
+    }
   });
 
   connect(window, 'onkeydown', this, function(ev){
