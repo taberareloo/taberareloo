@@ -250,10 +250,20 @@ var TBRL = {
         'tab': tab
       };
       chrome.windows.get(tab.windowId, function(win) {
+        var pos = localStorage.getItem('popup_position');
+        if (pos) {
+          pos = JSON.parse(pos);
+        }
+        else {
+          pos = {
+            top  : win.top  + 50,
+            left : win.left + 50
+          };
+        }
         chrome.windows.create({
           url     : chrome.extension.getURL('popup.html') + query,
-          top     : win.top + 100,
-          left    : win.left + Math.round(win.width/2 - 225),
+          top     : pos.top,
+          left    : pos.left,
           width   : 450,
           height  : 200,
           focused : true,
