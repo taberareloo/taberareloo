@@ -256,14 +256,14 @@ var TBRL = {
         }
         else {
           pos = {
-            top  : win.top  + 50,
-            left : win.left + 50
+            top  : 50,
+            left : 50
           };
         }
         chrome.windows.create({
           url     : chrome.extension.getURL('popup.html') + query,
-          top     : pos.top,
-          left    : pos.left,
+          top     : win.top  + pos.top,
+          left    : win.left + pos.left,
           width   : 450,
           height  : 200,
           focused : true,

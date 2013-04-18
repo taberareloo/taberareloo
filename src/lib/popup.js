@@ -4,6 +4,7 @@ var background = chrome.extension.getBackgroundPage();
 var form = null;
 var Config  = background.TBRL.Config;
 var isPopup;
+var parentWindowId = null;
 
 function getPs(query) {
   var d = new Deferred();
@@ -12,6 +13,7 @@ function getPs(query) {
     var id = query['id'];
     var data = background.TBRL.Popup.data[id];
     var tab = data['tab'];
+    parentWindowId = tab.windowId;
     var ps = data['ps'];
     delete background.TBRL.Popup.data[id];
     setTimeout(function() { d.callback(ps); }, 0);
@@ -75,10 +77,12 @@ function Form(ps) {
       this.delete();
     }
     if (!isPopup) {
-      background.localStorage.setItem('popup_position', JSON.stringify({
-        top  : window.screenY,
-        left : window.screenX
-      }));
+      chrome.windows.get(parentWindowId, function(win) {
+        background.localStorage.setItem('popup_position', JSON.stringify({
+          top  : window.screenY - win.top,
+          left : window.screenX - win.left
+        }));
+      });
     }
   });
 
