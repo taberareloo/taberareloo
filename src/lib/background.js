@@ -253,7 +253,7 @@ var TBRL = {
         chrome.windows.create({
           url     : chrome.extension.getURL('popup.html') + query,
           top     : win.top + 100,
-          left    : win.left + (win.width/2 - 225),
+          left    : win.left + Math.round(win.width/2 - 225),
           width   : 450,
           height  : 200,
           focused : true,
