@@ -49,17 +49,6 @@ function constructPsInBackground(content) {
   }
 }
 
-function getCurrent() {
-  var d = new Deferred();
-  chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  }, function (tabs) {
-    d.callback(tabs[0]);
-  });
-  return d;
-}
-
 // this is FileEntry (temp file) cacheing table
 // key: blob url
 // value: FileEntry
@@ -260,12 +249,16 @@ var TBRL = {
         'ps': ps,
         'tab': tab
       };
-      chrome.windows.create({
-        url     : chrome.extension.getURL('popup.html') + query,
-        width   : 450,
-        height  : 200,
-        focused : true,
-        type    : 'popup'
+      chrome.windows.get(tab.windowId, function(win) {
+        chrome.windows.create({
+          url     : chrome.extension.getURL('popup.html') + query,
+          top     : win.top + 100,
+          left    : win.left + Math.round(win.width/2 - 225),
+          width   : 450,
+          height  : 200,
+          focused : true,
+          type    : 'popup'
+        });
       });
     },
     defaultSuggester: 'HatenaBookmark',
@@ -406,22 +399,19 @@ var onRequestsHandlers = {
     });
   },
   share: function(req, sender, func) {
-    getCurrent().addCallback(function(tab) {
-      constructPsInBackground(req.content).addCallback(function(ps) {
-        if (req.show) {
-          TBRL.Popup.open(tab, ps);
+    constructPsInBackground(req.content).addCallback(function(ps) {
+      if (req.show) {
+        TBRL.Popup.open(sender.tab, ps);
+      } else {
+        var posters = Models.getDefaults(ps);
+        if (!posters.length) {
+          alert(chrome.i18n.getMessage('error_noPoster', ps.type.capitalize()));
         } else {
-          var posters = Models.getDefaults(ps);
-          if (!posters.length) {
-            alert(chrome.i18n.getMessage('error_noPoster', ps.type.capitalize()));
-          } else {
-            TBRL.Service.post(ps, posters);
-          }
+          TBRL.Service.post(ps, posters);
         }
-      });
-      func({});
-    }).addErrback(function(e) {
+      }
     });
+    func({});
   },
   search: function(req, sender, func) {
     // currently, used for GoogleImageSearch
