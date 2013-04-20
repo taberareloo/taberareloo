@@ -593,7 +593,21 @@ Extractors.register([
     },
     getFrameUrl : function(doc){
       var elm = $X('//iframe[(starts-with(@src, "http://www.tumblr.com/iframe") or starts-with(@src, "http://assets.tumblr.com/iframe")) and contains(@src, "pid=")]/@src', doc);
-      return elm.length ? elm[0] : null;
+      if (elm.length) {
+        return elm[0];
+      }
+
+      var iframeInsertScript = createHTML(
+        doc.body.innerHTML.match(/<!-- BEGIN TUMBLR CODE -->[\s\S]+<!-- END TUMBLR CODE -->/)
+      ).scripts[0];
+      if (iframeInsertScript) {
+        var matches = iframeInsertScript.textContent.match(/document\.write\('<iframe src="(.+)" width=/);
+        if (matches) {
+          return matches[1];
+        }
+      }
+
+      return '';
     },
     convertToParams  : function(form){
       switch(form['post[type]']){
