@@ -561,12 +561,12 @@ Extractors.register([
     },
     extractByPage : function(ctx, doc){
       var that = this;
-      var m = unescapeHTML(this.getFrameUrl(doc)).match(/.+&pid=([^&]*)&rk=([^&]*)/);
-      ctx.reblog_id = m[1];
-      ctx.reblog_key = m[2];
+      var params = queryHash(unescapeHTML(this.getFrameUrl(doc)));
+      ctx.reblog_id = params.pid;
+      ctx.reblog_key = params.rk;
       ctx.post_type = false;
       return this.getFormKeyAndChannelId(ctx).addCallback(function(){
-        return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + m[1] + '/' + m[2]);
+        return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + params.pid + '/' + params.rk);
       });
     },
     extractByEndpoint : function(ctx, endpoint){
