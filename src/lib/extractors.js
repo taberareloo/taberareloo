@@ -1223,22 +1223,26 @@ Extractors.register([
   {
     name : 'Video - Dailymotion',
     ICON : 'http://www.dailymotion.com/favicon.ico',
-    check : function(ctx){
-      return ctx.host.match(/dailymotion\.com/) && this.getTag(ctx);
+    check : function(ctx) {
+      return ctx.host.match(/dailymotion\.com/) && this.getPlayer(ctx);
     },
-    extract : function(ctx){
-      var tag = this.getTag(ctx);
-      ctx.href = tag.extract(/href="(.+?)"/);
+    extract : function(ctx) {
+      var player = this.getPlayer(ctx);
+      var width  = $X('//meta[@name="twitter:player:width"]/@content', ctx.document)[0];
+      var height = $X('//meta[@name="twitter:player:height"]/@content', ctx.document)[0];
+
+      ctx.title = $X('//meta[@property="og:title"]/@content', ctx.document)[0];
+      ctx.href  = $X('//meta[@property="og:url"]/@content', ctx.document)[0];
 
       return {
-        type      : 'video',
-        item      : ctx.title.extract(/Dailymotion - (.*?) - /),
-        itemUrl   : ctx.href,
-        body      : tag.extract(/(<object.+object>)/)
+        type    : 'video',
+        item    : ctx.title,
+        itemUrl : ctx.href,
+        body    : '<iframe frameborder="0" width="'+width+'" height="'+height+'" src="'+player+'"></iframe>'
       };
     },
-    getTag : function(ctx){
-      return $X('id("video_player_embed_code_text")/@value', ctx.document)[0];
+    getPlayer : function(ctx) {
+      return $X('//meta[@name="twitter:player"]/@value', ctx.document)[0];
     }
   },
 
