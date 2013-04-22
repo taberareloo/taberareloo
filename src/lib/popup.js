@@ -71,19 +71,7 @@ function Form(ps) {
   type.appendChild($T(ps.type));
 
   connect(window, 'onunload', this, function(ev){
-    if(!this.posted && isPopup && !this.canceled){
-      this.save();
-    } else {
-      this.delete();
-    }
-    if (!isPopup) {
-      chrome.windows.get(parentWindowId, function(win) {
-        background.localStorage.setItem('popup_position', JSON.stringify({
-          top  : window.screenY - win.top,
-          left : window.screenX - win.left
-        }));
-      });
-    }
+    this.close();
   });
 
   connect(window, 'onkeydown', this, function(ev){
@@ -241,6 +229,7 @@ Form.prototype = {
         this.save();
         if(this.tags) this.tags.addNewTags();
         background.TBRL.Service.post(this.ps, this.posters.body());
+        this.close();
         window.close();
       } catch(e) {
         console.error(e);
@@ -249,6 +238,7 @@ Form.prototype = {
   },
   cancel: function(){
     this.canceled = true;
+    this.close();
     window.close();
   },
   allowHttps: function() {
@@ -267,12 +257,28 @@ Form.prototype = {
       unit.toggle();
     });
     callLater(0.1, Form.resize);
+  },
+  close: function(){
+    if(!this.posted && isPopup && !this.canceled){
+      this.save();
+    } else {
+      this.delete();
+    }
+    if (!isPopup) {
+      chrome.windows.get(parentWindowId, function(win) {
+        background.localStorage.setItem('popup_position', JSON.stringify({
+          top  : window.screenY - win.top,
+          left : window.screenX - win.left
+        }));
+      });
+    }
   }
 };
 
 Form.shortcutkeys = {
   'ESCAPE': function(ev){
     ev.stop();
+    this.close();
     window.close();
   }
 };
