@@ -967,7 +967,7 @@ function encodedRequest(url, opt) {
 function canvasRequest(url) {
   var canvas = document.createElement('canvas'),
       ret = new Deferred(),
-      img = new Image();
+      img = document.createElement('img');
   img.addEventListener('load', function img_load(res) {
     img.removeEventListener('load', img_load, false);
     canvas.width = img.naturalWidth;
