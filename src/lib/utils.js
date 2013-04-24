@@ -782,7 +782,7 @@ function request(url, opt) {
   }
 
   // construct FormData (if required)
-  var multipart = false;
+  var multipart = opt.multipart || false;
   if (opt.sendContent && opt.mode && (opt.mode === 'raw')) {
     // no modify, use sendContent directly
     data = opt.sendContent;
