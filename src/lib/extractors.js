@@ -597,14 +597,9 @@ Extractors.register([
         return elm[0];
       }
 
-      var iframeInsertScript = createHTML(
-        doc.body.innerHTML.match(/<!-- BEGIN TUMBLR CODE -->[\s\S]+<!-- END TUMBLR CODE -->/)
-      ).scripts[0];
-      if (iframeInsertScript) {
-        var matches = iframeInsertScript.textContent.match(/document\.write\('<iframe src="(.+)" width=/);
-        if (matches) {
-          return matches[1];
-        }
+      var matches = doc.body.textContent.match(/document\.write\('<iframe src="(http:\/\/(www|assets)\.tumblr\.com\/iframe[^"]+)" width=/);
+      if (matches) {
+        return matches[1];
       }
 
       return '';
