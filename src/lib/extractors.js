@@ -1268,15 +1268,28 @@ Extractors.register([
     },
     extract : function(ctx){
       var externalPlayerURL = 'http://ext.nicovideo.jp/thumb_' + ctx.pathname.slice(1) + '?thumb_mode=swf&ap=1&c=1';
+
       return {
         type    : 'video',
         item    : ctx.title,
         itemUrl : ctx.href,
         body    : '<embed type="application/x-shockwave-flash" width="485" height="385" src="' + externalPlayerURL + '">',
-        data    : {
-          thumbnail   : ctx.document.querySelector('.videoThumbnailImage, .img_std128').src,
-          description : ctx.document.querySelector('.videoDescription, [itemprop="description"]').textContent
-        }
+        data    : (function(doc){
+          var thumbnail, description;
+
+          var image = doc.querySelector('.videoThumbnailImage, .img_std128, [itemprop="image"]');
+          if (image) {
+            thumbnail = image.src || image.content;
+          } else {
+            var script = doc.querySelector('#WATCHHEADER ~ script');
+            thumbnail = script && script.textContent.extract(/thumbnail:\s+'(.+)'/, 1).replace(/\\/g, '');
+          }
+
+          var desc = doc.querySelector('.videoDescription, [itemprop="description"], #itab_description');
+          description = desc && desc.textContent.trim();
+
+          return thumbnail && description && {thumbnail: thumbnail, description: description};
+        }(ctx.document))
       };
     }
   },
