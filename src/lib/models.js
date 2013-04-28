@@ -2764,6 +2764,12 @@ Models.register({
       : succeed(ps.body)).addCallback(function(snippet) {
       ps.body = snippet;
 
+      if (ps.type === 'video' && ps.data) {
+        ps.type    = 'photo';
+        ps.itemUrl = ps.data.thumbnail;
+        ps.body    = ps.data.description;
+      }
+
       var description = (ps.description == null) ? '' : ps.description;
       if (ps.type === 'regular') {
         description = joinText([ps.item, ps.description], "\n");

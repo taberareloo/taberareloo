@@ -1272,7 +1272,11 @@ Extractors.register([
         type    : 'video',
         item    : ctx.title,
         itemUrl : ctx.href,
-        body    : '<embed type="application/x-shockwave-flash" width="485" height="385" src="' + externalPlayerURL + '">'
+        body    : '<embed type="application/x-shockwave-flash" width="485" height="385" src="' + externalPlayerURL + '">',
+        data    : {
+          thumbnail   : ctx.document.querySelector('.videoThumbnailImage, .img_std128').src,
+          description : ctx.document.querySelector('.videoDescription, [itemprop="description"]').textContent
+        }
       };
     }
   },
