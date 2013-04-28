@@ -1267,16 +1267,13 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/www\.nicovideo\.jp\/watch\//);
     },
     extract : function(ctx){
-      var embedUrl = resolveRelativePath(ctx.href)($X('descendant::a[starts-with(@href, "/embed/")]/@href', ctx.document)[0]);
-      return request(embedUrl, {charset : 'utf-8'}).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        return {
-          type    : 'video',
-          item    : ctx.title,
-          itemUrl : ctx.href,
-          body    : $X('//input[@name="script_code"]/@value', doc)[0]
-        };
-      });
+      var externalPlayerURL = 'http://ext.nicovideo.jp/thumb_' + ctx.pathname.slice(1) + '?thumb_mode=swf&ap=1&c=1';
+      return {
+        type    : 'video',
+        item    : ctx.title,
+        itemUrl : ctx.href,
+        body    : '<embed type="application/x-shockwave-flash" width="485" height="385" src="' + externalPlayerURL + '">'
+      };
     }
   },
 
