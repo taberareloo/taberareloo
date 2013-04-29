@@ -6,6 +6,11 @@ var Config  = background.TBRL.Config;
 var isPopup;
 var parentWindowId = null;
 
+var currentWindowId = null;
+chrome.windows.getCurrent(function(win) {
+  currentWindowId = win.id;
+});
+
 function getPs(query) {
   var d = new Deferred();
   if (query.quick) {
@@ -265,11 +270,23 @@ Form.prototype = {
       this.delete();
     }
     if (!isPopup) {
-      chrome.windows.get(parentWindowId, function(win) {
-        background.localStorage.setItem('popup_position', JSON.stringify({
-          top  : window.screenY - win.top,
-          left : window.screenX - win.left
-        }));
+      chrome.windows.getAll(function(wins) {
+        var currentWindow = null;
+        var parentWindow  = null;
+        for (var i = 0 ; i < wins.length ; i++) {
+          if (wins[i].id === parentWindowId) {
+            parentWindow = wins[i];
+          }
+          if (wins[i].id === currentWindowId) {
+            currentWindow = wins[i];
+          }
+        }
+        if (currentWindow && parentWindow && (currentWindow.state !== 'fullscreen')) {
+          background.localStorage.setItem('popup_position', JSON.stringify({
+            top  : window.screenY - parentWindow.top,
+            left : window.screenX - parentWindow.left
+          }));
+        }
       });
     }
   }
@@ -314,13 +331,19 @@ Form.resize = function() {
     var root = document.body;
     var height = root.scrollHeight - window.innerHeight;
     var width  = root.scrollWidth  - window.innerWidth;
-    chrome.windows.getCurrent({}, function(win) {
-      chrome.windows.update(win.id, {
-        width  : win.width + width,
-        height : win.height + height
-      });
+    chrome.windows.getCurrent(function(win) {
+      if (win.state !== 'fullscreen') {
+        chrome.windows.update(win.id, {
+          width  : win.width + width,
+          height : win.height + height
+        }, function(win) {
+          Form.nowResizing = false;
+        });
+      }
+      else {
+        Form.nowResizing = false;
+      }
     });
-    Form.nowResizing = false;
   } else {
     callLater(0.5, Form.resize);
   }
