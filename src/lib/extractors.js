@@ -903,7 +903,7 @@ Extractors.register([
       // HTMLモード
       var div = $X('./ancestor::div[@class="html_page_image"]', ctx.target)[0];
       if (div) {
-        var img = new Image();
+        var img = document.createElement('img');
         img.src = getStyle(div, 'background-image').replace(/url\((.*)\)/, '$1');
 
         return img;
@@ -1455,7 +1455,7 @@ Extractors.register([
       chrome.extension.sendMessage(TBRL.id, {
         request: "capture"
       }, function(res){
-        var img = new Image();
+        var img = document.createElement('img');
         img.addEventListener('load', function callee(ev) {
           img.removeEventListener('load', callee, false);
           scale = (img.naturalWidth === width)? null : img.naturalWidth / width;
