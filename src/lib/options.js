@@ -51,6 +51,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
   $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
   $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
   $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
+  $('label_notQueueReblogPost').appendChild($T(chrome.i18n.getMessage('label_notQueueReblogPost')));
   $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
   $('label_clipFullPage').appendChild($T(chrome.i18n.getMessage('label_clipFullPage')));
   $('label_removeHatenaKeyword').appendChild($T(chrome.i18n.getMessage('label_removeHatenaKeyword')));
@@ -121,6 +122,15 @@ connect(document, 'onDOMContentLoaded', document, function(){
 
   // Post with Queue
   var queue_check = new Check('post_with_queue', !!Config.post['post_with_queue']);
+  // Post with Queue
+  var not_queue_reblog_post_check = new Check('not_queue_reblog_post', !!Config.post['not_queue_reblog_post']);
+  if (!queue_check.body()) {
+    $('not_queue_reblog_post_checkbox').disabled = true;
+  }
+  $('post_with_queue_checkbox').addEventListener('change', function(){
+    $('not_queue_reblog_post_checkbox').disabled = !$('not_queue_reblog_post_checkbox').disabled;
+  });
+
   // Shorten URL
   var shorten_check = new Check('always_shorten_url', !!Config.post['always_shorten_url']);
   // Evernote - Clip Full Page
@@ -211,6 +221,7 @@ connect(document, 'onDOMContentLoaded', document, function(){
           "always_shorten_url" : shorten_check.body(),
           "multi_tumblelogs"   : tcheck,
           "post_with_queue"    : queue_check.body(),
+          "not_queue_reblog_post": not_queue_reblog_post_check.body(),
           "enable_google_plus_pages" : gcheck,
           'taberareloo_on_google_plus' : enableGooglePlusKey_check.body(),
           "shortcutkey_taberareloo_on_google_plus" : googlePlusKey_short.body(),

@@ -214,7 +214,12 @@ var Tumblr = {
     form['post[state]'] = (ps.private) ? 'private' : '0';
     if (TBRL.Config.post['post_with_queue']) {
       if (ps.type !== 'regular') {
-        form['post[state]'] = 2;
+        if (!(
+          TBRL.Config.post['not_queue_reblog_post'] &&
+            ps.favorite && ps.favorite.name === 'Tumblr'
+        )) {
+          form['post[state]'] = 2;
+        }
       }
     }
 

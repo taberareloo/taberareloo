@@ -48,6 +48,9 @@
   "label_postWithQueue": {
     "message": "Tumblr - キューに入れてポストする"
   },
+  "label_notQueueReblogPost": {
+    "message": "Reblogの場合はキューに入れない"
+  },
   "label_alwaysShortenURL": {
     "message": "Twitter - 常にURLを短縮する"
   },

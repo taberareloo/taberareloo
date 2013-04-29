@@ -48,6 +48,9 @@
   "label_postWithQueue": {
     "message": "Tumblr - Post with Queue"
   },
+  "label_notQueueReblogPost": {
+    "message": "Not enqueue in case of Reblog"
+  },
   "label_alwaysShortenURL": {
     "message": "Twitter - Always Shorten URL"
   },
