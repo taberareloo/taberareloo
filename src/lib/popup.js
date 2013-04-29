@@ -306,6 +306,9 @@ Form.shortcutkeys[KEY_ACCEL + ' + RETURN'] = function(){
 };
 
 Form.resize = function() {
+  if (isPopup) {
+    return;
+  }
   if(!Form.nowResizing){
     Form.nowResizing = true;
     var root = document.body;
