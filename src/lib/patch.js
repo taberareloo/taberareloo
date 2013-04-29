@@ -393,12 +393,28 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
     });
   },
 
-  setLocalCookie : function(key, value) {
-    document.cookie = escape(key) + '=' + escape(value);
+  setLocalCookie : function(c_name, value) {
+    document.cookie = c_name + '=' + escape(value);
   },
 
-  getLocalCookie : function(key) {
-    return unescape(document.cookie.replace(new RegExp("(?:^|.*;\\s*)" + unescape(key).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*"), "$1"));
+  getLocalCookie : function(c_name) {
+    var c_value = document.cookie;
+    var c_start = c_value.indexOf(" " + c_name + "=");
+    if (c_start == -1) {
+      c_start = c_value.indexOf(c_name + "=");
+    }
+    if (c_start == -1) {
+      c_value = null;
+    }
+    else {
+      c_start = c_value.indexOf("=", c_start) + 1;
+      var c_end = c_value.indexOf(";", c_start);
+      if (c_end == -1) {
+       c_end = c_value.length;
+      }
+      c_value = unescape(c_value.substring(c_start,c_end));
+    }
+    return c_value;
   }
 });
 Patches.initailize().addCallback(function() {
