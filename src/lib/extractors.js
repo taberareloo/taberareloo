@@ -1262,16 +1262,30 @@ Extractors.register([
       return ctx.href.match(/^http:\/\/www\.nicovideo\.jp\/watch\//);
     },
     extract : function(ctx){
-      var embedUrl = resolveRelativePath(ctx.href)($X('descendant::a[starts-with(@href, "/embed/")]/@href', ctx.document)[0]);
-      return request(embedUrl, {charset : 'utf-8'}).addCallback(function(res){
-        var doc = createHTML(res.responseText);
-        return {
-          type    : 'video',
-          item    : ctx.title,
-          itemUrl : ctx.href,
-          body    : $X('//input[@name="script_code"]/@value', doc)[0]
-        };
-      });
+      var externalPlayerURL = 'http://ext.nicovideo.jp/thumb_' + ctx.pathname.slice(1) + '?thumb_mode=swf&ap=1&c=1';
+
+      return {
+        type    : 'video',
+        item    : ctx.title,
+        itemUrl : ctx.href,
+        body    : '<embed type="application/x-shockwave-flash" width="485" height="385" src="' + externalPlayerURL + '">',
+        data    : (function(doc){
+          var thumbnail, description;
+
+          var image = doc.querySelector('.videoThumbnailImage, .img_std128, [itemprop="image"]');
+          if (image) {
+            thumbnail = image.src || image.content;
+          } else {
+            var script = doc.querySelector('#WATCHHEADER ~ script');
+            thumbnail = script && script.textContent.extract(/thumbnail:\s+'(.+)'/, 1).replace(/\\/g, '');
+          }
+
+          var desc = doc.querySelector('.videoDescription, [itemprop="description"], #itab_description');
+          description = desc && desc.textContent.trim();
+
+          return thumbnail && description && {thumbnail: thumbnail, description: description};
+        }(ctx.document))
+      };
     }
   },
 
