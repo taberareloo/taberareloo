@@ -557,7 +557,9 @@ Extractors.register([
         ctx.reblog_id = params.pid;
         ctx.reblog_key = params.rk;
       }
-      ctx.post_type = false;
+      if (!ctx.post_type) {
+        ctx.post_type = false;
+      }
       return this.getFormKeyAndChannelId(ctx).addCallback(function(){
         return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + ctx.reblog_id + '/' + ctx.reblog_key);
       });
@@ -665,6 +667,9 @@ Extractors.register([
         var data = post.dataset;
         ctx.reblog_id = data.postId;
         ctx.reblog_key = data.reblogKey;
+        if (TBRL.config.entry.not_convert_text && data.type === 'regular') {
+          ctx.post_type = 'text';
+        }
       }
 
       // タイトルなどを取得するためextractByLinkを使う(reblogリンクを取得しextractByEndpointを使った方が速い)
