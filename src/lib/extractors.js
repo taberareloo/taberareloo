@@ -432,7 +432,8 @@ Extractors.register([
           reblog_id: ctx.reblog_id,
           reblog_key: ctx.reblog_key,
           post_type: ctx.post_type
-      })}).addCallback(function(res){
+        })
+      }).addCallback(function(res){
         var response = JSON.parse(res.response);
         var post = response.post;
         var form = {
