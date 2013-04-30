@@ -494,31 +494,23 @@ Extractors.register([
           form.valid_embed_code = '';
         }
 
-        return succeed().addCallback(afterPhoto);
-        function afterPhoto() {
-          if(TBRL.config.entry['not_convert_text'] && form['post[type]'] === 'link'){
-            var m = ctx.href.match(/^http:\/\/([^\/]+)\/post\/([^\/]+)\/?/);
-            if(m){
-              return request('http://'+m[1]+'/api/read', {
-                charset: 'text/plain; charset=utf-8',
-                queryString: {
-                  id: m[2]
-                }
-              }).addCallback(function(res){
-                var xml = createXML(res.responseText);
-                var type = xml.getElementsByTagName('post')[0].getAttribute('type');
-                if(type === 'regular'){
-                  ctx.post_type = 'text';
-
-                  return that.getForm(ctx, url);
-                } else {
-                  return form;
-                }
-              });
-            }
+        return succeed().addCallback(function afterPhoto() {
+          if (!(TBRL.config.entry.not_convert_text && form['post[type]'] === 'link')) {
+            return form;
           }
-          return form;
-        }
+          return request($N('a', {href: ctx.href}).origin + '/api/read', {
+            queryString: {
+              id: ctx.reblog_id
+            }
+          }).addCallback(function(res){
+            var xml = res.responseXML;
+            if (xml.querySelector('post').getAttribute('type') === 'regular') {
+              ctx.post_type = 'text';
+              return that.getForm(ctx, url);
+            }
+            return form;
+          });
+        });
       }).addErrback(function(err){
         if (that.retry) {
           throw err;
