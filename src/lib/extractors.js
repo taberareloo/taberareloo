@@ -416,12 +416,10 @@ Extractors.register([
     TUMBLR_URL : 'http://www.tumblr.com/',
     extractByLink : function(ctx, link){
       var that = this;
-      return request(link).addCallback(function(res){
-        var text = res.responseText;
-        var doc = createHTML(res.responseText);
+      return request(link, {responseType: 'document'}).addCallback(function(res){
+        var doc = res.response;
         ctx.href = link;
-        var m = text.match(/<title(?:\s[^>]+?)?>([\S\s]*?)<\/title\s*>/i);
-        ctx.title = ((m)? m[1] : '').replace(/[\n\r]/g, '');
+        ctx.title = doc.title;
         return that.extractByPage(ctx, doc);
       });
     },
