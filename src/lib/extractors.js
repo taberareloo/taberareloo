@@ -593,7 +593,7 @@ Extractors.register([
       }
 
       var matches = doc.body.textContent.match(/document\.write\('<iframe src="(http:\/\/(www|assets)\.tumblr\.com\/iframe[^"]+)" width=/);
-      if (matches) {
+      if (matches && queryHash(matches[1]).pid) {
         return matches[1];
       }
 
