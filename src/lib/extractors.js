@@ -416,12 +416,10 @@ Extractors.register([
     TUMBLR_URL : 'http://www.tumblr.com/',
     extractByLink : function(ctx, link){
       var that = this;
-      return request(link).addCallback(function(res){
-        var text = res.responseText;
-        var doc = createHTML(res.responseText);
+      return request(link, {responseType: 'document'}).addCallback(function(res){
+        var doc = res.response;
         ctx.href = link;
-        var m = text.match(/<title(?:\s[^>]+?)?>([\S\s]*?)<\/title\s*>/i);
-        ctx.title = ((m)? m[1] : '').replace(/[\n\r]/g, '');
+        ctx.title = doc.title;
         return that.extractByPage(ctx, doc);
       });
     },
@@ -434,7 +432,8 @@ Extractors.register([
           reblog_id: ctx.reblog_id,
           reblog_key: ctx.reblog_key,
           post_type: ctx.post_type
-      })}).addCallback(function(res){
+        })
+      }).addCallback(function(res){
         var response = JSON.parse(res.response);
         var post = response.post;
         var form = {
@@ -496,31 +495,23 @@ Extractors.register([
           form.valid_embed_code = '';
         }
 
-        return succeed().addCallback(afterPhoto);
-        function afterPhoto() {
-          if(TBRL.config.entry['not_convert_text'] && form['post[type]'] === 'link'){
-            var m = ctx.href.match(/^http:\/\/([^\/]+)\/post\/([^\/]+)\/?/);
-            if(m){
-              return request('http://'+m[1]+'/api/read', {
-                charset: 'text/plain; charset=utf-8',
-                queryString: {
-                  id: m[2]
-                }
-              }).addCallback(function(res){
-                var xml = createXML(res.responseText);
-                var type = xml.getElementsByTagName('post')[0].getAttribute('type');
-                if(type === 'regular'){
-                  ctx.post_type = 'text';
-
-                  return that.getForm(ctx, url);
-                } else {
-                  return form;
-                }
-              });
-            }
+        return succeed().addCallback(function afterPhoto() {
+          if (!(TBRL.config.entry.not_convert_text && form['post[type]'] === 'link')) {
+            return form;
           }
-          return form;
-        }
+          return request($N('a', {href: ctx.href}).origin + '/api/read', {
+            queryString: {
+              id: ctx.reblog_id
+            }
+          }).addCallback(function(res){
+            var xml = res.responseXML;
+            if (xml.querySelector('post').getAttribute('type') === 'regular') {
+              ctx.post_type = 'text';
+              return that.getForm(ctx, url);
+            }
+            return form;
+          });
+        });
       }).addErrback(function(err){
         if (that.retry) {
           throw err;
@@ -561,12 +552,16 @@ Extractors.register([
     },
     extractByPage : function(ctx, doc){
       var that = this;
-      var params = queryHash(unescapeHTML(this.getFrameUrl(doc)));
-      ctx.reblog_id = params.pid;
-      ctx.reblog_key = params.rk;
-      ctx.post_type = false;
+      if (!(ctx.reblog_id && ctx.reblog_key)) {
+        var params = queryHash(unescapeHTML(this.getFrameUrl(doc)));
+        ctx.reblog_id = params.pid;
+        ctx.reblog_key = params.rk;
+      }
+      if (!ctx.post_type) {
+        ctx.post_type = false;
+      }
       return this.getFormKeyAndChannelId(ctx).addCallback(function(){
-        return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + params.pid + '/' + params.rk);
+        return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + ctx.reblog_id + '/' + ctx.reblog_key);
       });
     },
     extractByEndpoint : function(ctx, endpoint){
@@ -598,7 +593,7 @@ Extractors.register([
       }
 
       var matches = doc.body.textContent.match(/document\.write\('<iframe src="(http:\/\/(www|assets)\.tumblr\.com\/iframe[^"]+)" width=/);
-      if (matches) {
+      if (matches && queryHash(matches[1]).pid) {
         return matches[1];
       }
 
@@ -666,6 +661,17 @@ Extractors.register([
       return (/(tumblr-beta\.com|tumblr\.com)\//).test(ctx.href) && this.getLink(ctx);
     },
     extract : function(ctx){
+      var post = $X('./ancestor-or-self::li[starts-with(@id, "post_")]', ctx.target)[0];
+
+      if (post) {
+        var data = post.dataset;
+        ctx.reblog_id = data.postId;
+        ctx.reblog_key = data.reblogKey;
+        if (TBRL.config.entry.not_convert_text && data.type === 'regular') {
+          ctx.post_type = 'text';
+        }
+      }
+
       // タイトルなどを取得するためextractByLinkを使う(reblogリンクを取得しextractByEndpointを使った方が速い)
       return Extractors.ReBlog.extractByLink(ctx, this.getLink(ctx));
     },
