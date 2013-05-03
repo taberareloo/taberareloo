@@ -948,11 +948,11 @@ Extractors.register([
       return (ctx.onLink && ctx.link.href.match('http://lh..(google.ca|ggpht.com)/.*(png|gif|jpe?g)$'));
     },
     extract : function(ctx){
-      return request(ctx.link.href).addCallback(function(res){
+      return request(ctx.link.href, { responseType: 'document' }).addCallback(function(res){
         return {
           type    : 'photo',
           item    : ctx.title,
-          itemUrl : $X('//img[1]', createHTML(res.responseText))[0].src
+          itemUrl : $X('//img[1]', res.response)[0].src
         }
       });
     }

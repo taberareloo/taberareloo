@@ -192,8 +192,8 @@ var Tumblr = {
       });
     }
 
-    return request(url).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+    return request(url, { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
@@ -335,8 +335,8 @@ var Tumblr = {
    */
   getToken : function(){
     var self = this;
-    return request(Tumblr.TUMBLR_URL+'new/text').addCallback(function(res){
-      var doc = createHTML(res.responseText);
+    return request(Tumblr.TUMBLR_URL+'new/text', { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return self.token = $X('id("form_key")/@value', doc)[0];
@@ -345,8 +345,8 @@ var Tumblr = {
 
   getTumblelogs : function(){
     var self = this;
-    return request(Tumblr.LINK + 'settings').addCallback(function(res){
-      var doc = createHTML(res.responseText);
+    return request(Tumblr.LINK + 'settings', { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
@@ -499,11 +499,12 @@ Models.register({
     return request(this.URL + 'user/manage/do_register', {
       redirectionLimit : 0,
       referrer : this.URL,
+      responseType: 'document',
       queryString : {
         src : id
       }
     }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+      var doc = res.response;
       if($X('//form[@action="' + this.URL + 'admin/login"]', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
@@ -1168,9 +1169,10 @@ Models.register({
         queryString :  {
           url   : ps.itemUrl,
           title : ps.item
-        }
+        },
+        responseType: 'document'
       }).addCallback(function(res){
-        var doc = createHTML(res.responseText);
+        var doc = res.response;
         return request('http://previous.delicious.com/save', {
           sendContent : that.transformForm(update(formContents(doc, true), {
             title       : ps.item,
@@ -1250,9 +1252,10 @@ Models.register({
       queryString :  {
         op : 'edit',
         output : 'popup'
-      }
+      },
+      responseType: 'document'
     }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+      var doc = res.response;
       if(doc.getElementById('gaia_loginform'))
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
@@ -1276,9 +1279,10 @@ Models.register({
         op     : 'edit',
         output : 'popup',
         bkmk   : url
-      }
+      },
+      responseType: 'document'
     }).addCallback(function(res) {
-      var doc = createHTML(res.responseText);
+      var doc = res.response;
       var form = formContents(doc);
       return {
         saved       : (/(edit|編集)/i).test($X('//h1/text()', doc)[0]),
@@ -1293,9 +1297,10 @@ Models.register({
     return request('https://www.google.com/bookmarks/mark', {
       queryString : {
         op : 'add'
-      }
+      },
+      responseType: 'document'
     }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+      var doc = res.response;
       return doc.querySelectorAll('a[href^="/bookmarks/lookup?q=label:"]:not([href^="/bookmarks/lookup?q=label:%5Enone"])').reduce(function (memo, label) {
         memo.push({
           'name': label.firstChild.textContent.trim(),
@@ -1367,10 +1372,11 @@ Models.register({
       return request(endpoint, {
         queryString : {
           hl : 'en'
-        }
+        },
+        responseType: 'document'
       }).addCallback(function(res) {
         // form.secidはクッキー内のsecidとは異なる
-        var doc = createHTML(res.responseText);
+        var doc = res.response;
         var form = formContents(doc);
         return request(endpoint, {
           redirectionLimit : 0,
@@ -1504,8 +1510,8 @@ Models.register({
     ps = update({}, ps);
     var d = succeed();
     if(ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']){
-      d = encodedRequest(ps.itemUrl).addCallback(function(res){
-        var doc = createHTML(res.responseText);
+      d = encodedRequest(ps.itemUrl, { responseType: 'document' }).addCallback(function(res){
+        var doc = res.response;
         ps.body = convertToHTMLString(doc.documentElement, true);
       });
     }
@@ -1536,9 +1542,10 @@ Models.register({
       sendContent: {
         format    : 'microclip',
         quicknote : 'true'
-      }
+      },
+      responseType: 'document'
     }).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+      var doc = res.response;
       if($X('id("login_form")', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
@@ -1563,9 +1570,9 @@ Models.register({
 
   getToken : function(){
     var self = this;
-    return request('http://friendfeed.com/share/bookmarklet/frame')
+    return request('http://friendfeed.com/share/bookmarklet/frame', { responseType: 'document' })
     .addCallback(function(res){
-      var doc = createHTML(res.responseText);
+      var doc = res.response;
       if($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
@@ -1751,13 +1758,11 @@ Models.register({
           }
         }).addCallback(function(res) {
           var html = res.responseText;
-          var doc  = createHTML(res.responseText);
           var json = html.extract(/window.top.swift_tweetbox_taberareloo\((\{.+\})\);/);
           json = JSON.parse(json);
         }).addErrback(function(e) {
           var res  = e.message;
           var html = res.responseText;
-          var doc  = createHTML(res.responseText);
           var json = html.extract(/window.top.swift_tweetbox_taberareloo\((\{.+\})\);/);
           json = JSON.parse(json);
           throw new Error(json.error);
@@ -1787,8 +1792,8 @@ Models.register({
   post : function(ps){
     var url = this.POST_URL;
     var self = this;
-    return request(url).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+    return request(url, { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
       if(!$X('id("userpanel")/a[contains(concat(" ",normalize-space(@href)," "), " /user/logout ")]', doc)[0]){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
@@ -1817,8 +1822,8 @@ Models.register({
   },
   post : function(ps){
     var that = this;
-    return request('http://getpocket.com/edit').addCallback(function(res) {
-      var doc = createHTML(res.responseText);
+    return request('http://getpocket.com/edit', { responseType: 'document' }).addCallback(function(res) {
+      var doc = res.response;
       var form = doc.getElementsByTagName('form')[0];
       if (/login/.test(form.getAttribute('action'))) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -2121,8 +2126,8 @@ Models.register({
   },
   post : function(ps){
     var self = this;
-    return request(this.URL).addCallback(function(res){
-      var doc = createHTML(res.responseText);
+    return request(this.URL, { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
       var token = doc.querySelector('input[name="authenticity_token"]');
       if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," header-logged-in ")]', doc)[0] && token)){
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -2258,8 +2263,8 @@ Models.register({
   },
 
   addBookmark: function(url, title, tags, description, priv) {
-    return request('http://www.diigo.com/item/new/bookmark').addCallback(function(res){
-      var doc = createHTML(res.responseText);
+    return request('http://www.diigo.com/item/new/bookmark', { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
       var element = doc.getElementById('newBookmarkForm');
       if (!element) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -3529,8 +3534,8 @@ Models.register({
 
   _getBoards : function(check_login) {
     var self = this;
-    return request(this.BOOKMARK_URL).addCallback(function(res) {
-      var doc = createHTML(res.responseText);
+    return request(this.BOOKMARK_URL, { responseType: 'document' }).addCallback(function(res) {
+      var doc = res.response;
       var boards = [];
       // for old UI
       $X('//div[@class="BoardList"]//ul/li', doc).forEach(function(li) {

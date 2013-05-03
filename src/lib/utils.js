@@ -353,8 +353,15 @@ function unescapeHTML(s) {
     .replace(/&gt;/g, '>');
 }
 
+function shallowCopy(object) {
+  return Object.keys(object).reduce(function(res, key) {
+    res[key] = object[key];
+    return res;
+  }, {});
+}
+
 function update(t, s) {
-  if(s) {
+  if (s) {
     Object.keys(s).forEach(function(key) {
       t[key] = s[key];
     });
@@ -895,9 +902,11 @@ function request(url, opt) {
 }
 
 function binaryRequest(url, opt) {
-  return request(url, update({
-    charset: 'text/plain; charset=x-user-defined'
-  }, opt)).addCallback(function(res) {
+  var override = update(shallowCopy(opt), {
+    charset: 'text/plain; charset=x-user-defined',
+    responseType: 'text'
+  });
+  return request(url, override).addCallback(function(res) {
     res.responseText = res.responseText.replace(
       /[\u0100-\uffff]/g, function(c) {
       return String.fromCharCode(c.charCodeAt(0) & 0xff);
