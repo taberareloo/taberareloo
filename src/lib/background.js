@@ -367,6 +367,10 @@
         setter(k, log, TBRL.Config);
       });
       TBRL.Config.version = TBRL.VERSION;
+    },
+
+    isBackground: function () {
+      return true;
     }
   };
 

@@ -324,7 +324,12 @@
         ret.callback({});
       });
       return ret;
-    }())
+    }()),
+
+
+    isBackground: function () {
+      return false;
+    }
   };
 
   new DeferredList([
