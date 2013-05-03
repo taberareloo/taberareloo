@@ -15,5 +15,6 @@
     "white": true,
     "es5": true,
 
-    "browser": true
+    "browser": true,
+    "devel": true
 }
