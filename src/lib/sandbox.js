@@ -3,7 +3,7 @@
 
   var globalEval = ('global', eval);
 
-  window.onmessage = function(req) {
+  window.onmessage = function (req) {
     switch (req.data.action) {
     case 'evalJSON':
       var res = {

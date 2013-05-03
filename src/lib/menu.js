@@ -5,7 +5,7 @@
   var Menus = exports.Menus = MochiKit.Base.update(new Repository(), {
     separators : 0,
 
-    _register : function(createProperties, parent, target, after) {
+    _register : function (createProperties, parent, target, after) {
       var name = '';
 
       if (createProperties.type === 'separator') {
@@ -27,7 +27,7 @@
     top_menu : null,
     creating : false,
 
-    create : function(topMenuProperties) {
+    create : function (topMenuProperties) {
       var self = this;
 
       if (topMenuProperties) {
@@ -39,13 +39,13 @@
       }
       this.creating = true;
 
-      chrome.contextMenus.removeAll(function() {
+      chrome.contextMenus.removeAll(function () {
         if (self.top_menu.generatedId) {
           delete self.top_menu.generatedId;
         }
         var top_menu_id = chrome.contextMenus.create(self.top_menu);
 
-        self.values.forEach(function(menu) {
+        self.values.forEach(function (menu) {
           if (menu.parent && self[menu.parent]) {
             menu.properties.parentId = self[menu.parent].id || top_menu_id;
           }
@@ -64,11 +64,11 @@
   });
 
   // Menu registration
-  (function() {
+  (function () {
     Menus._register({
       title: 'Taberareloo',
       contexts: ['all'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenus',
           content: info
@@ -78,7 +78,7 @@
     Menus._register({
       title: 'Quote',
       contexts: ['selection'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusQuote',
           content: info
@@ -88,7 +88,7 @@
     Menus._register({
       title: 'Link',
       contexts: ['link'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusLink',
           content: info
@@ -98,7 +98,7 @@
     Menus._register({
       title: 'Photo',
       contexts: ['image'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImage',
           content: info
@@ -108,7 +108,7 @@
     Menus._register({
       title: 'Photo - Upload from Cache',
       contexts: ['image'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImageCache',
           content: info
@@ -118,7 +118,7 @@
     Menus._register({
       title: 'Video',
       contexts: ['video'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusVideo',
           content: info
@@ -128,7 +128,7 @@
     Menus._register({
       title: 'Audio',
       contexts: ['audio'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusAudio',
           content: info
@@ -139,7 +139,7 @@
       title: 'Photo - Flickr',
       contexts: ['all'],
       documentUrlPatterns: ['http://www.flickr.com/photos/*/*/*'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImage',
           content: info
@@ -149,7 +149,7 @@
     Menus._register({
       title: 'Photo - Capture',
       contexts: ['all'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusCapture',
           content: info
@@ -159,7 +159,7 @@
     Menus._register({
       title: 'Photo - Search - GoogleImage',
       contexts: ['image'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusSearchGoogleImage',
           content: info
@@ -169,7 +169,7 @@
     Menus._register({
       title: 'Photo - Background Image',
       contexts: ['all'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusBGImage',
           content: info
@@ -179,7 +179,7 @@
     Menus._register({
       title: 'Text',
       contexts: ['all'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusText',
           content: info
@@ -204,7 +204,7 @@
       title: 'Add to destinations',
       contexts: ['all'],
       documentUrlPatterns: googlePlusCommunitiesURLs,
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusAddGooglePlusCommunityCategory',
           content: info
@@ -215,7 +215,7 @@
       title: 'Remove from destinations',
       contexts: ['all'],
       documentUrlPatterns: googlePlusCommunitiesURLs,
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusRemoveGooglePlusCommunityCategory',
           content: info
@@ -235,8 +235,8 @@
       title: 'Patch - Install this',
       contexts: ['page'],
       documentUrlPatterns: patchFileURLs,
-      onclick: function(info) {
-        Patches.install(info.pageUrl).addCallback(function(res) {
+      onclick: function (info) {
+        Patches.install(info.pageUrl).addCallback(function (res) {
           if (res) {
             window.location.reload();
           }
