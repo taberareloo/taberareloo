@@ -1510,7 +1510,8 @@ Models.register({
     ps = update({}, ps);
     var d = succeed();
     if(ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']){
-      d = encodedRequest(ps.itemUrl, { responseType: 'document' }).addCallback(function(res){
+      // Because responseType: 'document' recognizes encoding
+      d= request(ps.itemUrl, { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
         ps.body = convertToHTMLString(doc.documentElement, true);
       });
