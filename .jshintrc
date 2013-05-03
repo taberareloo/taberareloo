@@ -13,6 +13,7 @@
     "strict": true,
     "trailing": true,
     "white": true,
+    "es5": true,
 
     "browser": true
 }
