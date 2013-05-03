@@ -42,7 +42,7 @@
           'src/lib/repository.js',
           'src/lib/sandbox.js',
           'src/lib/userscripts.js',
-          // 'src/lib/utils.js',
+          'src/lib/utils.js'
         ],
         options: {
           jshintrc: '.jshintrc',
