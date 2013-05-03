@@ -30,8 +30,19 @@
       jshint: {
         all: [
           'Gruntfile.js',
-          'src/lib/**/*.js',
-          '*.js'
+          'src/lib/background.js',
+          'src/lib/content.js',
+          // 'src/lib/extractors.js',
+          'src/lib/menu.js',
+          // 'src/lib/models.js',
+          'src/lib/options.js',
+          'src/lib/patch.js',
+          'src/lib/popup.js',
+          'src/lib/proto.js',
+          'src/lib/repository.js',
+          'src/lib/sandbox.js',
+          'src/lib/userscripts.js',
+          // 'src/lib/utils.js',
         ],
         options: {
           jshintrc: '.jshintrc',
