@@ -326,7 +326,6 @@
       return ret;
     }()),
 
-
     isBackground: function () {
       return false;
     }
