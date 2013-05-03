@@ -21,30 +21,31 @@
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+/*jshint node: true */
 (function () {
-    'use strict';
+  'use strict';
 
-    module.exports = function (grunt) {
-        grunt.initConfig({
-            jshint: {
-                all: [
-                    'Gruntfile.js',
-                    'src/lib/**/*.js',
-                    '*.js'
-                ],
-                options: {
-                    jshintrc: '.jshintrc',
-                    force: false
-                }
-            }
-        });
+  module.exports = function (grunt) {
+    grunt.initConfig({
+      jshint: {
+        all: [
+          'Gruntfile.js',
+          'src/lib/**/*.js',
+          '*.js'
+        ],
+        options: {
+          jshintrc: '.jshintrc',
+          force: false
+        }
+      }
+    });
 
-        // load tasks
-        grunt.loadNpmTasks('grunt-contrib-jshint');
+    // load tasks
+    grunt.loadNpmTasks('grunt-contrib-jshint');
 
-        // alias
-        grunt.registerTask('lint', 'jshint');
-        grunt.registerTask('default', 'lint');
-    };
+    // alias
+    grunt.registerTask('lint', 'jshint');
+    grunt.registerTask('default', 'lint');
+  };
 }());
-/* vim: set sw=4 ts=4 et tw=80 : */
+/* vim: set sw=2 ts=2 et tw=80 : */

@@ -420,3 +420,4 @@ console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
 Patches.initailize().addCallback(function() {
   Patches.load();
 });
+/* vim: set sw=2 ts=2 et tw=80 : */

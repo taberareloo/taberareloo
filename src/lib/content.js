@@ -605,3 +605,4 @@ chrome.extension.onMessage.addListener(function(req, sender, func){
     request: "loadPatchesInContent"
   }, function(res) {});
 })();
+/* vim: set sw=2 ts=2 et tw=80 : */

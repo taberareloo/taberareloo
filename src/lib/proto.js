@@ -280,3 +280,4 @@ Object.defineProperty(Number.prototype, "toHexString", {
     return ('0' + this.toString(16)).slice(-2);
   }
 });
+/* vim: set sw=2 ts=2 et tw=80 : */
