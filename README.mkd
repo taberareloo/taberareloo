@@ -1,4 +1,4 @@
-# Taberareloo
+# Taberareloo [![Build Status](https://travis-ci.org/Constellation/taberareloo.png?branch=master)](https://travis-ci.org/Constellation/taberareloo)
 
 ![taberareloo](https://raw.github.com/Constellation/taberareloo/master/src/skin/fork64.png)
 
