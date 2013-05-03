@@ -406,7 +406,7 @@
     },
 
     setLocalCookie : function (c_name, value) {
-      document.cookie = c_name + '=' + escape(value);
+      document.cookie = c_name + '=' + encodeURIComponent(value);
     },
 
     getLocalCookie : function (c_name) {
@@ -423,7 +423,7 @@
         if (c_end === -1) {
           c_end = c_value.length;
         }
-        c_value = unescape(c_value.substring(c_start, c_end));
+        c_value = decodeURIComponent(c_value.substring(c_start, c_end));
       }
       return c_value;
     }
