@@ -352,7 +352,7 @@
           match_pattern += '[^/]+';
         } else {
           if (result[1]) {         // Subdomain wildcard exists
-            match_pattern += '(?:[^/]+\.)?';
+            match_pattern += '(?:[^/]+\\.)?';
           }
           // Append host (escape special regex characters)
           match_pattern += regEscape(result[2]);
