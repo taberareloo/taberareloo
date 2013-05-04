@@ -199,7 +199,7 @@
               (metadata.include.indexOf('background') !== -1)
             )
           ) {
-            var patch = this[fileName] || {};
+            var patch = self[fileName] || {};
             if (patch.dom) {
               patch.dom.parentNode.removeChild(patch.dom);
             }
