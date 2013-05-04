@@ -263,15 +263,23 @@
               left : 50
             };
           }
-          chrome.windows.create({
-            url     : chrome.extension.getURL('popup.html') + query,
-            top     : win.top  + pos.top,
-            left    : win.left + pos.left,
-            width   : 450,
-            height  : 200,
-            focused : true,
-            type    : 'popup'
-          });
+          if ((/mac/i.test(navigator.platform)) && (win.state === 'fullscreen')) {
+            chrome.tabs.create({
+              windowId : win.id,
+              url      : chrome.extension.getURL('popup.html') + query
+            });
+          }
+          else {
+            chrome.windows.create({
+              url     : chrome.extension.getURL('popup.html') + query,
+              top     : win.top  + pos.top,
+              left    : win.left + pos.left,
+              width   : 450,
+              height  : 200,
+              focused : true,
+              type    : 'popup'
+            });
+          }
         });
       },
       defaultSuggester: 'HatenaBookmark',
