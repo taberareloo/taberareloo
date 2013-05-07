@@ -88,6 +88,7 @@
         switch (file.type) {
         case 'text/plain':
         case 'text/javascript':
+        case 'application/javascript':
         case 'application/x-javascript':
           break;
         default:
