@@ -587,9 +587,9 @@ Extractors.register([
       });
     },
     getFrameUrl : function(doc){
-      var elm = $X('//iframe[(starts-with(@src, "http://www.tumblr.com/iframe") or starts-with(@src, "http://assets.tumblr.com/iframe")) and contains(@src, "pid=")]/@src', doc);
-      if (elm.length) {
-        return elm[0];
+      var tumblr_controls = doc.querySelector('iframe#tumblr_controls');
+      if (tumblr_controls && queryHash(tumblr_controls.src).pid) {
+        return tumblr_controls.src;
       }
 
       var matches = doc.body.textContent.match(/document\.write\('<iframe src="(http:\/\/(www|assets)\.tumblr\.com\/iframe[^"]+)" width=/);
