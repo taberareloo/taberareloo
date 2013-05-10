@@ -608,7 +608,7 @@ Extractors.register([
 
       var url = doc.body.textContent.extract(/(?:<|\\x3c)iframe\b[\s\S]*?src\s*=\s*(["']|\\x22)(http:\/\/(?:www|assets)\.tumblr\.com\/.*?iframe.*?)\1/i, 2);
       if (queryHash(url).pid) {
-        return url.replace(/\\x22/g, '"').replace(/\\x26/g, '&');
+        return url.replace(/\\x26/g, '&');
       }
 
       return '';
