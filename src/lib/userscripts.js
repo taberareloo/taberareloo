@@ -236,7 +236,7 @@
         // slightly modified.
         function FlashMessage() {
           var opacity = 0.9;
-          var flash = $N('div', { id: 'FLASH_MESSAGE' });
+          var flash = $N('div', { class: 'FLASH_MESSAGE' });
 
           function hide(target) {
             target.style.display = 'none';

@@ -1,4 +1,4 @@
-div#FLASH_MESSAGE{
+.FLASH_MESSAGE {
   position : fixed;
   font-size : 500%;
   z-index : 10000;
