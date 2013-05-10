@@ -360,10 +360,9 @@
             api_key        : this.API_KEY,
             nojsoncallback : 1,
             format         : 'json',
-          }, ps),
-          responseType: 'json'
+          }, ps)
         }).addCallback(function (res) {
-          var json = res.response;
+          var json = JSON.parse(res.responseText);
           if (json.stat !== 'ok') {
             throw json.message;
           }
