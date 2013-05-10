@@ -267,11 +267,9 @@ Extractors.register([
       }
       url = url.join('.').replace('.L.LZZZZZZZ.', '.L.'); // カスタマーイメージ用
 
-      with (ctx.target) {
-        src = url;
-        height = '';
-        width = '';
-      }
+      ctx.target.src = url;
+      ctx.target.height = '';
+      ctx.target.width = '';
 
       return {
         type    : 'photo',
