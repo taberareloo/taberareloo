@@ -554,6 +554,20 @@ Extractors.register([
       var that = this;
       if (!(ctx.reblog_id && ctx.reblog_key)) {
         var params = queryHash(unescapeHTML(this.getFrameUrl(doc)));
+        if (!params.pid && /^http:\/\/[^.]+\.tumblr\.com\/post\/\d+/.test(doc.URL)) {
+          var anchor = $N('a', {href: doc.URL});
+          return request(anchor.origin + '/api/read', {
+            queryString: {
+              id: anchor.pathname.replace('/post/', '')
+            }
+          }).addCallback(function(res){
+            var xml = res.responseXML;
+            var post = xml.querySelector('post');
+            ctx.reblog_id = post.getAttribute('id');
+            ctx.reblog_key = post.getAttribute('reblog-key');
+            return that.extractByPage(ctx, doc);
+          });
+        }
         ctx.reblog_id = params.pid;
         ctx.reblog_key = params.rk;
       }
@@ -587,14 +601,14 @@ Extractors.register([
       });
     },
     getFrameUrl : function(doc){
-      var elm = $X('//iframe[(starts-with(@src, "http://www.tumblr.com/iframe") or starts-with(@src, "http://assets.tumblr.com/iframe")) and contains(@src, "pid=")]/@src', doc);
-      if (elm.length) {
-        return elm[0];
+      var tumblr_controls = doc.querySelector('iframe#tumblr_controls');
+      if (tumblr_controls && queryHash(tumblr_controls.src).pid) {
+        return tumblr_controls.src;
       }
 
-      var matches = doc.body.textContent.match(/document\.write\('<iframe src="(http:\/\/(www|assets)\.tumblr\.com\/iframe[^"]+)" width=/);
-      if (matches && queryHash(matches[1]).pid) {
-        return matches[1];
+      var url = doc.body.textContent.extract(/(?:<|\\x3c)iframe\b[\s\S]*?src\s*=\s*(["']|\\x22)(http:\/\/(?:www|assets)\.tumblr\.com\/.*?iframe.*?)\1/i, 2);
+      if (queryHash(url).pid) {
+        return url.replace(/\\x26/g, '&');
       }
 
       return '';
