@@ -63,6 +63,7 @@
     getPs(query).addCallback(function (ps) {
       isPopup = !query.quick;
       form = new Form(ps);
+      background.Patches.loadInPopup(document);
     });
   });
 

@@ -325,6 +325,22 @@
       });
     },
 
+    loadInPopup : function (doc) {
+      this.values.forEach(function (patch) {
+        var preference = Patches.getPreferences(patch.name) || {};
+        if (
+          !preference.disabled &&
+          patch.metadata.include && Array.isArray(patch.metadata.include) &&
+          (patch.metadata.include.indexOf('popup') !== -1)
+        ) {
+          var script = doc.createElement('script');
+          script.src = patch.fileEntry.toURL();
+          (doc.body || doc.documentElement).appendChild(script);
+          console.log('Load patch in popup : ' + patch.fileEntry.fullPath);
+        }
+      });
+    },
+
     parseMatchPattern : function (input) {
       if (typeof input !== 'string') {
         return null;
