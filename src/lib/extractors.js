@@ -592,9 +592,9 @@ Extractors.register([
         return tumblr_controls.src;
       }
 
-      var matches = doc.body.textContent.match(/document\.write\('<iframe src="(http:\/\/(www|assets)\.tumblr\.com\/iframe[^"]+)" width=/);
-      if (matches && queryHash(matches[1]).pid) {
-        return matches[1];
+      var url = doc.body.textContent.extract(/(?:<|\\x3c)iframe\b[\s\S]*?src\s*=\s*(["']|\\x22)(http:\/\/(?:www|assets)\.tumblr\.com\/.*?iframe.*?)\1/i, 2);
+      if (queryHash(url).pid) {
+        return url.replace(/\\x22/g, '"').replace(/\\x26/g, '&');
       }
 
       return '';
