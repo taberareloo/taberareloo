@@ -554,6 +554,20 @@ Extractors.register([
       var that = this;
       if (!(ctx.reblog_id && ctx.reblog_key)) {
         var params = queryHash(unescapeHTML(this.getFrameUrl(doc)));
+        if (!params.pid && /^http:\/\/[^.]+\.tumblr\.com\/post\/\d+/.test(doc.URL)) {
+          var anchor = $N('a', {href: doc.URL});
+          return request(anchor.origin + '/api/read', {
+            queryString: {
+              id: anchor.pathname.replace('/post/', '')
+            }
+          }).addCallback(function(res){
+            var xml = res.responseXML;
+            var post = xml.querySelector('post');
+            ctx.reblog_id = post.getAttribute('id');
+            ctx.reblog_key = post.getAttribute('reblog-key');
+            return that.extractByPage(ctx, doc);
+          });
+        }
         ctx.reblog_id = params.pid;
         ctx.reblog_key = params.rk;
       }
