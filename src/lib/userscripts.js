@@ -561,13 +561,13 @@
       }
     },
     like : function (current) {
-      var like = $X('./descendant-or-self::a[contains(concat(" ", normalize-space(@class), " "), " like_button ")]', current)[0];
+      var like = current.querySelector('.like_button');
       if (like) {
         like.click();
       }
     },
     reblogCount: function (current) {
-      var count = $X('.//a[contains(concat(" ",@class," "), " reblog_count ")]', current)[0];
+      var count = current.querySelector('.reblog_count');
       if (count) {
         count.click();
       }
