@@ -517,7 +517,7 @@
       }
     },
     exec : function () {
-      document.addEventListener('keydown', this.wrap, false);
+      window.addEventListener('keydown', this.wrap, true);
     },
     fire : function (ev) {
       if (!('selectionStart' in ev.target && ev.target.disabled !== true)) {
@@ -573,7 +573,7 @@
       }
     },
     unload: function () {
-      document.removeEventListener('keydown', this.wrap, false);
+      window.removeEventListener('keydown', this.wrap, true);
     },
     wrap  : function (ev) {
       return UserScripts['Play on Tumblr'].fire(ev);
