@@ -4,7 +4,7 @@
 /*global Keybind:true, get_active_feed:true, get_active_item:true*/
 /*global $X:true, createFlavoredString:true, update:true, Extractors:true*/
 /*global $N:true, Deferred:true, keyString:true, stop:true, Tumblr:true*/
-/*global tagName:true, MochiKit:true*/
+/*global tagName:true, MochiKit:true, MouseEvent:true*/
 (function (exports) {
   'use strict';
 
@@ -517,7 +517,7 @@
       }
     },
     exec : function () {
-      document.addEventListener('keydown', this.wrap, false);
+      window.addEventListener('keydown', this.wrap, true);
     },
     fire : function (ev) {
       if (!('selectionStart' in ev.target && ev.target.disabled !== true)) {
@@ -533,47 +533,95 @@
       }
     },
     play : function (current) {
-      var small = !!$X('.//img[contains(@class, "image_thumbnail")]', current)[0];
-      if (small) {
-        var img = $X('.//div[starts-with(@id, "highres_photo")]', current)[0];
-        if (img) {
-          if (img.style.display !== 'none') {
-            $X('./a', img)[0].click();
-          } else {
-            $X('./preceding-sibling::a[1]', img)[0].click();
-          }
-          return;
-        }
-      }
-      if ($X('.//div[contains(@id, "watch_") and .//a]', current).some(function (mov) {
-        if (mov.style.display !== 'none') {
-          $X('.//a', mov)[0].click();
-          return true;
-        }
-        return false;
-      })) {
+      // quit photoset lightbox or panorama lightbox
+      var lightbox = document.body.querySelector('#tumblr_lightbox, .pano_lightbox');
+      if (lightbox) {
+        lightbox.click();
         return;
       }
-      if (small) {
-        $X('.//img[contains(@src, "media.tumblr.com/tumblr_")]', current).forEach(function (timg) {
-          timg.click();
-        });
+
+      // for photo(not full size) post, inline image
+      var small_image = current.querySelector(
+        '.image_thumbnail, .constrained_image'
+      );
+      if (small_image) {
+        small_image.click();
+      }
+
+      var data = current.dataset;
+
+      // for Tumblr uploaded audio post
+      if (data.type === 'audio') {
+        var audio_player_overlay = current.querySelector('.audio_player_overlay');
+        if (audio_player_overlay) {
+          audio_player_overlay.dispatchEvent(new MouseEvent('mousedown'));
+        }
+        return;
+      }
+
+      // for Tumblr uploaded video post
+      if (data.type === 'video' && data.directVideo === '1') {
+        var tumblr_video_iframe = current.querySelector('.tumblr_video_iframe');
+
+        if (tumblr_video_iframe) {
+          var contentDocument = tumblr_video_iframe.contentDocument;
+          if (contentDocument) {
+            var tumblr_video_player = contentDocument.querySelector('.tumblr_video_player');
+            if (!tumblr_video_player) {
+              return;
+            }
+
+            // toggle video playing and video lightbox launching
+            if (current.classList.contains('is_lightbox')) {
+              var tvp_pause_button = tumblr_video_player.querySelector('.tvp_pause_button');
+              if (tvp_pause_button) {
+                tvp_pause_button.click();
+              }
+              var close_button = current.querySelector('.close_button');
+              if (close_button) {
+                close_button.click();
+              }
+            } else {
+              var tvp_play_button = tumblr_video_player.querySelector('.tvp_play_button');
+              var init = tumblr_video_player.classList.contains('init');
+              if (tvp_play_button) {
+                tvp_play_button.click();
+              }
+              if (init) {
+                var tvp_fullscreen_button = tumblr_video_player.querySelector('.tvp_fullscreen_button');
+                if (tvp_fullscreen_button) {
+                  tvp_fullscreen_button.click();
+                }
+              }
+            }
+          }
+        }
+
+        return;
+      }
+
+      // for photoset, panorama, link, video post.
+      var target = current.querySelector(
+        '.photoset_photo, .panorama, .link_title, .big_play_button'
+      );
+      if (target) {
+        target.click();
       }
     },
     like : function (current) {
-      var like = $X('./descendant-or-self::a[contains(concat(" ", normalize-space(@class), " "), " like_button ")]', current)[0];
+      var like = current.querySelector('.like_button');
       if (like) {
         like.click();
       }
     },
     reblogCount: function (current) {
-      var count = $X('.//a[contains(concat(" ",@class," "), " reblog_count ")]', current)[0];
+      var count = current.querySelector('.reblog_count');
       if (count) {
         count.click();
       }
     },
     unload: function () {
-      document.removeEventListener('keydown', this.wrap, false);
+      window.removeEventListener('keydown', this.wrap, true);
     },
     wrap  : function (ev) {
       return UserScripts['Play on Tumblr'].fire(ev);
