@@ -1,6 +1,6 @@
 # Taberareloo [![Build Status](https://travis-ci.org/Constellation/taberareloo.png?branch=master)](https://travis-ci.org/Constellation/taberareloo)
 
-[![taberareloo](https://raw.github.com/Constellation/taberareloo/master/src/skin/fork64.png)](https://github.com/Constellation/taberareloo)
+[![Build Status](https://drone.io/github.com/Constellation/taberareloo/status.png)](https://drone.io/github.com/Constellation/taberareloo/latest) [![taberareloo](https://raw.github.com/Constellation/taberareloo/master/src/skin/fork64.png)](https://github.com/Constellation/taberareloo)
 
 ## DESCRIPTION
 

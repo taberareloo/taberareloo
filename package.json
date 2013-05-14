@@ -8,6 +8,6 @@
     "grunt-contrib-jshint": "~0.4.1"
   },
   "scripts": {
-    "test": "node_modules/.bin/grunt travis --verbose"
+    "test": "node_modules/.bin/grunt travis"
   }
 }
