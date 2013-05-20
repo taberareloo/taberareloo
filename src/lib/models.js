@@ -2622,123 +2622,91 @@ Models.register({
       var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
       return Sandbox.evalJSON(initialData).addCallback(function(json) {
         var data = self.getDataByKey(json[0], 'lpd');
-        if (!data || !data[1]) return '';
-
-        var snippet = data[2].length ? data[2] : data[3];
-        return snippet[snippet.length - 1][21];
+        return data;
       });
     });
   },
 
-  createLinkSpar : function(ps) {
-    if (ps.type === 'regular') {
-      return JSON.stringify([]);
-    }
-
-    var isYoutube = (ps.type === 'video' && ps.itemUrl.match(this.YOUTUBE_REGEX));
-    var videoUrl = '';
-    var imageUrl = '//s2.googleusercontent.com/s2/favicons?domain=' + createURI(ps.pageUrl).host;
-    if (isYoutube) {
-      videoUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
-          'http://www.youtube.com/v/$1&hl=en&fs=1&autoplay=1');
-      imageUrl = ps.itemUrl.replace(this.YOUTUBE_REGEX,
-          'http://ytimg.googleusercontent.com/vi/$1/hqdefault.jpg');
-    }
-    if (ps.upload) {
-      imageUrl = ps.upload.url;
-    }
-
-    var link = [];
-    link.push(
-      null, null, null,
-      ps.upload ? '' : ps.item || ps.page,
-      null,
-      isYoutube ? [null, videoUrl, 385, 640] :
-        ps.upload ? [null, ps.upload.url, ps.upload.height, ps.upload.width] : null,
-      null, null, null,
-      isYoutube ? [[null, ps.author || '', 'uploader']] : [],
-      null, null, null, null, null,
-      null, null, null, null, null, null,
-      ps.body ? '&ldquo;' + getFlavor(ps, 'html') + '&rdquo;' : '',
-      null, null
-    );
-    switch (ps.type) {
-    case 'video':
-      link.push([null, ps.pageUrl, null, 'application/x-shockwave-flash', 'video']);
-      break;
-    case 'photo':
-      if (ps.upload) {
-        link.push([null, ps.upload.photoPageUrl, null, ps.upload.mimeType, 'image']);
+  getMediaLayout : function(ps, oz) {
+    var self = this;
+    var data = [];
+    var info = self.createMediaInfo(ps);
+    data.push(JSON.stringify([info]));
+    data.push([2,null,null,null,null,null,null,null,null,null,null,null,null,[]]);
+    return request(this.HOME_URL + '_/sharebox/medialayout/' + '?' + queryString({
+      hl     : 'en',
+      _reqid : this.getReqid(),
+      rt     : 'j'
+    }), {
+      sendContent : {
+        'f.req' : JSON.stringify(data),
+        at      : oz[1][15]
       }
-      else {
-        link.push([null, ps.pageUrl, null, 'text/html', 'document']);
-      }
-      break;
-    default:
-      link.push([null, ps.itemUrl || ps.pageUrl, null, 'text/html', 'document']);
-    }
-    link.push(
-      null, null, null, null, null,
-      null, null, null, null, null,
-      null, null, null, null, null, null,
-      [
-        [null, imageUrl, null, null],
-        [null, imageUrl, null, null]
-      ],
-      null, null, null, null, null
-    );
-    if (ps.upload) {
-      link.push([
-        [null, 'picasa', 'http://google.com/profiles/media/provider'],
-        [
-          null,
-          queryString({
-            albumid : ps.upload.albumid,
-            photoid : ps.upload.photoid
-          }),
-          'http://google.com/profiles/media/onepick_media_id'
-        ]
-      ]);
-    }
-    else {
-      link.push([
-        [
-          null,
-          isYoutube ? 'youtube' : '',
-          'http://google.com/profiles/media/provider'
-        ]
-      ]);
-    }
-
-    return JSON.stringify(link);
+    }).addCallback(function(res) {
+      var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
+      return Sandbox.evalJSON(initialData).addCallback(function(json) {
+        var data = self.getDataByKey(json[0], 't.mlr');
+        return data;
+      });
+    });
   },
 
-  craetePhotoSpar : function(ps) {
-    var mime = getImageMimeType(ps.itemUrl);
-    return JSON.stringify([
-      null, null, null, null, null,
-      [null, ps.itemUrl],
+  makeSnippetPostable : function(snippet) {
+    for (var i = 0, len = snippet.length ; i < len ; i++) {
+      var item = snippet[i];
+      if (Array.isArray(item)) {
+        snippet[i] = this.makeSnippetPostable(item);
+      }
+      else if ((item !== null) && (typeof item === 'object')) {
+        for(var key in item) {
+          snippet[i][key] = this.makeSnippetPostable(item[key]);
+        }
+        for (var j = i ; j < 5 ; j++) {
+          snippet.splice(i, 0, null);
+        }
+        break;
+      }
+    }
+    return snippet;
+  },
+
+  createMediaInfo : function(ps) {
+    var info = [];
+    info.push(
+      null, null, null,
+      '',
+      null,
+      [null, ps.upload.url, ps.upload.height, ps.upload.width],
       null, null, null,
       [],
       null, null, null, null, null,
-      null, null, null, null, null,
-      null, null, null, null,
-      [
-        null, ps.pageUrl, null, mime, 'photo',
-        null, null, null, null, null, null, null, null, null
-      ],
+      null, null, null, null, null, null,
+      '',
+      null, null
+    );
+    info.push([null, ps.upload.photoPageUrl, null, ps.upload.mimeType, 'image']);
+    info.push(
       null, null, null, null, null,
       null, null, null, null, null,
       null, null, null, null, null, null,
       [
-        [null, ps.itemUrl, null, null],
-        [null, ps.itemUrl, null, null]
+        [null, ps.upload.url, null, null],
+        [null, ps.upload.url, null, null]
       ],
-      null, null, null, null, null,
+      null, null, null, null, null
+    );
+    info.push([
+      [null, 'picasa', 'http://google.com/profiles/media/provider'],
       [
-        [null, 'images', 'http://google.com/profiles/media/provider']
+        null,
+        queryString({
+          albumid : ps.upload.albumid,
+          photoid : ps.upload.photoid
+        }),
+        'http://google.com/profiles/media/onepick_media_id'
       ]
     ]);
+    return JSON.stringify(info);
   },
 
   createScopeSpar : function(ps) {
@@ -2769,88 +2737,149 @@ Models.register({
 
   _post : function(ps, oz) {
     var self = this;
+    return (
+      (!ps.upload && !ps.reshare && (ps.type !== 'regular') && ps.pageUrl) ?
+       this.getSnippetFromURL(ps.pageUrl, oz) :
+       (ps.upload ? this.getMediaLayout(ps, oz) : succeed())
+    ).addCallback(function(snippet) {
 
-    return ((!ps.upload && !ps.body && (ps.type === 'link'))
-      ? this.getSnippetFromURL(ps.pageUrl, oz)
-      : succeed(ps.body)).addCallback(function(snippet) {
-      ps.body = snippet;
-
-      if (ps.type === 'video' && ps.data) {
-        ps.type    = 'photo';
-        ps.itemUrl = ps.data.thumbnail;
-        ps.body    = ps.data.description;
-      }
-
-      var description = (ps.description == null) ? '' : ps.description;
+      var description = ps.description || '';
       if (ps.type === 'regular') {
         description = joinText([ps.item, ps.description], "\n");
       }
+      var body = ps.body || '';
+      ps.body  = null;
+      if (body) {
+        body = body.replace(/\r\n/g, "\n");
+        body = body.replace(/\n<br(\s*\/)?>/ig, "\n");
+        body = body.replace(/<br(\s*\/)?>\n/ig, "\n");
+        body = body.replace(/<br(\s*\/)?>/ig, "\n");
+        body = body.trimTag().trim();
+        description = joinText([description, '“' + body + '”'], "\n\n");
+      }
       if (ps.upload) {
-        description = joinText([
+        body = joinText([
           (ps.item || ps.page) ? '*' + (ps.item || ps.page) + '*' : '', ps.pageUrl,
-          (ps.body) ? '“' + ps.body + '”' : ''], "\n");
-        description = joinText([ps.description, description], "\n\n");
+          body ? '“' + body + '”' : ''], "\n");
+        description = joinText([ps.description, body], "\n\n");
       }
 
-      var spar = [];
+      var data = [];
       if (ps.reshare) {
-        description = (ps.description == null) ? '' : ps.description;
-        spar.push(
-          description,
+        data.push(
+          ps.description || '',
           self.getToken(oz),
           ps.favorite.id,
-          null, null, null
+          null, null, null,
+          JSON.stringify([])
         );
-        spar.push(JSON.stringify([]));
       }
       else {
-        spar.push(
+        data.push(
           description,
           self.getToken(oz),
           null,
-          ps.upload ? ps.upload.albumid : null,
-          null, null
+          ps.upload ? ps.upload.albumid : null, null, null
         );
-
-        var link = self.createLinkSpar(ps);
-
-        if (ps.type === 'photo' && !ps.upload) {
-          var photo = self.craetePhotoSpar(ps);
-          spar.push(JSON.stringify([link, photo]));
+        if (ps.upload) {
+          var link = self.createMediaInfo(ps);
+          data.push(JSON.stringify([link]));
         }
         else {
-          spar.push(JSON.stringify([link]));
+          data.push(JSON.stringify([]));
         }
       }
 
-      spar.push(null, null);
+      data.push(null, null);
       var scopes = JSON.parse(ps.scope);
-      spar.push((scopes[0].scopeType !== 'community'));
-      spar.push([], false, null, null, [], null, false);
-      spar.push(null, null);
-      spar.push(ps.upload ? oz[2][0] : null);
-      spar.push(null, null);
-      spar.push(null, null, null, null, null);
-      spar.push(false, false, !!ps.upload);
-      spar.push(null, null, null, null);
+      data.push((scopes[0].scopeType !== 'community'));
+      data.push([], false, null, null, [], null, false);
+      data.push(null, null);
+      data.push(ps.upload ? oz[2][0] : null);
+      data.push(null, null);
+      data.push(null, null, null, null, null);
+      data.push(false, false, !!ps.upload);
+      data.push(null, null, null, null);
       if (ps.upload) {
-        spar.push(null); // medialayout
+        snippet = self.makeSnippetPostable(snippet[2][0]);
+        data.push(snippet);
       }
       else {
-        spar.push(null);
+        if (snippet) {
+          var media_type;
+          switch (snippet[4][0][0]) {
+          case 1:
+            media_type = 'link';
+            break;
+          case 2:
+            media_type = 'video';
+            break;
+          default:
+            media_type = 'link';
+          }
+          snippet = self.makeSnippetPostable(snippet[5][0]);
+          if ((media_type !== 'video')) {
+            for (var key in snippet[5]) {
+              if (ps.type === 'photo') {
+                snippet[5][key][1] = ps.itemUrl;
+                if (!snippet[5][key][5]) {
+                  snippet[5][key][5] = [];
+                  snippet[5][key][5][1] = 150;
+                  snippet[5][key][5][2] = 150;
+                }
+                snippet[5][key][5][0] = ps.itemUrl;
+                if (!snippet[5][key][184]) {
+                  snippet[5][key][184] = [];
+                  snippet[5][key][184][0] = [339, 338, 336, 335, 0];
+                  snippet[5][key][184][5] = {40265033 : []};
+                }
+
+                function setImageToSnippet184(snippet184, image) {
+                  snippet184[1] = image;
+                  if (snippet184[5] && (typeof snippet184[5] === 'object')) {
+                    for (var key in snippet184[5]) {
+                      snippet184[5][key][0] = image;
+                      snippet184[5][key][1] = image;
+
+                      if (Array.isArray(snippet184[5][key][184])) {
+                        setImageToSnippet184(snippet184[5][key][184], image);
+                      }
+                    }
+                  }
+                }
+                setImageToSnippet184(snippet[5][key][184], ps.itemUrl);
+              }
+              if (ps.type === 'quote') {
+                snippet[5][key][1] = null;
+                snippet[5][key][5] = null;
+                snippet[5][key][7] = null;
+                snippet[5][key][10] = null;
+                snippet[5][key][184] = null;
+              }
+              snippet[5][key][2] = ps.item || ps.page;
+              if (ps.type !== 'link') {
+                snippet[5][key][3] = ps.body ? ps.body.trimTag().trim() : null;
+              }
+            }
+          }
+          data.push(snippet);
+        }
+        else {
+          data.push(null);
+        }
       }
-      spar.push(null);
+      data.push(null);
 
       if (scopes[0].scopeType === 'community') {
-        spar.push([[scopes[0].id, scopes[0].category]]);
+        data.push([[scopes[0].id, scopes[0].category]]);
       }
       else {
-        spar.push([]);
+        data.push([]);
       }
 
-      spar.push(self.createScopeSpar(ps));
+      data.push(self.createScopeSpar(ps));
 
-      spar.push(null, null, null, null, null, null);
+      data.push(null, null, null, null, null, null);
 
       var url = self.HOME_URL + self.BASE_URL + self.POST_URL;
       return request(url + '?' + queryString({
@@ -2859,7 +2888,7 @@ Models.register({
         rt     : 'j'
       }), {
         sendContent : {
-          'f.req' : JSON.stringify(spar),
+          'f.req' : JSON.stringify(data),
           at      : oz[1][15]
         }
       });
@@ -3091,23 +3120,23 @@ Models.register({
   getCommunityCategories : function(community_id) {
     var self = this;
     return this.getOZData().addCallback(function(oz) {
-      var url = self.HOME_URL + self.BASE_URL + '_/communities/members';
+      var url = self.HOME_URL + self.BASE_URL + '_/communities/readmembers';
       return request(url + '?' + queryString({
         hl     : 'en',
         _reqid : self.getReqid(),
         rt     : 'j'
       }), {
         sendContent : {
-          'f.req' : JSON.stringify([community_id, null]),
+          'f.req' : JSON.stringify([community_id, [[4],[3]]]),
           at      : oz[1][15]
         }
       }).addCallback(function(res) {
         var initialData = res.responseText.substr(4).replace(/(\\n|\n)/g, '');
         return Sandbox.evalJSON(initialData).addCallback(function(json) {
-          var data = self.getDataByKey(json[0], 'sq.gsmr');
+          var data = self.getDataByKey(json[0], 'sq.rsmr');
           var categories = [];
-          if (data && data[1] && data[1][2] && data[1][2][0]) {
-            data[1][2][0].forEach(function(category) {
+          if (data && data[2] && data[2][2] && data[2][2][0]) {
+            data[2][2][0].forEach(function(category) {
               categories.push({
                 id   : category[0],
                 name : category[1]
