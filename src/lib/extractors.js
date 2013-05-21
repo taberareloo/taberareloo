@@ -803,7 +803,7 @@
           if (desc1 && desc2) {
             desc = joinText([
               desc1,
-              '<blockquote>' + desc2 + '</blockquote>',
+              '<blockquote>' + desc2 + '</blockquote>'
             ], '\n\n');
           } else {
             desc = desc1 || desc2;
@@ -837,7 +837,8 @@
             } else if ((attachment[24][4] === 'image') || (attachment[24][4] === 'photo')) {
               result = update(result, {
                 type        : 'photo',
-                itemUrl     : attachment[5] && attachment[5][1],
+                itemUrl     : (attachment[5] && attachment[5][1]) ||
+                                (attachment[41] && attachment[41][0] && attachment[41][0][1]),
                 body        : joinText([
                   attachment[3] && ('<p><a href="' + attachment[24][1] + '">' + attachment[3] + '</a></p>'),
                   attachment[21] && ('<p><em>' + attachment[21] + '</em></p>'),
@@ -889,7 +890,7 @@
         cleaned = cleaned.replace(/,\]/g, ',null]');
         cleaned = cleaned.replace(/,,/g, ',null,');
         cleaned = cleaned.replace(/,,/g, ',null,');
-        cleaned = cleaned.replace(/{(\d+):/g, '{"$1":');
+        cleaned = cleaned.replace(/\{(\d+):/g, '{"$1":');
         return JSON.parse(cleaned);
       },
       getDataByKey : function (arr, key) {
