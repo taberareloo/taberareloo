@@ -1,5 +1,6 @@
 // -*- coding: utf-8 -*-
 
+var skin = chrome.extension.getURL('skin/');
 var Models = new Repository();
 
 var Tumblr = {
@@ -463,7 +464,7 @@ Models.register(Tumblr);
 
 Models.register({
   name : '4u',
-  ICON : chrome.extension.getURL('skin/4u.ico'),
+  ICON : skin + '4u.ico',
   LINK : 'http://4u-beautyimg.com/',
   LOGIN_URL : 'http://4u-beautyimg.com/admin/login',
   URL : 'http://4u-beautyimg.com/',
@@ -584,7 +585,7 @@ Models.register({
 
 Models.register({
   name : 'Local',
-  ICON : chrome.extension.getURL('skin/local.ico'),
+  ICON : skin + 'local.ico',
 
   check : function(ps) {
     return ps.type === 'photo';
@@ -1033,7 +1034,7 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : chrome.extension.getURL('skin/delicious.png'),
+  ICON : skin + 'delicious.png',
   LINK : 'https://delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
@@ -1235,7 +1236,7 @@ Models.register({
 
 Models.register({
   name : 'GoogleBookmarks',
-  ICON : chrome.extension.getURL('skin/google-bookmark.png'),
+  ICON : skin + 'google-bookmark.png',
   LINK : 'https://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
   POST_URL : 'https://www.google.com/bookmarks/mark',
@@ -1447,7 +1448,7 @@ Models.register({
 
 Models.register({
   name     : 'ChromeBookmark',
-  ICON     : chrome.extension.getURL('skin/chromium.ico'),
+  ICON     : skin + 'chromium.ico',
   LINK     : 'chrome://bookmarks/',
   check : function(ps){
     return ps.type === 'link';
@@ -1781,7 +1782,7 @@ Models.register({
 
 Models.register({
   name : 'Instapaper',
-  ICON : chrome.extension.getURL('skin/instapaper.png'),
+  ICON : skin + 'instapaper.png',
   LINK : 'https://www.instapaper.com/',
   POST_URL: 'http://www.instapaper.com/edit',
   LOGIN_URL : 'https://www.instapaper.com/user/login',
@@ -2155,7 +2156,7 @@ Models.register({
 
 Models.register({
   name     : 'PickNaver',
-  ICON     : chrome.extension.getURL('skin/pick-naver.png'),
+  ICON     : skin + 'pick-naver.png',
   LINK     : 'http://pick.naver.jp/',
   LOGIN_URL: 'https://ssl.naver.jp/login?fromUrl=http://pick.naver.jp/',
 
@@ -2392,7 +2393,7 @@ Models.register(update({}, Models['bit.ly'], {
 
 Models.register({
   name       : 'Google+',
-  ICON       : chrome.extension.getURL('skin/googleplus.ico'),
+  ICON       : skin + 'googleplus.ico',
   LINK       : 'https://plus.google.com/',
   LOGIN_URL  : 'https://plus.google.com/up/start/',
 
@@ -3447,7 +3448,7 @@ Models.register({
 
 var WebHook = {
   name      : 'WebHook',
-  ICON      : chrome.extension.getURL('skin/webhook.png'),
+  ICON      : skin + 'webhook.png',
   LINK      : 'http://www.webhooks.org/',
   LOGIN_URL : null,
 
@@ -3803,7 +3804,7 @@ Models.register({
 
 Models.register({
   name      : 'GimmeBar',
-  ICON      : chrome.extension.getURL('skin/gimmebar.png'),
+  ICON      : skin + 'gimmebar.png',
   LINK      : 'https://gimmebar.com/',
   LOGIN_URL : 'https://gimmebar.com/login',
 
