@@ -138,7 +138,7 @@
     Menus._register({
       title: 'Photo - Flickr',
       contexts: ['all'],
-      documentUrlPatterns: ['http://www.flickr.com/photos/*/*/*'],
+      documentUrlPatterns: ['*://www.flickr.com/photos/*/*/*'],
       onclick: function (info, tab) {
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImage',

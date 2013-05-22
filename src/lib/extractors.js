@@ -330,7 +330,7 @@
       ICON : 'http://www.flickr.com/favicon.ico',
 
       API_KEY : 'ecf21e55123e4b31afa8dd344def5cc5',
-      RE : new RegExp('^http://(?:.+?.)?static.?flickr.com/\\d+?/(\\d+?)_.*'),
+      RE : new RegExp('^https?://(?:.+?.)?static.?flickr.com/\\d+?/(\\d+?)_.*'),
       getImageId : function (ctx) {
         // 他サイトに貼られているFlickrにも対応する
         if (/flickr\.com/.test(ctx.host)) {
