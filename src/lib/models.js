@@ -1036,7 +1036,7 @@ Models.register({
 Models.register({
   name : 'Delicious',
   ICON : chrome.extension.getURL('skin/delicious.png'),
-  LINK : 'https://www.delicious.com/',
+  LINK : 'https://delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
   /**
@@ -1499,7 +1499,7 @@ Models.register({
   ICON     : 'https://www.evernote.com/favicon.ico',
   POST_URL : 'https://www.evernote.com/clip.action',
   LOGIN_URL: 'https://www.evernote.com/Login.action',
-  LINK     : 'https://www.evernote.com/',
+  LINK     : 'https://evernote.com/',
 
   check : function(ps){
     return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -3974,7 +3974,7 @@ Models.register({
 Models.register({
   name      : 'mixi',
   ICON      : 'http://mixi.jp/favicon.ico',
-  LINK      : 'http://mixi.jp/',
+  LINK      : 'https://mixi.jp/',
   URL       : 'http://mixi.jp/',
 
   check : function(ps) {
