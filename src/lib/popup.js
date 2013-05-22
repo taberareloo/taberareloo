@@ -4,7 +4,7 @@
 /*global $T:true, keyString:true, $DF:true, $N:true, callLater:true*/
 /*global KEY_ACCEL:true, $D:true, wait:true, methodcaller:true, values:true*/
 /*global stop:true, compare:true, itemgetter:true, succeed:true, items:true*/
-/*global $A:true*/
+/*global $A:true, CustomEvent:true*/
 (function (exports) {
   'use strict';
 
@@ -1113,9 +1113,7 @@
         if (notify) {
           this.notify();
         }
-        var event = document.createEvent('Event');
-        event.initEvent('terminate', false, true);
-        this.tags.dispatchEvent(event);
+        this.tags.dispatchEvent(new CustomEvent('terminate', {cancelable: true}));
       }
     },
 

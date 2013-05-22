@@ -632,11 +632,9 @@ Models.register({
       // we retry queue contents.
       function executor(urls) {
         function dispatch(url) {
-          var ev = document.createEvent('MouseEvents');
-          ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
           var anchor = document.createElement('a');
           anchor.href = url;
-          anchor.dispatchEvent(ev);
+          anchor.dispatchEvent(new MouseEvent('click', {altKey: true}));
         }
 
         urls.forEach(function downloader(url) {
