@@ -11,7 +11,7 @@
 (function (exports) {
   'use strict';
 
-  var skin = chrome.extension.getURL('skin/');
+  var skin = chrome.runtime.getURL('skin/');
   var Extractors = exports.Extractors = new Repository();
 
   Extractors.register([
@@ -565,7 +565,7 @@
       },
       getCache : function (cacheClear) {
         var d = new Deferred();
-        chrome.extension.sendMessage(TBRL.id, {
+        chrome.runtime.sendMessage(TBRL.id, {
           request: 'getCachedTumblrInfo',
           cacheClear: cacheClear
         }, function (res) {
@@ -1513,7 +1513,7 @@
         // Google Chrome doesn't support CanvasRenderingContext2D#drawWindow
         var ret = new Deferred();
         var width = win.innerWidth;
-        chrome.extension.sendMessage(TBRL.id, {
+        chrome.runtime.sendMessage(TBRL.id, {
           request: 'capture'
         }, function (res) {
           var img = document.createElement('img');

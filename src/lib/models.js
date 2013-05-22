@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 
-var skin = chrome.extension.getURL('skin/');
+var skin = chrome.runtime.getURL('skin/');
 var Models = new Repository();
 
 var Tumblr = {
