@@ -3,7 +3,7 @@
 /*jshint scripturl:true*/
 /*global chrome:true, UserScripts:true, Extractors:true*/
 /*global callLater:true, $N:true, $X:true, succeed:true, $D:true, tagName:true*/
-/*global keyString:true, createFlavoredString:true, update:true, resolveRelativePath:true*/
+/*global keyString:true, createFlavoredString:true, update:true, url:true*/
 /*global maybeDeferred:true, checkHttps:true, Deferred:true, $A:true, connect:true*/
 /*global DeferredList:true*/
 (function (exports) {
@@ -269,7 +269,7 @@
     cleanUpContext: function (ctx) {
       var canonical = $X('//link[@rel="canonical"]/@href', ctx.document)[0];
       if (canonical && !new RegExp(TBRL.config.post.ignore_canonical).test(ctx.href)) {
-        ctx.href = resolveRelativePath(ctx.href)(canonical);
+        ctx.href = url.resolve(ctx.href, canonical);
       }
       if (Extractors['Quote - Twitter'].check(ctx)) {
         ctx.href = ctx.href.replace(/\/#!\//, '/');
