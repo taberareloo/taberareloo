@@ -290,7 +290,7 @@
     },
     share: function (ctx, ext, show) {
       this.extract(ctx, ext).addCallback(function (ps) {
-        chrome.extension.sendMessage(TBRL.id, {
+        chrome.runtime.sendMessage(TBRL.id, {
           request: 'share',
           show   : show,
           content: checkHttps(update({
@@ -302,7 +302,7 @@
     },
     getConfig : function () {
       var d = new Deferred();
-      chrome.extension.sendMessage(TBRL.id, {
+      chrome.runtime.sendMessage(TBRL.id, {
         request: 'config'
       }, function (res) {
         d.callback(res);
@@ -340,7 +340,7 @@
 
   function downloadFile(url, opt) {
     var ret = new Deferred();
-    chrome.extension.sendMessage(TBRL.id, {
+    chrome.runtime.sendMessage(TBRL.id, {
       request: 'download',
       content: {
         url: url,
@@ -358,7 +358,7 @@
 
   function base64ToFileEntry(data) {
     var ret = new Deferred();
-    chrome.extension.sendMessage(TBRL.id, {
+    chrome.runtime.sendMessage(TBRL.id, {
       request: 'base64ToFileEntry',
       content: data
     }, function (res) {
@@ -550,7 +550,7 @@
         return (/^Photo/).test(m.name);
       })[0];
       TBRL.extract(ctx, ext).addCallback(function (ps) {
-        chrome.extension.sendMessage(TBRL.id, {
+        chrome.runtime.sendMessage(TBRL.id, {
           request: 'search',
           show   : false,
           content: update({
@@ -584,7 +584,7 @@
       var ctx = update({
         contextMenu: true
       }, TBRL.createContext(TBRL.getContextMenuTarget()));
-      chrome.extension.sendMessage(TBRL.id, {
+      chrome.runtime.sendMessage(TBRL.id, {
         request: 'addGooglePlusCommunityCategory',
         show   : false,
         content: {
@@ -598,7 +598,7 @@
       var ctx = update({
         contextMenu: true
       }, TBRL.createContext(TBRL.getContextMenuTarget()));
-      chrome.extension.sendMessage(TBRL.id, {
+      chrome.runtime.sendMessage(TBRL.id, {
         request: 'removeGooglePlusCommunityCategory',
         show   : false,
         content: {
@@ -609,7 +609,7 @@
     }
   };
 
-  chrome.extension.onMessage.addListener(function (req) {
+  chrome.runtime.onMessage.addListener(function (req) {
     var handler = onRequestHandlers[req.request];
     if (handler) {
       handler.apply(this, arguments);
@@ -618,7 +618,7 @@
   });
 
   // Start patch
-  chrome.extension.sendMessage(TBRL.id, {
+  chrome.runtime.sendMessage(TBRL.id, {
     request: 'loadPatchesInContent'
   }, function () {});
 

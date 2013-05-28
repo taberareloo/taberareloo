@@ -252,7 +252,7 @@
         } else {
           background.Models.removeWebHooks();
         }
-        chrome.extension.sendMessage({request: 'initialize'});
+        chrome.runtime.sendMessage({request: 'initialize'});
         this.close();
       } else {
         alert(chrome.i18n.getMessage('error_keyConfliction'));

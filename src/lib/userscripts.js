@@ -41,7 +41,7 @@
       exec  : function () {
         var style = document.createElement('link');
         style.rel = 'stylesheet';
-        style.href = chrome.extension.getURL('styles/reader.css');
+        style.href = chrome.runtime.getURL('styles/reader.css');
         document.head.appendChild(style);
         this.key = this.keyString2LDR(this.key);
         var self = this;
@@ -228,7 +228,7 @@
       exec  : function () {
         var style = document.createElement('link');
         style.rel = 'stylesheet';
-        style.href = chrome.extension.getURL('styles/dashboard.css');
+        style.href = chrome.runtime.getURL('styles/dashboard.css');
         document.head.appendChild(style);
 
         // copied from FLASH KEY (c) id:brazil
@@ -416,7 +416,7 @@
       exec  : function () {
         var style = document.createElement('link');
         style.rel = 'stylesheet';
-        style.href = chrome.extension.getURL('styles/reader.css');
+        style.href = chrome.runtime.getURL('styles/reader.css');
         document.head.appendChild(style);
         document.addEventListener('keydown', this.wrap, false);
       },

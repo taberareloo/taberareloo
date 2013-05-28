@@ -21,21 +21,21 @@
         {name: 'Taberareloo.general'}
       ]
     };
-    chrome.extension.sendMessage(CHROME_GESTURES, action, function () {
+    chrome.runtime.sendMessage(CHROME_GESTURES, action, function () {
       REGISTER.CHROME_GESTURES = true;
     });
-    chrome.extension.sendMessage(CHROME_KEYCONFIG, action, function () {
+    chrome.runtime.sendMessage(CHROME_KEYCONFIG, action, function () {
       REGISTER.CHROME_KEYCONFIG = true;
     });
     callLater(10, function () {
       // ダメ押しのもう一回
       if (!REGISTER.CHROME_GESTURES) {
-        chrome.extension.sendMessage(CHROME_GESTURES, action, function () {
+        chrome.runtime.sendMessage(CHROME_GESTURES, action, function () {
           REGISTER.CHROME_GESTURES = true;
         });
       }
       if (!REGISTER.CHROME_KEYCONFIG) {
-        chrome.extension.sendMessage(CHROME_KEYCONFIG, action, function () {
+        chrome.runtime.sendMessage(CHROME_KEYCONFIG, action, function () {
           REGISTER.CHROME_KEYCONFIG = true;
         });
       }
@@ -266,12 +266,12 @@
           if ((/mac/i.test(navigator.platform)) && (win.state === 'fullscreen')) {
             chrome.tabs.create({
               windowId : win.id,
-              url      : chrome.extension.getURL('popup.html') + query
+              url      : chrome.runtime.getURL('popup.html') + query
             });
           }
           else {
             chrome.windows.create({
-              url     : chrome.extension.getURL('popup.html') + query,
+              url     : chrome.runtime.getURL('popup.html') + query,
               top     : win.top  + pos.top,
               left    : win.left + pos.left,
               width   : 450,
@@ -290,7 +290,7 @@
       suggestionShownDefault: false
     },
     Notification: {
-      ICON: chrome.extension.getURL('skin/fork64.png'),
+      ICON: chrome.runtime.getURL('skin/fork64.png'),
       ID: 0,
       contents: {},
       generateUniqueID: function () {
@@ -513,7 +513,7 @@
     }
   };
 
-  chrome.extension.onMessage.addListener(function (req) {
+  chrome.runtime.onMessage.addListener(function (req) {
     var handler = onRequestsHandlers[req.request];
     if (handler) {
       handler.apply(this, arguments);
