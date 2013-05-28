@@ -1,5 +1,6 @@
 // -*- coding: utf-8 -*-
 
+var skin = chrome.runtime.getURL('skin/');
 var Models = new Repository();
 
 var Tumblr = {
@@ -463,7 +464,7 @@ Models.register(Tumblr);
 
 Models.register({
   name : '4u',
-  ICON : chrome.extension.getURL('skin/4u.ico'),
+  ICON : skin + '4u.ico',
   LINK : 'http://4u-beautyimg.com/',
   LOGIN_URL : 'http://4u-beautyimg.com/admin/login',
   URL : 'http://4u-beautyimg.com/',
@@ -584,7 +585,7 @@ Models.register({
 
 Models.register({
   name : 'Local',
-  ICON : chrome.extension.getURL('skin/local.ico'),
+  ICON : skin + 'local.ico',
 
   check : function(ps) {
     return ps.type === 'photo';
@@ -632,11 +633,9 @@ Models.register({
       // we retry queue contents.
       function executor(urls) {
         function dispatch(url) {
-          var ev = document.createEvent('MouseEvents');
-          ev.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, true, false, false, 0, null);
           var anchor = document.createElement('a');
           anchor.href = url;
-          anchor.dispatchEvent(ev);
+          anchor.dispatchEvent(new MouseEvent('click', {altKey: true}));
         }
 
         urls.forEach(function downloader(url) {
@@ -1035,8 +1034,8 @@ Models.register({
 
 Models.register({
   name : 'Delicious',
-  ICON : chrome.extension.getURL('skin/delicious.png'),
-  LINK : 'https://www.delicious.com/',
+  ICON : skin + 'delicious.png',
+  LINK : 'https://delicious.com/',
   LOGIN_URL : 'https://secure.delicious.com/login',
 
   /**
@@ -1237,7 +1236,7 @@ Models.register({
 
 Models.register({
   name : 'GoogleBookmarks',
-  ICON : chrome.extension.getURL('skin/google-bookmark.png'),
+  ICON : skin + 'google-bookmark.png',
   LINK : 'https://www.google.com/bookmarks/',
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
   POST_URL : 'https://www.google.com/bookmarks/mark',
@@ -1449,7 +1448,7 @@ Models.register({
 
 Models.register({
   name     : 'ChromeBookmark',
-  ICON     : chrome.extension.getURL('skin/chromium.ico'),
+  ICON     : skin + 'chromium.ico',
   LINK     : 'chrome://bookmarks/',
   check : function(ps){
     return ps.type === 'link';
@@ -1499,7 +1498,7 @@ Models.register({
   ICON     : 'https://www.evernote.com/favicon.ico',
   POST_URL : 'https://www.evernote.com/clip.action',
   LOGIN_URL: 'https://www.evernote.com/Login.action',
-  LINK     : 'https://www.evernote.com/',
+  LINK     : 'https://evernote.com/',
 
   check : function(ps){
     return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
@@ -1783,7 +1782,7 @@ Models.register({
 
 Models.register({
   name : 'Instapaper',
-  ICON : chrome.extension.getURL('skin/instapaper.png'),
+  ICON : skin + 'instapaper.png',
   LINK : 'https://www.instapaper.com/',
   POST_URL: 'http://www.instapaper.com/edit',
   LOGIN_URL : 'https://www.instapaper.com/user/login',
@@ -2157,7 +2156,7 @@ Models.register({
 
 Models.register({
   name     : 'PickNaver',
-  ICON     : chrome.extension.getURL('skin/pick-naver.png'),
+  ICON     : skin + 'pick-naver.png',
   LINK     : 'http://pick.naver.jp/',
   LOGIN_URL: 'https://ssl.naver.jp/login?fromUrl=http://pick.naver.jp/',
 
@@ -2394,7 +2393,7 @@ Models.register(update({}, Models['bit.ly'], {
 
 Models.register({
   name       : 'Google+',
-  ICON       : chrome.extension.getURL('skin/googleplus.ico'),
+  ICON       : skin + 'googleplus.ico',
   LINK       : 'https://plus.google.com/',
   LOGIN_URL  : 'https://plus.google.com/up/start/',
 
@@ -3449,7 +3448,7 @@ Models.register({
 
 var WebHook = {
   name      : 'WebHook',
-  ICON      : chrome.extension.getURL('skin/webhook.png'),
+  ICON      : skin + 'webhook.png',
   LINK      : 'http://www.webhooks.org/',
   LOGIN_URL : null,
 
@@ -3805,7 +3804,7 @@ Models.register({
 
 Models.register({
   name      : 'GimmeBar',
-  ICON      : chrome.extension.getURL('skin/gimmebar.png'),
+  ICON      : skin + 'gimmebar.png',
   LINK      : 'https://gimmebar.com/',
   LOGIN_URL : 'https://gimmebar.com/login',
 
@@ -3974,7 +3973,7 @@ Models.register({
 Models.register({
   name      : 'mixi',
   ICON      : 'http://mixi.jp/favicon.ico',
-  LINK      : 'http://mixi.jp/',
+  LINK      : 'https://mixi.jp/',
   URL       : 'http://mixi.jp/',
 
   check : function(ps) {

@@ -11,7 +11,7 @@
 (function (exports) {
   'use strict';
 
-  var skin = chrome.extension.getURL('skin/');
+  var skin = chrome.runtime.getURL('skin/');
   var Extractors = exports.Extractors = new Repository();
 
   Extractors.register([
@@ -330,7 +330,7 @@
       ICON : 'http://www.flickr.com/favicon.ico',
 
       API_KEY : 'ecf21e55123e4b31afa8dd344def5cc5',
-      RE : new RegExp('^http://(?:.+?.)?static.?flickr.com/\\d+?/(\\d+?)_.*'),
+      RE : new RegExp('^https?://(?:.+?.)?static.?flickr.com/\\d+?/(\\d+?)_.*'),
       getImageId : function (ctx) {
         // 他サイトに貼られているFlickrにも対応する
         if (/flickr\.com/.test(ctx.host)) {
@@ -565,7 +565,7 @@
       },
       getCache : function (cacheClear) {
         var d = new Deferred();
-        chrome.extension.sendMessage(TBRL.id, {
+        chrome.runtime.sendMessage(TBRL.id, {
           request: 'getCachedTumblrInfo',
           cacheClear: cacheClear
         }, function (res) {
@@ -1513,7 +1513,7 @@
         // Google Chrome doesn't support CanvasRenderingContext2D#drawWindow
         var ret = new Deferred();
         var width = win.innerWidth;
-        chrome.extension.sendMessage(TBRL.id, {
+        chrome.runtime.sendMessage(TBRL.id, {
           request: 'capture'
         }, function (res) {
           var img = document.createElement('img');
