@@ -698,7 +698,7 @@
         return (/(tumblr-beta\.com|tumblr\.com)\//).test(ctx.href) && this.getLink(ctx);
       },
       extract : function (ctx) {
-        var post = $X('./ancestor-or-self::li[starts-with(@id, "post_")]', ctx.target)[0];
+        var post = $X('./ancestor-or-self::div[starts-with(@id, "post_")]', ctx.target)[0];
 
         if (post) {
           var data = post.dataset;
@@ -714,7 +714,7 @@
       },
       getLink : function (ctx) {
         var link = $X(
-          './ancestor-or-self::li[starts-with(normalize-space(@class), "post")]//a[starts-with(@id, "permalink_")]', ctx.target)[0];
+          './ancestor-or-self::div[starts-with(@id, "post_")]//a[starts-with(@id, "permalink_")]', ctx.target)[0];
         return link && link.href;
       }
     },
