@@ -198,7 +198,7 @@ var Tumblr = {
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
-      form.form_key = Tumblr.form_key = $X('id("form_key")/@value', doc)[0];
+      form.form_key = Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
       form.channel_id = Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
 
       return form;
@@ -340,7 +340,7 @@ var Tumblr = {
       var doc = res.response;
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      return self.token = $X('id("form_key")/@value', doc)[0];
+      return self.token = $X('//input[@name="form_key"]/@value', doc)[0];
     });
   },
 

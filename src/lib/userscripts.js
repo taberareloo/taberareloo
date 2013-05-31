@@ -268,7 +268,7 @@
         document.addEventListener('keydown', this.wrap, false);
       },
       getCurrentItem: function () {
-        var paragraphs = $X('id("posts")/li[starts-with(@id, "post") or starts-with(@id, "tweet")]'), toplist = new Array(paragraphs.length);
+        var paragraphs = $X('id("posts")/li/div[starts-with(@id, "post_")]'), toplist = new Array(paragraphs.length);
         var get_top = function (index) {
           return toplist[index] || (toplist[index] = paragraphs[index].getBoundingClientRect().top);
         };
@@ -609,13 +609,13 @@
       }
     },
     like : function (current) {
-      var like = current.querySelector('.like_button');
+      var like = current.querySelector('.like');
       if (like) {
         like.click();
       }
     },
     reblogCount: function (current) {
-      var count = current.querySelector('.reblog_count');
+      var count = current.querySelector('.post_notes_label');
       if (count) {
         count.click();
       }
