@@ -1,6 +1,7 @@
 {
   "name": "Taberareloo",
   "description": "Yet another Tombloo on Chromium",
+  "version": "3.0.3-dev",
   "devDependencies": {
     "chai": "*",
     "grunt": "~0.4.1",
