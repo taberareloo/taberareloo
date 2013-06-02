@@ -62,8 +62,14 @@
     var query = queryHash(location.search);
     getPs(query).addCallback(function (ps) {
       isPopup = !query.quick;
-      form = new Form(ps);
-      background.Patches.loadInPopup(document);
+      background.Patches.loadInPopup(document).addCallback(function () {
+        form = new Form(ps);
+        document.dispatchEvent(new CustomEvent('popupReady', {
+          detail     : form,
+          bubbles    : true,
+          cancelable : true
+        }));
+      });
     });
   });
 

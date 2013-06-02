@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 /*global MochiKit:true, Repository:true, Deferred:true, succeed:true, chrome:true*/
-/*global TBRL:true, request:true, semver:true, DeferredHash:true*/
+/*global TBRL:true, request:true, semver:true, DeferredHash:true, DeferredList:true*/
 (function (exports) {
   'use strict';
 
@@ -326,6 +326,7 @@
     },
 
     loadInPopup : function (doc) {
+      var deferredList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
         if (
@@ -333,12 +334,21 @@
           patch.metadata.include && Array.isArray(patch.metadata.include) &&
           (patch.metadata.include.indexOf('popup') !== -1)
         ) {
+          var deferred = new Deferred();
           var script = doc.createElement('script');
           script.src = patch.fileEntry.toURL();
+          script.onload = function () {
+            deferred.callback();
+          };
+          script.onerror = function () {
+            deferred.errback();
+          };
           (doc.body || doc.documentElement).appendChild(script);
           console.log('Load patch in popup : ' + patch.fileEntry.fullPath);
+          deferredList.push(deferred);
         }
       });
+      return new DeferredList(deferredList);
     },
 
     parseMatchPattern : function (input) {
