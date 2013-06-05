@@ -1194,7 +1194,7 @@
 
   exports.isJSON = isJSON;
 
-  function inContext(value) {
+  function contextType() {
     var u = url.parse(location.href);
     var context = '';
     if (u.protocol !== 'chrome-extension:') {
@@ -1212,7 +1212,13 @@
         context = 'background';
       }
     }
-    return value ? (value === context) : context;
+    return context;
+  }
+
+  exports.contextType = contextType;
+
+  function inContext(value) {
+    return contextType() === value;
   }
 
   exports.inContext = inContext;
