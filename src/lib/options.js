@@ -794,15 +794,15 @@
 
         var name = patch.name.replace(/\./g, '_');
         var td_children = [];
+        if (patch.metadata.name) {
+          td_children.push($N('span', null, patch.metadata.name));
+          td_children.push($N('br'));
+        }
         td_children.push($N('a', {
           class  : 'patch_name',
           href   : patch.fileEntry.toURL(),
           target : '_blank'
-        }, patch.metadata.name || patch.name));
-        if (patch.metadata.description) {
-          td_children.push($N('br', null));
-          td_children.push($N('span', null, patch.metadata.description));
-        }
+        }, patch.name));
         tds.push($N('td', null, td_children));
 
         tds.push($N('td', {
