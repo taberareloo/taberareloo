@@ -1,134 +1,88 @@
 /*global chrome:true, connect:true, $:true, $A:true, $T:true, $DF:true*/
 /*global $N:true, disconnect:true, keyString:true, $D:true, update:true*/
-(function () {
+/*global CustomEvent:true*/
+(function (exports) {
   'use strict';
 
   var background = chrome.extension.getBackgroundPage();
-  var Config    = background.TBRL.Config;
+  var Config     = background.TBRL.Config;
 
   connect(document, 'onDOMContentLoaded', document, function () {
-    // smoothing slide
-    var inner     = $('inner');
-    var slides = ['services', 'post', 'entry', 'patch', 'about'];
-    var tabs = $A(document.getElementsByClassName('tab'));
-    var now_active = 0;
-    tabs[now_active].classList.add('active');
-    tabs.forEach(function (li) {
+    background.Patches.loadInOptions(document).addCallback(function () {
+      var options = new Options();
+      document.dispatchEvent(new CustomEvent('optionsReady', {
+        detail     : options,
+        bubbles    : true,
+        cancelable : true
+      }));
+    });
+  });
+
+  function Options() {
+    var self = this;
+   // smoothing slide
+    var inner = $('inner');
+    this.slides = ['services', 'post', 'entry', 'patch', 'about'];
+    this.tabs = $A(document.getElementsByClassName('tab'));
+    this.now_active = 0;
+    this.tabs[this.now_active].classList.add('active');
+    this.tabs.forEach(function (li) {
       var p = li.getElementsByTagName('p')[0];
       var anchor = p.className;
       connect(li, 'onclick', li, function () {
-        tabs[now_active].classList.remove('active');
-        var index = slides.indexOf(anchor);
+        self.tabs[self.now_active].classList.remove('active');
+        var index = self.slides.indexOf(anchor);
         if (~index) {
-          now_active = index;
-          tabs[now_active].classList.add('active');
+          self.now_active = index;
+          self.tabs[self.now_active].classList.add('active');
           inner.style.marginLeft = (-index) * 100 + '%';
         }
       });
     });
 
-    // i18n
-    $('label_services').appendChild($T(chrome.i18n.getMessage('label_postConfig')));
-    $('label_post').appendChild($T(chrome.i18n.getMessage('label_post')));
-    $('label_entry').appendChild($T(chrome.i18n.getMessage('label_entry')));
-    $('label_patch').appendChild($T(chrome.i18n.getMessage('label_patch')));
-    $('label_about').appendChild($T(chrome.i18n.getMessage('label_about')));
-    $('label_tagprovider').appendChild($T(chrome.i18n.getMessage('label_tagprovider')));
-    $('label_keyconfig').appendChild($T(chrome.i18n.getMessage('label_keyconfig')));
-
-    $('label_shortcutkey_linkquickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Link')));
-    $('label_shortcutkey_quotequickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Quote')));
-    $('label_shortcutkey_quickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey_general')));
-
-    $('shortcutkey_quickpost_clear').value =
-      $('shortcutkey_linkquickpost_clear').value =
-      $('shortcutkey_quotequickpost_clear').value =
-      $('shortcutkey_ldr_plus_taberareloo_clear').value =
-      $('shortcutkey_dashboard_plus_taberareloo_clear').value =
-      $('shortcutkey_dashboard_plus_taberareloo_manually_clear').value =
-      $('shortcutkey_googlereader_plus_taberareloo_clear').value =
-      $('shortcutkey_play_on_tumblr_play_clear').value =
-      $('shortcutkey_play_on_tumblr_like_clear').value =
-      $('shortcutkey_play_on_tumblr_count_clear').value =
-      $('shortcutkey_taberareloo_on_google_plus_clear').value = chrome.i18n.getMessage('label_clear');
-
-    $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
-    $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
-    $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
-    $('label_notQueueReblogPost').appendChild($T(chrome.i18n.getMessage('label_notQueueReblogPost')));
-    $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
-    $('label_clipFullPage').appendChild($T(chrome.i18n.getMessage('label_clipFullPage')));
-    $('label_removeHatenaKeyword').appendChild($T(chrome.i18n.getMessage('label_removeHatenaKeyword')));
-    $('label_tumblrDefaultQuote').appendChild($T(chrome.i18n.getMessage('label_tumblrDefaultQuote')));
-    $('label_userscripts').appendChild($T(chrome.i18n.getMessage('label_userscripts')));
-    $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
-    $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
-    $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
-
-    // Google+ Pages
-    $('label_GooglePlusPages').appendChild(
-      $T(chrome.i18n.getMessage('label_GooglePlusPages'))
-    );
-    $('label_enableGooglePlusPages').appendChild(
-      $T(chrome.i18n.getMessage('label_enable'))
-    );
-    $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
-
-    // WebHook
-    $('label_enable_webhook').appendChild($T(chrome.i18n.getMessage('label_enable')));
-
-    $('label_amazonAffiliateId').appendChild($T(chrome.i18n.getMessage('label_amazonAffiliateId')));
-    $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
-    $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
-    $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
-    $('label_appendContentSource').appendChild($T(chrome.i18n.getMessage('label_appendContentSource')));
-    $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
-    $('label_tumblr2twitter').appendChild($T(chrome.i18n.getMessage('label_tumblr2twitter')));
-    $('label_tumblr2facebook').appendChild($T(chrome.i18n.getMessage('label_tumblr2facebook')));
-    $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
-    $('save').value = chrome.i18n.getMessage('label_save');
+    this.setLabels();
 
     // services
-    var services = new Services();
+    this.services = new Services();
     // tag provider
-    var provider = new Provider();
+    this.provider = new Provider();
     // tag auto complete
-    var tag_check = new Check('tag_auto_complete', !!Config.post.tag_auto_complete);
+    this.tag_check = new Check('tag_auto_complete', !!Config.post.tag_auto_complete);
     // notification on posting
-    var notification_check = new Check('notification_on_posting', !!Config.post.notification_on_posting);
+    this.notification_check = new Check('notification_on_posting', !!Config.post.notification_on_posting);
     // LDR + Taberareloo
-    var ldr_check = new Check('ldr_plus_taberareloo', !!Config.post.ldr_plus_taberareloo);
-    var ldr_short = new Shortcutkey('shortcutkey_ldr_plus_taberareloo', true, function (key) {
+    this.ldr_check = new Check('ldr_plus_taberareloo', !!Config.post.ldr_plus_taberareloo);
+    this.ldr_short = new Shortcutkey('shortcutkey_ldr_plus_taberareloo', true, function (key) {
       return Shortcutkey.keyString2LDR(key);
     });
     // Dashboard + Taberareloo
-    var disable_keybind_check = new Check('disable_tumblr_default_keybind', !!Config.post.disable_tumblr_default_keybind);
-    var dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post.dashboard_plus_taberareloo);
-    var dashboard_short = new Shortcutkey('shortcutkey_dashboard_plus_taberareloo', true);
-    var dashboard_manually_check = new Check('dashboard_plus_taberareloo_manually', !!Config.post.dashboard_plus_taberareloo_manually);
-    var dashboard_manually_short = new Shortcutkey('shortcutkey_dashboard_plus_taberareloo_manually', true);
+    this.disable_keybind_check = new Check('disable_tumblr_default_keybind', !!Config.post.disable_tumblr_default_keybind);
+    this.dashboard_check = new Check('dashboard_plus_taberareloo', !!Config.post.dashboard_plus_taberareloo);
+    this.dashboard_short = new Shortcutkey('shortcutkey_dashboard_plus_taberareloo', true);
+    this.dashboard_manually_check = new Check('dashboard_plus_taberareloo_manually', !!Config.post.dashboard_plus_taberareloo_manually);
+    this.dashboard_manually_short = new Shortcutkey('shortcutkey_dashboard_plus_taberareloo_manually', true);
 
     // GoogleReader + Taberareloo
-    var gr_check = new Check('googlereader_plus_taberareloo', !!Config.post.googlereader_plus_taberareloo);
-    var gr_short = new Shortcutkey('shortcutkey_googlereader_plus_taberareloo', true);
+    this.gr_check = new Check('googlereader_plus_taberareloo', !!Config.post.googlereader_plus_taberareloo);
+    this.gr_short = new Shortcutkey('shortcutkey_googlereader_plus_taberareloo', true);
 
     // Play on Tumblr - Play
-    var play_play_check = new Check('play_on_tumblr_play', !!Config.post.play_on_tumblr_play);
-    var play_play_short = new Shortcutkey('shortcutkey_play_on_tumblr_play', true);
+    this.play_play_check = new Check('play_on_tumblr_play', !!Config.post.play_on_tumblr_play);
+    this.play_play_short = new Shortcutkey('shortcutkey_play_on_tumblr_play', true);
 
     // Play on Tumblr - Like
-    var play_like_check = new Check('play_on_tumblr_like', !!Config.post.play_on_tumblr_like);
-    var play_like_short = new Shortcutkey('shortcutkey_play_on_tumblr_like', true);
+    this.play_like_check = new Check('play_on_tumblr_like', !!Config.post.play_on_tumblr_like);
+    this.play_like_short = new Shortcutkey('shortcutkey_play_on_tumblr_like', true);
 
     // Play on Tumblr - Count
-    var play_count_check = new Check('play_on_tumblr_count', !!Config.post.play_on_tumblr_count);
-    var play_count_short = new Shortcutkey('shortcutkey_play_on_tumblr_count', true);
+    this.play_count_check = new Check('play_on_tumblr_count', !!Config.post.play_on_tumblr_count);
+    this.play_count_short = new Shortcutkey('shortcutkey_play_on_tumblr_count', true);
 
     // Post with Queue
-    var queue_check = new Check('post_with_queue', !!Config.post.post_with_queue);
+    this.queue_check = new Check('post_with_queue', !!Config.post.post_with_queue);
     // Post with Queue
-    var not_queue_reblog_post_check = new Check('not_queue_reblog_post', !!Config.post.not_queue_reblog_post);
-    if (!queue_check.body()) {
+    this.not_queue_reblog_post_check = new Check('not_queue_reblog_post', !!Config.post.not_queue_reblog_post);
+    if (!this.queue_check.body()) {
       $('not_queue_reblog_post_checkbox').disabled = true;
     }
     $('post_with_queue_checkbox').addEventListener('change', function () {
@@ -136,116 +90,185 @@
     });
 
     // Shorten URL
-    var shorten_check = new Check('always_shorten_url', !!Config.post.always_shorten_url);
+    this.shorten_check = new Check('always_shorten_url', !!Config.post.always_shorten_url);
     // Evernote - Clip Full Page
-    var clip_fullpage = new Check('evernote_clip_fullpage', !!Config.post.evernote_clip_fullpage);
+    this.clip_fullpage = new Check('evernote_clip_fullpage', !!Config.post.evernote_clip_fullpage);
     // Quote - Remove Hatena Keywords
-    var remove_hatena_keyword = new Check('remove_hatena_keyword', !!Config.post.remove_hatena_keyword);
+    this.remove_hatena_keyword = new Check('remove_hatena_keyword', !!Config.post.remove_hatena_keyword);
     // Evernote - Quote - Post Tumblr with Plain Text
-    var tumblr_default_quote = new Check('tumblr_default_quote', !!Config.post.tumblr_default_quote);
+    this.tumblr_default_quote = new Check('tumblr_default_quote', !!Config.post.tumblr_default_quote);
     // multiple tumblelogs
-    var tumble_check = new Check('multi_tumblelogs', !!Config.post.multi_tumblelogs);
-    var tumble_list = new TumbleList();
+    this.tumble_check = new Check('multi_tumblelogs', !!Config.post.multi_tumblelogs);
+    this.tumble_list = new TumbleList();
 
     // Google+ Pages
-    var enableGooglePlusPages_check = new Check('enableGooglePlusPages', !!Config.post.enable_google_plus_pages);
-    var googlePlusPages_list = new GooglePlusPagesList();
+    this.enableGooglePlusPages_check = new Check('enableGooglePlusPages', !!Config.post.enable_google_plus_pages);
+    this.googlePlusPages_list = new GooglePlusPagesList();
 
-    var enableGooglePlusKey_check = new Check('taberareloo_on_google_plus', !!Config.post.taberareloo_on_google_plus);
-    var googlePlusKey_short = new Shortcutkey('shortcutkey_taberareloo_on_google_plus', true);
+    this.enableGooglePlusKey_check = new Check('taberareloo_on_google_plus', !!Config.post.taberareloo_on_google_plus);
+    this.googlePlusKey_short = new Shortcutkey('shortcutkey_taberareloo_on_google_plus', true);
 
     // WebHook
-    var enable_webhook_check = new Check('enable_webhook', !!Config.post.enable_webhook);
-    var webhook_url_input = new Input('webhook_url', Config.post.webhook_url);
+    this.enable_webhook_check = new Check('enable_webhook', !!Config.post.enable_webhook);
+    this.webhook_url_input = new Input('webhook_url', Config.post.webhook_url);
 
     // amazon affiliate id
-    var amazon = new Input('amazon_affiliate_id', Config.entry.amazon_affiliate_id);
+    this.amazon = new Input('amazon_affiliate_id', Config.entry.amazon_affiliate_id);
     // thumbnail template
-    var thumbnail = new TemplateInput('thumbnail_template');
+    this.thumbnail = new TemplateInput('thumbnail_template');
     // twitter template
-    var twittemp = new TemplateInput('twitter_template');
+    this.twittemp = new TemplateInput('twitter_template');
     // trim reblog info
-    var reblog_check = new Check('trim_reblog_info', !!Config.entry.trim_reblog_info);
+    this.reblog_check = new Check('trim_reblog_info', !!Config.entry.trim_reblog_info);
     // trim reblog info
-    var append_check = new Check('append_content_source', !!Config.entry.append_content_source);
+    this.append_check = new Check('append_content_source', !!Config.entry.append_content_source);
     // notconvert to Text
-    var notconvert_check = new Check('not_convert_text', !!Config.entry.not_convert_text);
+    this.notconvert_check = new Check('not_convert_text', !!Config.entry.not_convert_text);
     // tumblr2twitter
-    var tumblr2twitter = new Check('tumblr2twitter', !!Config.entry.tumblr2twitter);
+    this.tumblr2twitter = new Check('tumblr2twitter', !!Config.entry.tumblr2twitter);
     // tumblr2facebook
-    var tumblr2facebook = new Check('tumblr2facebook', !!Config.entry.tumblr2facebook);
+    this.tumblr2facebook = new Check('tumblr2facebook', !!Config.entry.tumblr2facebook);
     // keyconfig
-    var keyconfig_check = new Check('keyconfig', !!Config.post.keyconfig);
+    this.keyconfig_check = new Check('keyconfig', !!Config.post.keyconfig);
     // shortcutkey quick link post
-    var link_quick_short = new Shortcutkey('shortcutkey_linkquickpost', true);
+    this.link_quick_short = new Shortcutkey('shortcutkey_linkquickpost', true);
     // shortcutkey quick link post
-    var quote_quick_short = new Shortcutkey('shortcutkey_quotequickpost', true);
+    this.quote_quick_short = new Shortcutkey('shortcutkey_quotequickpost', true);
     // quick post
-    var quick_short = new Shortcutkey('shortcutkey_quickpost', true);
+    this.quick_short = new Shortcutkey('shortcutkey_quickpost', true);
 
-    connect($('save'), 'onclick', window, function () {
-      var lk = link_quick_short.body();
-      var qk = quote_quick_short.body();
-      var k = quick_short.body();
-      var tcheck = tumble_check.body();
-      var gcheck = enableGooglePlusPages_check.body();
-      var enable_webhook = enable_webhook_check.body();
-      var webhook_url = webhook_url_input.body();
+    connect($('save'), 'onclick', this, this.save);
+
+    // patches
+    initPatches();
+  }
+
+  Options.prototype = {
+    setLabels : function () {
+      // i18n
+      $('label_services').appendChild($T(chrome.i18n.getMessage('label_postConfig')));
+      $('label_post').appendChild($T(chrome.i18n.getMessage('label_post')));
+      $('label_entry').appendChild($T(chrome.i18n.getMessage('label_entry')));
+      $('label_patch').appendChild($T(chrome.i18n.getMessage('label_patch')));
+      $('label_about').appendChild($T(chrome.i18n.getMessage('label_about')));
+      $('label_tagprovider').appendChild($T(chrome.i18n.getMessage('label_tagprovider')));
+      $('label_keyconfig').appendChild($T(chrome.i18n.getMessage('label_keyconfig')));
+
+      $('label_shortcutkey_linkquickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Link')));
+      $('label_shortcutkey_quotequickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Quote')));
+      $('label_shortcutkey_quickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey_general')));
+
+      $('shortcutkey_quickpost_clear').value =
+        $('shortcutkey_linkquickpost_clear').value =
+        $('shortcutkey_quotequickpost_clear').value =
+        $('shortcutkey_ldr_plus_taberareloo_clear').value =
+        $('shortcutkey_dashboard_plus_taberareloo_clear').value =
+        $('shortcutkey_dashboard_plus_taberareloo_manually_clear').value =
+        $('shortcutkey_googlereader_plus_taberareloo_clear').value =
+        $('shortcutkey_play_on_tumblr_play_clear').value =
+        $('shortcutkey_play_on_tumblr_like_clear').value =
+        $('shortcutkey_play_on_tumblr_count_clear').value =
+        $('shortcutkey_taberareloo_on_google_plus_clear').value = chrome.i18n.getMessage('label_clear');
+
+      $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
+      $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
+      $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
+      $('label_notQueueReblogPost').appendChild($T(chrome.i18n.getMessage('label_notQueueReblogPost')));
+      $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
+      $('label_clipFullPage').appendChild($T(chrome.i18n.getMessage('label_clipFullPage')));
+      $('label_removeHatenaKeyword').appendChild($T(chrome.i18n.getMessage('label_removeHatenaKeyword')));
+      $('label_tumblrDefaultQuote').appendChild($T(chrome.i18n.getMessage('label_tumblrDefaultQuote')));
+      $('label_userscripts').appendChild($T(chrome.i18n.getMessage('label_userscripts')));
+      $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
+      $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
+      $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
+
+      // Google+ Pages
+      $('label_GooglePlusPages').appendChild(
+        $T(chrome.i18n.getMessage('label_GooglePlusPages'))
+      );
+      $('label_enableGooglePlusPages').appendChild(
+        $T(chrome.i18n.getMessage('label_enable'))
+      );
+      $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
+
+      // WebHook
+      $('label_enable_webhook').appendChild($T(chrome.i18n.getMessage('label_enable')));
+
+      $('label_amazonAffiliateId').appendChild($T(chrome.i18n.getMessage('label_amazonAffiliateId')));
+      $('label_thumbnailTemplate').appendChild($T(chrome.i18n.getMessage('label_thumbnailTemplate')));
+      $('label_twitterTemplate').appendChild($T(chrome.i18n.getMessage('label_twitterTemplate')));
+      $('label_trimReblogInfo').appendChild($T(chrome.i18n.getMessage('label_trimReblogInfo')));
+      $('label_appendContentSource').appendChild($T(chrome.i18n.getMessage('label_appendContentSource')));
+      $('label_notconvertText').appendChild($T(chrome.i18n.getMessage('label_notconvertText')));
+      $('label_tumblr2twitter').appendChild($T(chrome.i18n.getMessage('label_tumblr2twitter')));
+      $('label_tumblr2facebook').appendChild($T(chrome.i18n.getMessage('label_tumblr2facebook')));
+      $('label_example').appendChild($T(chrome.i18n.getMessage('label_example')));
+      $('save').value = chrome.i18n.getMessage('label_save');
+    },
+    save : function () {
+      var lk = this.link_quick_short.body();
+      var qk = this.quote_quick_short.body();
+      var k = this.quick_short.body();
+      var tcheck = this.tumble_check.body();
+      var gcheck = this.enableGooglePlusPages_check.body();
+      var enable_webhook = this.enable_webhook_check.body();
+      var webhook_url = this.webhook_url_input.body();
       if (!Shortcutkey.isConflict(lk, qk, k)) {
         background.TBRL.configSet({
-          'services' : services.body(),
+          'services' : this.services.body(),
           'post'     : {
-            'tag_provider'     : provider.body(),
-            'tag_auto_complete': tag_check.body(),
-            'notification_on_posting': notification_check.body(),
-            'ldr_plus_taberareloo': ldr_check.body(),
-            'disable_tumblr_default_keybind': disable_keybind_check.body(),
-            'dashboard_plus_taberareloo': dashboard_check.body(),
-            'dashboard_plus_taberareloo_manually': dashboard_manually_check.body(),
-            'googlereader_plus_taberareloo': gr_check.body(),
-            'play_on_tumblr_play': play_play_check.body(),
-            'play_on_tumblr_like': play_like_check.body(),
-            'play_on_tumblr_count': play_count_check.body(),
-            'shortcutkey_ldr_plus_taberareloo'  : ldr_short.body(),
-            'shortcutkey_dashboard_plus_taberareloo'  : dashboard_short.body(),
-            'shortcutkey_dashboard_plus_taberareloo_manually'  : dashboard_manually_short.body(),
-            'shortcutkey_googlereader_plus_taberareloo'  : gr_short.body(),
-            'shortcutkey_play_on_tumblr_play'  : play_play_short.body(),
-            'shortcutkey_play_on_tumblr_like'  : play_like_short.body(),
-            'shortcutkey_play_on_tumblr_count' : play_count_short.body(),
-            'keyconfig' : keyconfig_check.body(),
-            'evernote_clip_fullpage': clip_fullpage.body(),
-            'remove_hatena_keyword' : remove_hatena_keyword.body(),
-            'tumblr_default_quote'  : tumblr_default_quote.body(),
+            'tag_provider'     : this.provider.body(),
+            'tag_auto_complete': this.tag_check.body(),
+            'notification_on_posting': this.notification_check.body(),
+            'ldr_plus_taberareloo': this.ldr_check.body(),
+            'disable_tumblr_default_keybind': this.disable_keybind_check.body(),
+            'dashboard_plus_taberareloo': this.dashboard_check.body(),
+            'dashboard_plus_taberareloo_manually': this.dashboard_manually_check.body(),
+            'googlereader_plus_taberareloo': this.gr_check.body(),
+            'play_on_tumblr_play': this.play_play_check.body(),
+            'play_on_tumblr_like': this.play_like_check.body(),
+            'play_on_tumblr_count': this.play_count_check.body(),
+            'shortcutkey_ldr_plus_taberareloo'  : this.ldr_short.body(),
+            'shortcutkey_dashboard_plus_taberareloo'  : this.dashboard_short.body(),
+            'shortcutkey_dashboard_plus_taberareloo_manually'  : this.dashboard_manually_short.body(),
+            'shortcutkey_googlereader_plus_taberareloo'  : this.gr_short.body(),
+            'shortcutkey_play_on_tumblr_play'  : this.play_play_short.body(),
+            'shortcutkey_play_on_tumblr_like'  : this.play_like_short.body(),
+            'shortcutkey_play_on_tumblr_count' : this.play_count_short.body(),
+            'keyconfig' : this.keyconfig_check.body(),
+            'evernote_clip_fullpage': this.clip_fullpage.body(),
+            'remove_hatena_keyword' : this.remove_hatena_keyword.body(),
+            'tumblr_default_quote'  : this.tumblr_default_quote.body(),
             'shortcutkey_linkquickpost': lk,
             'shortcutkey_quotequickpost' : qk,
             'shortcutkey_quickpost' : k,
-            'always_shorten_url' : shorten_check.body(),
+            'always_shorten_url' : this.shorten_check.body(),
             'multi_tumblelogs'   : tcheck,
-            'post_with_queue'    : queue_check.body(),
-            'not_queue_reblog_post': not_queue_reblog_post_check.body(),
+            'post_with_queue'    : this.queue_check.body(),
+            'not_queue_reblog_post': this.not_queue_reblog_post_check.body(),
             'enable_google_plus_pages' : gcheck,
-            'taberareloo_on_google_plus' : enableGooglePlusKey_check.body(),
-            'shortcutkey_taberareloo_on_google_plus' : googlePlusKey_short.body(),
+            'taberareloo_on_google_plus' : this.enableGooglePlusKey_check.body(),
+            'shortcutkey_taberareloo_on_google_plus' : this.googlePlusKey_short.body(),
             'enable_webhook' : enable_webhook,
             'webhook_url' : webhook_url
           },
           'entry'    : {
-            'amazon_affiliate_id' : amazon.body(),
-            'thumbnail_template' : thumbnail.body(),
-            'twitter_template' : twittemp.body(),
-            'trim_reblog_info'   : reblog_check.body(),
-            'append_content_source'   : append_check.body(),
-            'not_convert_text'   : notconvert_check.body(),
-            'tumblr2twitter'   : tumblr2twitter.body(),
-            'tumblr2facebook'   : tumblr2facebook.body()
+            'amazon_affiliate_id' : this.amazon.body(),
+            'thumbnail_template' : this.thumbnail.body(),
+            'twitter_template' : this.twittemp.body(),
+            'trim_reblog_info'   : this.reblog_check.body(),
+            'append_content_source'   : this.append_check.body(),
+            'not_convert_text'   : this.notconvert_check.body(),
+            'tumblr2twitter'   : this.tumblr2twitter.body(),
+            'tumblr2facebook'   : this.tumblr2facebook.body()
           }
         });
         if (!tcheck) {
-          tumble_list.remove();
+          this.tumble_list.remove();
         }
         if (!gcheck) {
-          googlePlusPages_list.remove();
+          this.googlePlusPages_list.remove();
         }
         if (enable_webhook && webhook_url) {
           background.Models.addWebHooks();
@@ -253,15 +276,12 @@
           background.Models.removeWebHooks();
         }
         chrome.runtime.sendMessage({request: 'initialize'});
-        this.close();
+        window.close();
       } else {
         alert(chrome.i18n.getMessage('error_keyConfliction'));
       }
-    });
-
-    // patches
-    new Patches();
-  });
+    }
+  };
 
   function Services() {
     var self = this;
@@ -752,7 +772,7 @@
   };
 
   // Patches
-  function Patches() {
+  function initPatches() {
     $('label_patch_name').appendChild($T(chrome.i18n.getMessage('label_patch')));
     $('label_patch_enabled').appendChild($T(chrome.i18n.getMessage('label_enable')));
     $('label_patch_file').appendChild($T(chrome.i18n.getMessage('label_patch') + ' (*.tbrl.js) : '));
@@ -857,5 +877,17 @@
     }
     createTable();
   }
-}());
+
+  exports.Options = Options;
+  exports.Services = Services;
+  exports.Provider = Provider;
+  exports.Check = Check;
+  exports.Input = Input;
+  exports.Dragger = Dragger;
+  exports.TemplateInput = TemplateInput;
+  exports.Shortcutkey = Shortcutkey;
+  exports.TumbleList = TumbleList;
+  exports.GooglePlusPagesList = GooglePlusPagesList;
+  exports.initPatches = initPatches;
+}(this));
 /* vim: set sw=2 ts=2 et tw=80 : */

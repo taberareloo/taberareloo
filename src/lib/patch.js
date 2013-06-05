@@ -351,6 +351,32 @@
       return new DeferredList(deferredList);
     },
 
+    loadInOptions : function (doc) {
+      var deferredList = [];
+      this.values.forEach(function (patch) {
+        var preference = Patches.getPreferences(patch.name) || {};
+        if (
+          !preference.disabled &&
+          patch.metadata.include && Array.isArray(patch.metadata.include) &&
+          (patch.metadata.include.indexOf('options') !== -1)
+        ) {
+          var deferred = new Deferred();
+          var script = doc.createElement('script');
+          script.src = patch.fileEntry.toURL();
+          script.onload = function () {
+            deferred.callback();
+          };
+          script.onerror = function () {
+            deferred.errback();
+          };
+          (doc.body || doc.documentElement).appendChild(script);
+          console.log('Load patch in options : ' + patch.fileEntry.fullPath);
+          deferredList.push(deferred);
+        }
+      });
+      return new DeferredList(deferredList);
+    },
+
     parseMatchPattern : function (input) {
       if (typeof input !== 'string') {
         return null;
