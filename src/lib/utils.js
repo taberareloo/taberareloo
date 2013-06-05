@@ -2,7 +2,7 @@
 /*jshint loopfunc:true*/
 /*global operator:true, methodcaller:true, MochiKit:true, succeed:true*/
 /*global zip:true, isArrayLike:true, keys:true, DeferredList:true, values:true*/
-/*global TBRL:true, Deferred:true, chrome:true*/
+/*global TBRL:true, Deferred:true, chrome:true, url:true*/
 (function (exports) {
   'use strict';
 
@@ -1193,5 +1193,35 @@
   }
 
   exports.isJSON = isJSON;
+
+  function contextType() {
+    var u = url.parse(location.href);
+    var context = '';
+    if (u.protocol !== 'chrome-extension:') {
+      context = 'content';
+    }
+    else {
+      switch (u.pathname) {
+      case '/popup.html':
+        context = 'popup';
+        break;
+      case '/options.html':
+        context = 'options';
+        break;
+      default:
+        context = 'background';
+      }
+    }
+    return context;
+  }
+
+  exports.contextType = contextType;
+
+  function inContext(value) {
+    return contextType() === value;
+  }
+
+  exports.inContext = inContext;
+
 }(this));
 /* vim: set sw=2 ts=2 et tw=80 : */
