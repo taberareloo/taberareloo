@@ -81,7 +81,7 @@
       this.remove(patch.name);
     },
 
-    install : function (file) {
+    install : function (file, no_alert) {
       var self = this;
 
       function save(fileName, file, url) {
@@ -112,7 +112,9 @@
                       this.truncate(this.position);
                       self.loadAndRegister(fileEntry, metadata, url).addCallback(function (patch) {
                         console.log('Install patch: ' + fileEntry.fullPath);
-                        alert(chrome.i18n.getMessage('message_installed', fileName));
+                        if (!no_alert) {
+                          alert(chrome.i18n.getMessage('message_installed', fileName));
+                        }
                         deferred.callback(patch);
                       });
                     };
@@ -155,7 +157,7 @@
       }
     },
 
-    uninstall : function (patch) {
+    uninstall : function (patch, no_alert) {
       var self = this;
       var deferred = new Deferred();
 
@@ -165,7 +167,9 @@
             function () {
               self.unregister(patch);
               console.log('Uninstall patch: ' + fileEntry.fullPath);
-              alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
+              if (!no_alert) {
+                alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
+              }
               deferred.callback();
             },
             function (e) {
