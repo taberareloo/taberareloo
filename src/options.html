@@ -11,6 +11,7 @@
 <script src="third_party/punycode/punycode.js"></script>
 <script src="third_party/node/querystring.js"></script>
 <script src="third_party/node/url.js"></script>
+<script src="third_party/zipjs/zip.js"></script>
 <script src="lib/proto.js"></script>
 <script src="lib/utils.js"></script>
 <script src="lib/options.js"></script>
@@ -22,6 +23,7 @@
   <li class="tab"><p id="label_post"     class="post"></p></li>
   <li class="tab"><p id="label_entry"    class="entry"></p></li>
   <li class="tab"><p id="label_patch"    class="patch"></p></li>
+  <li class="tab"><p id="label_backup"   class="backup"></p></li>
   <li class="tab"><p id="label_about"    class="about"></p></li>
 </ul>
 <div id="container">
@@ -263,7 +265,8 @@
     </div>
     <div id="patch" class="slide">
       <div class="option">
-        <label id="label_patch_file" for="patch_file"></label><input id="patch_file" type="file" accept="text/javascript">
+        <label id="label_patch_file" for="patch_file"></label>
+        <input id="patch_file" type="file" accept="text/javascript">
         <button id="button_patch_install">
         <button id="button_check_updates">
       </div>
@@ -279,6 +282,18 @@
         </thead>
         <tbody id="patch_body"></tbody>
         </table>
+      </div>
+    </div>
+    <div id="backup" class="slide">
+      <div class="option">
+        <label id="label_backup_button"></label>
+        <button id="button_backup">
+        <a id="backup_download" href="" style="visibility: hidden;"></a>
+      </div>
+      <div class="option">
+        <label id="label_backup_file" for="backup_file"></label>
+        <input id="backup_file" type="file" accept="application/zip">
+        <button id="button_restore">
       </div>
     </div>
     <div id="about" class="slide">

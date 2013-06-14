@@ -1,6 +1,7 @@
 /*global chrome:true, connect:true, $:true, $A:true, $T:true, $DF:true*/
 /*global $N:true, disconnect:true, keyString:true, $D:true, update:true*/
-/*global CustomEvent:true*/
+/*global CustomEvent:true, zip:true, MouseEvent:true, Deferred:true*/
+/*global DeferredHash:true*/
 (function (exports) {
   'use strict';
 
@@ -22,7 +23,7 @@
     var self = this;
    // smoothing slide
     var inner = $('inner');
-    this.slides = ['services', 'post', 'entry', 'patch', 'about'];
+    this.slides = ['services', 'post', 'entry', 'patch', 'backup', 'about'];
     this.tabs = $A(document.getElementsByClassName('tab'));
     this.now_active = 0;
     this.tabs[this.now_active].classList.add('active');
@@ -141,6 +142,9 @@
 
     // patches
     initPatches();
+
+    // backup/restor
+    initBackup();
   }
 
   Options.prototype = {
@@ -150,6 +154,7 @@
       $('label_post').appendChild($T(chrome.i18n.getMessage('label_post')));
       $('label_entry').appendChild($T(chrome.i18n.getMessage('label_entry')));
       $('label_patch').appendChild($T(chrome.i18n.getMessage('label_patch')));
+      $('label_backup').appendChild($T(chrome.i18n.getMessage('label_backup')));
       $('label_about').appendChild($T(chrome.i18n.getMessage('label_about')));
       $('label_tagprovider').appendChild($T(chrome.i18n.getMessage('label_tagprovider')));
       $('label_keyconfig').appendChild($T(chrome.i18n.getMessage('label_keyconfig')));
@@ -878,6 +883,116 @@
     createTable();
   }
 
+  function initBackup() {
+    zip.workerScriptsPath = '/third_party/zipjs/';
+
+    $('label_backup_button').appendChild($T(chrome.i18n.getMessage('label_backup_button')));
+    $('label_backup_file').appendChild($T(chrome.i18n.getMessage('label_backup_file')));
+
+    var backup_download = $('backup_download');
+    var button_backup = $('button_backup');
+    button_backup.appendChild($T(chrome.i18n.getMessage('label_backup')));
+    connect(button_backup, 'onclick', button_backup, function () {
+      var writer = new zip.BlobWriter();
+      zip.createWriter(writer, function (zipWriter) {
+        var configurations = {};
+        for (var key in background.localStorage) {
+          var value = background.localStorage.getItem(key);
+          try {
+            configurations[key] = JSON.parse(value);
+          }
+          catch (e) {
+            configurations[key] = value;
+          }
+        }
+        var data = JSON.stringify(configurations, undefined, 2);
+
+        var patches = background.Patches.values;
+        var index   = 0;
+        function addFileToZip() {
+          var patch = patches[index];
+          patch.fileEntry.file(function (file) {
+            zipWriter.add(patch.fileEntry.name, new zip.BlobReader(file), function () {
+              index++;
+              if (index < patches.length) {
+                addFileToZip();
+              }
+              else {
+                downloadZip();
+              }
+            });
+          });
+        }
+
+        zipWriter.add('taberareloo-settings.json', new zip.TextReader(data), function () {
+          if (patches.length) {
+            addFileToZip();
+          }
+          else {
+            downloadZip();
+          }
+        });
+
+        function downloadZip() {
+          zipWriter.close(function (blob) {
+            backup_download.href = (window.webkitURL || window.URL).createObjectURL(blob);
+            backup_download.download = 'taberareloo-settings.zip';
+            backup_download.dispatchEvent(new MouseEvent('click'));
+          });
+        }
+      }, function (message) {
+        console.log(message);
+      });
+    });
+
+    var button_restore = $('button_restore');
+    button_restore.appendChild($T(chrome.i18n.getMessage('label_restore')));
+    connect(button_restore, 'onclick', button_restore, function () {
+      var backup_file = $('backup_file');
+      if (backup_file.files.length) {
+        var files = {};
+        zip.createReader(new zip.BlobReader(backup_file.files[0]), function (zipReader) {
+          zipReader.getEntries(function (entries) {
+            entries.forEach(function (entry) {
+              var deferred = new Deferred();
+
+              if (entry.filename === 'taberareloo-settings.json') {
+                entry.getData(new zip.TextWriter(), function (data) {
+                  var json = JSON.parse(data);
+                  for (var key in json) {
+                    var value = json[key];
+                    if (typeof value !== 'string') {
+                      value = JSON.stringify(value);
+                    }
+                    background.localStorage.setItem(key, value);
+                  }
+                  deferred.callback();
+                });
+              }
+              else {
+                entry.getData(new zip.BlobWriter('application/javascript'), function (blob) {
+                  blob.name = entry.filename;
+                  background.Patches.install(blob, true).addCallback(function () {
+                    deferred.callback();
+                  });
+                });
+              }
+
+              files[entry.filename] = deferred;
+            });
+
+            new DeferredHash(files).addCallback(function () {
+              alert(chrome.i18n.getMessage('message_restored'));
+              background.location.reload();
+            });
+          });
+        }, function (message) {
+          console.log(message);
+        });
+      }
+    });
+  }
+
   exports.Options = Options;
   exports.Services = Services;
   exports.Provider = Provider;
@@ -889,5 +1004,6 @@
   exports.TumbleList = TumbleList;
   exports.GooglePlusPagesList = GooglePlusPagesList;
   exports.initPatches = initPatches;
+  exports.initBackup = initBackup;
 }(this));
 /* vim: set sw=2 ts=2 et tw=80 : */
