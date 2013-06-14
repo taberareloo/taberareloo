@@ -111,6 +111,18 @@
   "label_check_updates": {
     "message": "Check Updates"
   },
+  "label_backup": {
+    "message": "Backup"
+  },
+  "label_restore": {
+    "message": "Restore"
+  },
+  "label_backup_button": {
+    "message": "To back up settings and patch files : "
+  },
+  "label_backup_file": {
+    "message": "The zip file which you backed up (.zip) : "
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    is converted to\n    $modified$",
     "description": "when https link has found",
@@ -146,6 +158,9 @@
   },
   "message_released": {
     "message": "A new version has been released.\nClick here to open the new patch."
+  },
+  "message_restored": {
+    "message": "Configurations has been restored.\nPlease reload this page."
   },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",

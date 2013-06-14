@@ -111,6 +111,18 @@
   "label_check_updates": {
     "message": "更新を確認"
   },
+  "label_backup": {
+    "message": "バックアップ"
+  },
+  "label_restore": {
+    "message": "リストア"
+  },
+  "label_backup_button": {
+    "message": "Taberarelooの設定／パッチファイルのバックアップを行います : "
+  },
+  "label_backup_file": {
+    "message": "バックアップ時に保存した zip ファイル (.zip) : "
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    は\n    $modified$\n    に変換されました。",
     "description": "httpsのリンクが見つかった",
@@ -146,6 +158,9 @@
   },
   "message_released": {
     "message": "新しいバージョンがリリースされています。\nここをクリックすると新しいパッチを開きます。"
+  },
+  "message_restored": {
+    "message": "設定は復元されました。\nこのページをリロードして下さい。"
   },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
