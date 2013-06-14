@@ -123,6 +123,12 @@
   "label_backup_file": {
     "message": "バックアップ時に保存した zip ファイル (.zip) : "
   },
+  "label_reset": {
+    "message": "初期化"
+  },
+  "label_reset_button": {
+    "message": "Taberarelooの設定／パッチファイルを初期インストール時に戻します : "
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    は\n    $modified$\n    に変換されました。",
     "description": "httpsのリンクが見つかった",
@@ -150,6 +156,9 @@
   "confirm_delete": {
     "message": "このパッチを削除してもよろしいですか？"
   },
+  "confirm_reset": {
+    "message": "全ての設定とパッチを初期化してもよろしいですか？"
+  },
   "message_installed": {
     "message": "$1 をインストールしました。"
   },
@@ -161,6 +170,9 @@
   },
   "message_restored": {
     "message": "設定は復元されました。\nこのページをリロードして下さい。"
+  },
+  "message_reset": {
+    "message": "設定は初期化されました。\nこのページをリロードして下さい。"
   },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",

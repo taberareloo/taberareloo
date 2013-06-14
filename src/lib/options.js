@@ -888,6 +888,7 @@
 
     $('label_backup_button').appendChild($T(chrome.i18n.getMessage('label_backup_button')));
     $('label_backup_file').appendChild($T(chrome.i18n.getMessage('label_backup_file')));
+    $('label_reset_button').appendChild($T(chrome.i18n.getMessage('label_reset_button')));
 
     var backup_download = $('backup_download');
     var button_backup = $('button_backup');
@@ -945,9 +946,7 @@
       });
     });
 
-    var button_restore = $('button_restore');
-    button_restore.appendChild($T(chrome.i18n.getMessage('label_restore')));
-    connect(button_restore, 'onclick', button_restore, function () {
+    function restore() {
       var backup_file = $('backup_file');
       if (backup_file.files.length) {
         var files = {};
@@ -988,6 +987,37 @@
           });
         }, function (message) {
           console.log(message);
+        });
+      }
+    }
+
+    var button_restore = $('button_restore');
+    button_restore.appendChild($T(chrome.i18n.getMessage('label_restore')));
+    connect(button_restore, 'onclick', button_restore, function () {
+      reset().addCallback(function () {
+        restore();
+      });
+    });
+
+    function reset() {
+      for (var key in background.localStorage) {
+        background.localStorage.removeItem(key);
+      }
+
+      var patches = {};
+      background.Patches.values.forEach(function (patch) {
+        patches[patch.fileEntry.name] = background.Patches.uninstall(patch, true);
+      });
+      return new DeferredHash(patches);
+    }
+
+    var button_reset = $('button_reset');
+    button_reset.appendChild($T(chrome.i18n.getMessage('label_reset')));
+    connect(button_reset, 'onclick', button_reset, function () {
+      if (confirm(chrome.i18n.getMessage('confirm_reset'))) {
+        reset().addCallback(function () {
+          alert(chrome.i18n.getMessage('message_reset'));
+          background.location.reload();
         });
       }
     });
