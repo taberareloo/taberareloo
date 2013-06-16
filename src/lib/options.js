@@ -886,9 +886,19 @@
   function initBackup() {
     zip.workerScriptsPath = '/third_party/zipjs/';
 
-    $('label_backup_button').appendChild($T(chrome.i18n.getMessage('label_backup_button')));
-    $('label_backup_file').appendChild($T(chrome.i18n.getMessage('label_backup_file')));
-    $('label_reset_button').appendChild($T(chrome.i18n.getMessage('label_reset_button')));
+    var label_backup_button = $('label_backup_button');
+    label_backup_button.appendChild($T(chrome.i18n.getMessage('label_backup_button')));
+    var label_backup_file = $('label_backup_file');
+    label_backup_file.appendChild($T(chrome.i18n.getMessage('label_backup_file')));
+    var label_reset_button = $('label_reset_button');
+    label_reset_button.appendChild($T(chrome.i18n.getMessage('label_reset_button')));
+
+    var backup_file = $('backup_file');
+    var pos = label_backup_file.offsetWidth + backup_file.offsetWidth +
+      parseInt(getComputedStyle(backup_file).marginLeft, 10) +
+      parseInt(getComputedStyle(backup_file).marginRight, 10);
+    label_backup_button.style.width = pos + 'px';
+    label_reset_button.style.width = pos + 'px';
 
     var backup_download = $('backup_download');
     var button_backup = $('button_backup');
@@ -982,7 +992,7 @@
 
             new DeferredHash(files).addCallback(function () {
               alert(chrome.i18n.getMessage('message_restored'));
-              background.location.reload();
+              chrome.runtime.reload();
             });
           });
         }, function (message) {
@@ -1017,7 +1027,7 @@
       if (confirm(chrome.i18n.getMessage('confirm_reset'))) {
         reset().addCallback(function () {
           alert(chrome.i18n.getMessage('message_reset'));
-          background.location.reload();
+          chrome.runtime.reload();
         });
       }
     });

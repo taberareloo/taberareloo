@@ -169,10 +169,10 @@
     "message": "A new version has been released.\nClick here to open the new patch."
   },
   "message_restored": {
-    "message": "Settings have been restored.\nPlease reload this page."
+    "message": "Settings have been restored.\nGoing to reload Taberareloo."
   },
   "message_reset": {
-    "message": "Settings have been reset.\nPlease reload this page."
+    "message": "Settings have been reset.\nGoing to reload Taberareloo."
   },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",
