@@ -169,10 +169,10 @@
     "message": "新しいバージョンがリリースされています。\nここをクリックすると新しいパッチを開きます。"
   },
   "message_restored": {
-    "message": "設定は復元されました。\nこのページをリロードして下さい。"
+    "message": "設定は復元されました。\nTaberareloo を再起動します。"
   },
   "message_reset": {
-    "message": "設定は初期化されました。\nこのページをリロードして下さい。"
+    "message": "設定は初期化されました。\nTaberareloo を再起動します。"
   },
   "error_post": {
     "message": "ポストエラー\n$detail$\n\n元ページ: \n  $title$\n  $url$",
