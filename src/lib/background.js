@@ -513,6 +513,12 @@
     }
   };
 
+  chrome.tabs.onReplaced.addListener(function (new_tab_id, old_tab_id) {
+    chrome.tabs.get(new_tab_id, function (tab) {
+      Patches.loadInTab(tab);
+    });
+  });
+
   chrome.runtime.onMessage.addListener(function (req) {
     var handler = onRequestsHandlers[req.request];
     if (handler) {
