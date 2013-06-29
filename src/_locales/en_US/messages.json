@@ -111,6 +111,24 @@
   "label_check_updates": {
     "message": "Check Updates"
   },
+  "label_backup": {
+    "message": "Backup"
+  },
+  "label_restore": {
+    "message": "Restore"
+  },
+  "label_backup_button": {
+    "message": "To back up settings and patch files : "
+  },
+  "label_backup_file": {
+    "message": "The zip file which you backed up (.zip) : "
+  },
+  "label_reset": {
+    "message": "Reset"
+  },
+  "label_reset_button": {
+    "message": "To reset settings and patch files : "
+  },
   "warning_https": {
     "message": "Https $title$\n    $original$\n    is converted to\n    $modified$",
     "description": "when https link has found",
@@ -138,6 +156,9 @@
   "confirm_delete": {
     "message": "Are you sure to delete this patch?"
   },
+  "confirm_reset": {
+    "message": "Are you sure to reset all settings and patches?"
+  },
   "message_installed": {
     "message": "$1 has been installed."
   },
@@ -146,6 +167,12 @@
   },
   "message_released": {
     "message": "A new version has been released.\nClick here to open the new patch."
+  },
+  "message_restored": {
+    "message": "Settings have been restored.\nGoing to reload Taberareloo."
+  },
+  "message_reset": {
+    "message": "Settings have been reset.\nGoing to reload Taberareloo."
   },
   "error_post": {
     "message": "Post failed.\n$detail$\n\nSource page: \n  $title$\n  $url$",

@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 /*global MochiKit:true, Repository:true, Deferred:true, succeed:true, chrome:true*/
-/*global TBRL:true, request:true, semver:true, DeferredHash:true*/
+/*global TBRL:true, request:true, semver:true, DeferredHash:true, DeferredList:true*/
 (function (exports) {
   'use strict';
 
@@ -81,7 +81,7 @@
       this.remove(patch.name);
     },
 
-    install : function (file) {
+    install : function (file, no_alert) {
       var self = this;
 
       function save(fileName, file, url) {
@@ -112,7 +112,9 @@
                       this.truncate(this.position);
                       self.loadAndRegister(fileEntry, metadata, url).addCallback(function (patch) {
                         console.log('Install patch: ' + fileEntry.fullPath);
-                        alert(chrome.i18n.getMessage('message_installed', fileName));
+                        if (!no_alert) {
+                          alert(chrome.i18n.getMessage('message_installed', fileName));
+                        }
                         deferred.callback(patch);
                       });
                     };
@@ -155,7 +157,7 @@
       }
     },
 
-    uninstall : function (patch) {
+    uninstall : function (patch, no_alert) {
       var self = this;
       var deferred = new Deferred();
 
@@ -165,7 +167,9 @@
             function () {
               self.unregister(patch);
               console.log('Uninstall patch: ' + fileEntry.fullPath);
-              alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
+              if (!no_alert) {
+                alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
+              }
               deferred.callback();
             },
             function (e) {
@@ -326,6 +330,7 @@
     },
 
     loadInPopup : function (doc) {
+      var deferredList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
         if (
@@ -333,12 +338,47 @@
           patch.metadata.include && Array.isArray(patch.metadata.include) &&
           (patch.metadata.include.indexOf('popup') !== -1)
         ) {
+          var deferred = new Deferred();
           var script = doc.createElement('script');
           script.src = patch.fileEntry.toURL();
+          script.onload = function () {
+            deferred.callback();
+          };
+          script.onerror = function () {
+            deferred.errback();
+          };
           (doc.body || doc.documentElement).appendChild(script);
           console.log('Load patch in popup : ' + patch.fileEntry.fullPath);
+          deferredList.push(deferred);
         }
       });
+      return new DeferredList(deferredList);
+    },
+
+    loadInOptions : function (doc) {
+      var deferredList = [];
+      this.values.forEach(function (patch) {
+        var preference = Patches.getPreferences(patch.name) || {};
+        if (
+          !preference.disabled &&
+          patch.metadata.include && Array.isArray(patch.metadata.include) &&
+          (patch.metadata.include.indexOf('options') !== -1)
+        ) {
+          var deferred = new Deferred();
+          var script = doc.createElement('script');
+          script.src = patch.fileEntry.toURL();
+          script.onload = function () {
+            deferred.callback();
+          };
+          script.onerror = function () {
+            deferred.errback();
+          };
+          (doc.body || doc.documentElement).appendChild(script);
+          console.log('Load patch in options : ' + patch.fileEntry.fullPath);
+          deferredList.push(deferred);
+        }
+      });
+      return new DeferredList(deferredList);
     },
 
     parseMatchPattern : function (input) {

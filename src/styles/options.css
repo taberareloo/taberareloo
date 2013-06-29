@@ -55,7 +55,7 @@ div#container {
   height: calc(100% - 100px);
 }
 div#inner {
-  width: 500%;
+  width: 600%;
   height: 100%;
   transition: margin-left 0.1s ease-out;
 }
@@ -65,7 +65,7 @@ div.slide {
   position: relative;
   display: inline;
   overflow: auto;
-  width: 20%;
+  width: 800px;
   height: 100%;
 }
 div.option,
@@ -219,4 +219,8 @@ div.option a.patch_name {
 td.patch_enabled,
 td.patch_uninstall {
   text-align: center;
+}
+
+#backup label {
+  display: inline-block;
 }
