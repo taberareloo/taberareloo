@@ -6,7 +6,7 @@
     "chai": "*",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.7",
-    "grunt-contrib-jshint": "~0.4.1"
+    "grunt-contrib-jshint": "~0.6.0"
   },
   "scripts": {
     "test": "node_modules/.bin/grunt travis"
