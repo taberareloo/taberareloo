@@ -9,11 +9,10 @@
     "noempty": true,
     "quotmark": "single",
     "undef": true,
-    "unused": true,
+    "unused": "vars",
     "strict": true,
     "trailing": true,
     "white": true,
-    "es5": true,
 
     "browser": true,
     "devel": true
