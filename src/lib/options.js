@@ -63,10 +63,6 @@
     this.dashboard_manually_check = new Check('dashboard_plus_taberareloo_manually', !!Config.post.dashboard_plus_taberareloo_manually);
     this.dashboard_manually_short = new Shortcutkey('shortcutkey_dashboard_plus_taberareloo_manually', true);
 
-    // GoogleReader + Taberareloo
-    this.gr_check = new Check('googlereader_plus_taberareloo', !!Config.post.googlereader_plus_taberareloo);
-    this.gr_short = new Shortcutkey('shortcutkey_googlereader_plus_taberareloo', true);
-
     // Play on Tumblr - Play
     this.play_play_check = new Check('play_on_tumblr_play', !!Config.post.play_on_tumblr_play);
     this.play_play_short = new Shortcutkey('shortcutkey_play_on_tumblr_play', true);
@@ -169,7 +165,6 @@
         $('shortcutkey_ldr_plus_taberareloo_clear').value =
         $('shortcutkey_dashboard_plus_taberareloo_clear').value =
         $('shortcutkey_dashboard_plus_taberareloo_manually_clear').value =
-        $('shortcutkey_googlereader_plus_taberareloo_clear').value =
         $('shortcutkey_play_on_tumblr_play_clear').value =
         $('shortcutkey_play_on_tumblr_like_clear').value =
         $('shortcutkey_play_on_tumblr_count_clear').value =
@@ -230,14 +225,12 @@
             'disable_tumblr_default_keybind': this.disable_keybind_check.body(),
             'dashboard_plus_taberareloo': this.dashboard_check.body(),
             'dashboard_plus_taberareloo_manually': this.dashboard_manually_check.body(),
-            'googlereader_plus_taberareloo': this.gr_check.body(),
             'play_on_tumblr_play': this.play_play_check.body(),
             'play_on_tumblr_like': this.play_like_check.body(),
             'play_on_tumblr_count': this.play_count_check.body(),
             'shortcutkey_ldr_plus_taberareloo'  : this.ldr_short.body(),
             'shortcutkey_dashboard_plus_taberareloo'  : this.dashboard_short.body(),
             'shortcutkey_dashboard_plus_taberareloo_manually'  : this.dashboard_manually_short.body(),
-            'shortcutkey_googlereader_plus_taberareloo'  : this.gr_short.body(),
             'shortcutkey_play_on_tumblr_play'  : this.play_play_short.body(),
             'shortcutkey_play_on_tumblr_like'  : this.play_like_short.body(),
             'shortcutkey_play_on_tumblr_count' : this.play_count_short.body(),
