@@ -328,6 +328,9 @@
 
     isBackground: function () {
       return false;
+    },
+    setRequestHandler: function (request, handler) {
+      onRequestHandlers[request] = handler;
     }
   };
 
