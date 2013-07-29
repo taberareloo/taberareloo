@@ -74,14 +74,12 @@
         'disable_tumblr_default_keybind': false,
         'dashboard_plus_taberareloo': false,
         'dashboard_plus_taberareloo_manually': false,
-        'googlereader_plus_taberareloo': false,
         'play_on_tumblr_play': false,
         'play_on_tumblr_like': false,
         'play_on_tumblr_count': false,
         'shortcutkey_ldr_plus_taberareloo': 'T',
         'shortcutkey_dashboard_plus_taberareloo': 'T',
         'shortcutkey_dashboard_plus_taberareloo_manually': 'SHIFT + T',
-        'shortcutkey_googlereader_plus_taberareloo': 'SHIFT + T',
         'shortcutkey_play_on_tumblr_play': 'RETURN',
         'shortcutkey_play_on_tumblr_like': '',
         'shortcutkey_play_on_tumblr_count': '',
@@ -379,6 +377,9 @@
 
     isBackground: function () {
       return true;
+    },
+    setRequestHandler : function (request, handler) {
+      onRequestsHandlers[request] = handler;
     }
   };
 
@@ -512,6 +513,12 @@
       Patches.loadInTab(sender.tab);
     }
   };
+
+  chrome.tabs.onReplaced.addListener(function (new_tab_id, old_tab_id) {
+    chrome.tabs.get(new_tab_id, function (tab) {
+      Patches.loadInTab(tab);
+    });
+  });
 
   chrome.runtime.onMessage.addListener(function (req) {
     var handler = onRequestsHandlers[req.request];
