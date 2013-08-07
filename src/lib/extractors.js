@@ -4,7 +4,7 @@
 /*global Deferred:true, queryHash:true, unescapeHTML:true, queryString:true*/
 /*global joinText:true, getStyle:true, tagName:true, downloadFile:true*/
 /*global getFileExtension:true, getElementDimensions:true*/
-/*global getViewportPosition:true, getViewportDimensions:true*/
+/*global getViewportDimensions:true*/
 /*global getPageDimensions:true, base64ToFileEntry:true, MochiKit:true*/
 /*global cancel:true, keyString:true, setElementPosition:true*/
 /*global $D:true, $T:true, setStyle:true, setElementDimensions:true*/
@@ -1415,7 +1415,7 @@
             });
 
           case 'View':
-            return self.capture(win, getViewportPosition(), getViewportDimensions());
+            return self.capture(win, { x: 0, y: 0 }, getViewportDimensions());
 
           case 'Page':
             return self.capture(win, { x: 0, y: 0 }, getPageDimensions());
