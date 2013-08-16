@@ -2818,19 +2818,20 @@ Models.register({
           }
           snippet = self.makeSnippetPostable(snippet[5][0]);
           if ((media_type !== 'video')) {
-            for (var key in snippet[5]) {
+            var obj = snippet[5] || snippet[7];
+            for (var key in obj) {
               if (ps.type === 'photo') {
-                snippet[5][key][1] = ps.itemUrl;
-                if (!snippet[5][key][5]) {
-                  snippet[5][key][5] = [];
-                  snippet[5][key][5][1] = 150;
-                  snippet[5][key][5][2] = 150;
+                obj[key][1] = ps.itemUrl;
+                if (!obj[key][5]) {
+                  obj[key][5] = [];
+                  obj[key][5][1] = 150;
+                  obj[key][5][2] = 150;
                 }
-                snippet[5][key][5][0] = ps.itemUrl;
-                if (!snippet[5][key][184]) {
-                  snippet[5][key][184] = [];
-                  snippet[5][key][184][0] = [339, 338, 336, 335, 0];
-                  snippet[5][key][184][5] = {40265033 : []};
+                obj[key][5][0] = ps.itemUrl;
+                if (!obj[key][184]) {
+                  obj[key][184] = [];
+                  obj[key][184][0] = [339, 338, 336, 335, 0];
+                  obj[key][184][5] = {40265033 : []};
                 }
 
                 function setImageToSnippet184(snippet184, image) {
@@ -2846,18 +2847,18 @@ Models.register({
                     }
                   }
                 }
-                setImageToSnippet184(snippet[5][key][184], ps.itemUrl);
+                setImageToSnippet184(obj[key][184], ps.itemUrl);
               }
               if (ps.type === 'quote') {
-                snippet[5][key][1] = null;
-                snippet[5][key][5] = null;
-                snippet[5][key][7] = null;
-                snippet[5][key][10] = null;
-                snippet[5][key][184] = null;
+                obj[key][1] = null;
+                obj[key][5] = null;
+                obj[key][7] = null;
+                obj[key][10] = null;
+                obj[key][184] = null;
               }
-              snippet[5][key][2] = ps.item || ps.page;
+              obj[key][2] = ps.item || ps.page;
               if (ps.type !== 'link') {
-                snippet[5][key][3] = ps.body ? ps.body.trimTag().trim() : null;
+                obj[key][3] = ps.body ? ps.body.trimTag().trim() : null;
               }
             }
           }
