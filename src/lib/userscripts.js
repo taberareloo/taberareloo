@@ -268,7 +268,7 @@
         document.addEventListener('keydown', this.wrap, false);
       },
       getCurrentItem: function () {
-        var paragraphs = $X('id("posts")/li/div[starts-with(@id, "post_")]'), toplist = new Array(paragraphs.length);
+        var paragraphs = $X('id("posts")/li[div[starts-with(@id, "post_")]]'), toplist = new Array(paragraphs.length);
         var get_top = function (index) {
           return toplist[index] || (toplist[index] = paragraphs[index].getBoundingClientRect().top);
         };
@@ -371,12 +371,13 @@
         }
       },
       reblog: function (node, manually) {
+        var post = node.classList.contains('post') ? node : node.querySelector('.post');
         var sel = createFlavoredString(window.getSelection());
         var ctx = update({
           document  : document,
           window    : window,
           selection : (sel.raw) ? sel : null,
-          target    : node,
+          target    : post,
           event     : {},
           title     : null,
           mouse     : null,
@@ -386,15 +387,16 @@
         return (ext.check(ctx)) ? TBRL.share(ctx, ext, !!manually) : null;
       },
       notify: function (elm, hide) {
+        var post = elm.classList.contains('post') ? elm : elm.querySelector('.post');
         var duration = 600;
         if (!hide) {
           this.FlashMessage.showFlashMessageWindow('ReBlog', duration);
         }
-        elm.style.transition = '';
-        elm.style.backgroundColor = 'salmon';
+        post.style.transition = '';
+        post.style.backgroundColor = 'salmon';
         setTimeout(function () {
-          elm.style.transition = 'background-color ' + (Math.floor(duration / 100) / 10) + 's ease-out';
-          elm.style.backgroundColor = '';
+          post.style.transition = 'background-color ' + (Math.floor(duration / 100) / 10) + 's ease-out';
+          post.style.backgroundColor = '';
         }, 0);
       },
       wrap  : function (ev) {
@@ -446,6 +448,8 @@
       }
     },
     play : function (current) {
+      var post = current.querySelector('.post');
+
       // quit photoset lightbox or panorama lightbox
       var lightbox = document.body.querySelector('#tumblr_lightbox, .pano_lightbox');
       if (lightbox) {
@@ -461,7 +465,7 @@
         small_image.click();
       }
 
-      var data = current.dataset;
+      var data = post.dataset;
 
       // for Tumblr uploaded audio post
       if (data.type === 'audio') {
@@ -485,7 +489,7 @@
             }
 
             // toggle video playing and video lightbox launching
-            if (current.classList.contains('is_lightbox')) {
+            if (post.classList.contains('is_lightbox')) {
               var tvp_pause_button = tumblr_video_player.querySelector('.tvp_pause_button');
               if (tvp_pause_button) {
                 tvp_pause_button.click();
