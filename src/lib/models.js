@@ -2443,6 +2443,9 @@ Models.register({
         }
         catch (e) {}
       }
+      else {
+        self.streams = null;
+      }
       self.timer = setTimeout(function() {
         self.initialize();
       }, 60000);
