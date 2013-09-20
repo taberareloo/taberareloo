@@ -1616,7 +1616,6 @@ Models.register({
     var maxlen   = 140;
     if (ps.type === 'photo') {
       ps = update({}, ps);
-      ps.item    = ps.page;
       ps.itemUrl = ps.pageUrl;
       maxlen -= 23; // reserve for pic.twitter.com
     }
