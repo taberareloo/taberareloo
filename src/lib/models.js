@@ -2762,6 +2762,12 @@ Models.register({
           body ? '“' + body + '”' : ''], "\n");
         description = joinText([ps.description, body], "\n\n");
       }
+      if (ps.tags && ps.tags.length) {
+        var tags = ps.tags.map(function (tag) {
+          return '#' + tag;
+        }).join(' ');
+        description = joinText([description, tags], "\n\n");
+      }
 
       var data = [];
       if (ps.reshare) {
