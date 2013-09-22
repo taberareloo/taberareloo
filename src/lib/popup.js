@@ -635,7 +635,7 @@
 
     var streams = background.Models['Google+'].getStreams();
     var communities = background.Models['Google+'].getCommunities();
-    if (streams || communities.length) {
+    if (streams) {
       $D(selectBox);
       selectBox.appendChild(
         $N('option', {value : '', selected : 'selected'}, 'Select Google+ Stream (or same as last one)')
