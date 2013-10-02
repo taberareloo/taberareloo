@@ -120,9 +120,11 @@
           var notification = null;
 
           if (TBRL.Config.post.notification_on_posting) {
-            notification = TBRL.Notification.notify({
+            TBRL.Notification.notify({
               title: p.name,
               message: 'Posting...'
+            }).addCallback(function (n) {
+              notification = n;
             });
           }
 
@@ -136,15 +138,16 @@
           if (TBRL.Config.post.notification_on_posting) {
             ds[p.name].addCallbacks(
               function (res) {
-                var n = TBRL.Notification.notify({
+                TBRL.Notification.notify({
                   title: p.name,
                   message: 'Posting... Done',
                   timeout: 3,
                   id: notification.tag
+                }).addCallback(function (n) {
+                  if (n) {
+                    notifications.push(n);
+                  }
                 });
-                if (n) {
-                  notifications.push(n);
-                }
                 return res;
               },
               function (res) {
@@ -303,6 +306,43 @@
         var timeout = typeof opt.timeout === 'number' ? opt.timeout * 1000 : null;
         var onclick = opt.onclick || null;
         var onclose = opt.onclose || null;
+
+        if (chrome.notifications) {
+          var deferred = new Deferred();
+          chrome.notifications.create(opt.id || '', {
+            type     : opt.image ? 'image' : 'basic',
+            title    : title,
+            message  : message,
+            iconUrl  : icon,
+            imageUrl : opt.image || null
+          }, function (id) {
+            var notification = {
+              tag   : id,
+              close : function () {
+                chrome.notifications.clear(id, function (wasCleared) {
+                  delete TBRL.Notification.contents[id];
+                });
+              }
+            };
+            if (timeout !== null) {
+              setTimeout(function () {
+                chrome.notifications.clear(id, function (wasCleared) {
+                  delete TBRL.Notification.contents[id];
+                });
+              }, timeout);
+            }
+            if (onclick) {
+              notification.onclick = onclick;
+            }
+            if (onclose) {
+              notification.onclose = onclose;
+            }
+            TBRL.Notification.contents[id] = notification;
+            deferred.callback(notification);
+          });
+          return deferred;
+        }
+
         try {
           var notification = new Notification(title, {
             body: message,
@@ -322,9 +362,9 @@
           if (onclose) {
             notification.onclose = onclose;
           }
-          return notification;
+          return succeed(notification);
         } catch (e) {
-          return null;
+          return succeed(null);
         }
       }
     },
@@ -382,6 +422,24 @@
       onRequestsHandlers[request] = handler;
     }
   };
+
+  if (chrome.notifications) {
+    chrome.notifications.onClicked.addListener(function (id) {
+      var n = TBRL.Notification.contents[id];
+      if (n && n.onclick) {
+        n.onclick();
+      }
+    });
+    chrome.notifications.onClosed.addListener(function (id, byUser) {
+      var n = TBRL.Notification.contents[id];
+      if (n) {
+        if (n.onclose) {
+          n.onclose();
+        }
+        delete TBRL.Notification.contents[id];
+      }
+    });
+  }
 
   if (window.localStorage.options) {
     TBRL.configUpdate(JSON.parse(window.localStorage.options));
