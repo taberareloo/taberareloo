@@ -952,6 +952,31 @@
     },
 
     {
+      name : 'Photo - Google Image Search',
+      ICON : 'http://www.google.com/favicon.ico',
+      check : function (ctx) {
+        return ctx.host === 'images.google.co.jp' && ctx.onImage && ctx.onLink;
+      },
+      extract : function (ctx) {
+        var link  = $X('parent::a/@href', ctx.target)[0];
+        var itemUrl = decodeURIComponent(link.match(/imgurl=([^&]+)/)[1]);
+        ctx.href = decodeURIComponent(link.match(/imgrefurl=([^&]+)/)[1]);
+
+        return request(ctx.href).addCallback(function (res) {
+          ctx.title =
+            res.responseText.extract(/<title.*?>([\s\S]*?)<\/title>/im).replace(/[\n\r]/g, '').trim() ||
+            createURI(itemUrl).fileName;
+
+          return {
+            type    : 'photo',
+            item    : ctx.title,
+            itemUrl : itemUrl
+          };
+        });
+      }
+    },
+
+    {
       name : 'Photo - covered',
       ICON : 'chrome://tombloo/skin/photo.png',
       check : function (ctx) {
