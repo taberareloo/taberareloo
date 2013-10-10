@@ -157,16 +157,6 @@
       }
     });
     Menus._register({
-      title: 'Photo - Search - GoogleImage',
-      contexts: ['image'],
-      onclick: function (info, tab) {
-        chrome.tabs.sendMessage(tab.id, {
-          request: 'contextMenusSearchGoogleImage',
-          content: info
-        });
-      }
-    });
-    Menus._register({
       title: 'Photo - Background Image',
       contexts: ['all'],
       onclick: function (info, tab) {

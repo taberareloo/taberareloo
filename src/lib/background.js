@@ -489,14 +489,6 @@
       });
       func({});
     },
-    search: function (req, sender, func) {
-      // currently, used for GoogleImageSearch
-      func({});
-      var ps = req.content;
-      if (Models.GoogleImage.checkSearch(ps)) {
-        Models.GoogleImage.search(ps);
-      }
-    },
     config: function (req, sender, func) {
       func(TBRL.Config);
     },

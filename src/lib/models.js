@@ -1426,27 +1426,6 @@ Models.register({
 });
 
 Models.register({
-  name : 'GoogleImage',
-  ICON :  Models.Google.ICON,
-  checkSearch : function(ps) {
-    return ps.type === 'photo' && !ps.file;
-  },
-  search: function(ps) {
-    // search by itemUrl
-    var ret = new Deferred();
-    var url = "http://www.google.co.jp/searchbyimage" + queryString({
-      image_url: ps.itemUrl
-    }, true);
-    chrome.tabs.create({
-      url: url
-    }, function() {
-      ret.callback();
-    });
-    return ret;
-  }
-});
-
-Models.register({
   name     : 'ChromeBookmark',
   ICON     : skin + 'chromium.ico',
   LINK     : 'chrome://bookmarks/',
