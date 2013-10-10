@@ -3603,7 +3603,7 @@ Models.register({
         if (!inBoards(id)) {
           boards.push({
             id   : id,
-            name : $X('./span[contains(concat(" ",@class," ")," boardName ")]/text()', li).join("\n").trim()
+            name : $X('.//span[contains(concat(" ",@class," ")," boardName ")]/text()', li).join("\n").trim()
           });
         }
         self.is_new_api = true;
