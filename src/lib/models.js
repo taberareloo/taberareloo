@@ -3518,15 +3518,15 @@ var WebHook = {
 Models.register({
   name      : 'Pinterest',
   ICON      : 'http://passets-cdn.pinterest.com/images/favicon.png',
-  LINK      : 'http://pinterest.com/',
-  LOGIN_URL : 'https://pinterest.com/login/',
+  LINK      : 'http://www.pinterest.com/',
+  LOGIN_URL : 'https://www.pinterest.com/login/',
 
-  BOOKMARK_URL : 'http://pinterest.com/pin/create/bookmarklet/',
-  UPLOAD_URL   : 'http://pinterest.com/pin/create/',
+  BOOKMARK_URL : 'http://www.pinterest.com/pin/create/bookmarklet/',
+  UPLOAD_URL   : 'http://www.pinterest.com/pin/create/',
 
   is_new_api   : false,
-  POST_URL_2   : 'http://pinterest.com/resource/PinResource/create/',
-  UPLOAD_URL_2 : 'http://pinterest.com/upload-image/',
+  POST_URL_2   : 'http://www.pinterest.com/resource/PinResource/create/',
+  UPLOAD_URL_2 : 'http://www.pinterest.com/upload-image/',
 
   timer : null,
 
@@ -3589,6 +3589,23 @@ Models.register({
           id   : $X('./@data-id', li)[0],
           name : $X('./text()', li).join("\n").trim()
         });
+        self.is_new_api = true;
+      });
+      // for new bookmarklet
+      function inBoards(id) {
+        for (var i = 0, len = boards.length ; i < len ; i++) {
+          if (boards[i].id === id) return true;
+        }
+        return false;
+      }
+      $X('//div[@class="boardPickerListItems"]/ul/li/div[@class="boardListItem"]', doc).forEach(function(li) {
+        var id = $X('./@data-id', li)[0];
+        if (!inBoards(id)) {
+          boards.push({
+            id   : id,
+            name : $X('./span[contains(concat(" ",@class," ")," boardName ")]/text()', li).join("\n").trim()
+          });
+        }
         self.is_new_api = true;
       });
       if (check_login && !boards.length) {
