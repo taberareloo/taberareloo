@@ -542,27 +542,6 @@
       }, TBRL.createContext(TBRL.getContextMenuTarget()));
       TBRL.share(ctx, Extractors['Photo - Capture'], true);
     },
-    contextMenusSearchGoogleImage: function (req, sender, func) {
-      func({});
-      var content = req.content;
-      var ctx = update({
-        onImage: true,
-        contextMenu: true
-      }, TBRL.createContext(document.querySelector('img[src=' + JSON.stringify(content.srcUrl) + ']') || TBRL.getContextMenuTarget()));
-      var ext = Extractors.check(ctx).filter(function (m) {
-        return (/^Photo/).test(m.name);
-      })[0];
-      TBRL.extract(ctx, ext).addCallback(function (ps) {
-        chrome.runtime.sendMessage(TBRL.id, {
-          request: 'search',
-          show   : false,
-          content: update({
-            page    : ctx.title,
-            pageUrl : ctx.href
-          }, ps)
-        }, function () { });
-      });
-    },
     contextMenusBGImage: function (req, sender, func) {
       func({});
       var ctx = update({
