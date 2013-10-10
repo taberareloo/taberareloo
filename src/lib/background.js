@@ -117,53 +117,46 @@
         var notifications = [];
         posters = [].concat(posters);
         posters.forEach(function (p) {
-          var notification = null;
+          (TBRL.Config.post.notification_on_posting ?
+            TBRL.Notification.notify({title: p.name, message: 'Posting...'}) : succeed(null)
+          ).addCallback(function (notification) {
+            models[p.name] = p;
+            try {
+              ds[p.name] = (ps.favorite && new RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ? p.favor(ps) : p.post(ps);
+            } catch (e) {
+              ds[p.name] = fail(e);
+            }
 
-          if (TBRL.Config.post.notification_on_posting) {
-            TBRL.Notification.notify({
-              title: p.name,
-              message: 'Posting...'
-            }).addCallback(function (n) {
-              notification = n;
-            });
-          }
-
-          models[p.name] = p;
-          try {
-            ds[p.name] = (ps.favorite && new RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ? p.favor(ps) : p.post(ps);
-          } catch (e) {
-            ds[p.name] = fail(e);
-          }
-
-          if (TBRL.Config.post.notification_on_posting) {
-            ds[p.name].addCallbacks(
-              function (res) {
-                TBRL.Notification.notify({
-                  title: p.name,
-                  message: 'Posting... Done',
-                  timeout: 3,
-                  id: notification.tag
-                }).addCallback(function (n) {
-                  if (n) {
-                    notifications.push(n);
-                  }
-                });
-                return res;
-              },
-              function (res) {
-                TBRL.Notification.notify({
-                  title: p.name,
-                  message: 'Posting... Error',
-                  id: notification.tag,
-                  onclick: function () {
-                    window.open(ps.pageUrl, '');
-                    this.close();
-                  }
-                });
-                return res;
-              }
-            );
-          }
+            if (notification) {
+              ds[p.name].addCallbacks(
+                function (res) {
+                  TBRL.Notification.notify({
+                    title: p.name,
+                    message: 'Posting... Done',
+                    timeout: 3,
+                    id: notification.tag
+                  }).addCallback(function (n) {
+                    if (n) {
+                      notifications.push(n);
+                    }
+                  });
+                  return res;
+                },
+                function (res) {
+                  TBRL.Notification.notify({
+                    title: p.name,
+                    message: 'Posting... Error',
+                    id: notification.tag,
+                    onclick: function () {
+                      window.open(ps.pageUrl, '');
+                      this.close();
+                    }
+                  });
+                  return res;
+                }
+              );
+            }
+          });
         });
         return new DeferredHash(ds).addCallback(function (ress) {
           var errs = [], urls = [];
