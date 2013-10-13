@@ -985,7 +985,7 @@ Models.hatenaBlog = {
       self.getApiKey().addCallback(function(apiKey){
         var xml = self.generateXML({
           userName : escapeHTML(userName),
-          title    : new Date().toString(),
+          title    : '■',       // TODO: should an empty string
           body     : escapeHTML(ps.body),
           isDraft  : escapeHTML('false')
         });
