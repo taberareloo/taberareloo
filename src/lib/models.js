@@ -928,12 +928,15 @@ Models.hatenaBlog = {
     var self = this;
     return request(self.ADMIN_URL, { responseType: 'document' }).addCallback(function(res){
       var doc = res.response;
-      var itemElements = doc.querySelectorAll('.sidebar-index .admin-menu-blogpath');
-      return $A(itemElements).map(function(itemElement){
+      var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
+      var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
+      return $A(sidebarElements).map(function(sidebarElement){
+        var blogBoxElement = blogBoxElements.shift();
         return {
-          title:     itemElement.textContent.replace(/^\s*/, '').replace(/\s*$/, ''),
-          admin_url: itemElement.querySelector('a').href,
-          icon_url:  itemElement.querySelector('img').src
+          url:       blogBoxElement.querySelector('.blog-host a').href,
+          title:     sidebarElement.textContent.replace(/^\s*/, '').replace(/\s*$/, ''),
+          admin_url: sidebarElement.querySelector('a').href,
+          icon_url:  sidebarElement.querySelector('img').src
         };
       });
     });
@@ -4190,8 +4193,9 @@ Models.getHatenaBlogs = function() {
   Models.removeHatenaBlogs();
   return Models.hatenaBlog.getBlogs().addCallback(function(blogs) {
     return blogs.map(function(blog) {
-      // blog is {title, admin_url, icon_url}
+      // blog is {url, title, admin_url, icon_url}
       var model = update({}, Models.hatenaBlog);
+      model.LINK      = blog.url;
       model.name      = model.name + ' - ' + blog.title;
       model.ICON      = blog.icon_url;
       model.ADMIN_URL = blog.admin_url;
