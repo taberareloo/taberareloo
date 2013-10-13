@@ -916,13 +916,28 @@ Models.register({
   }
 });
 
-Models.register({
+Models.hatenaBlog = {
   name : 'HatenaBlog',
   ICON : 'http://hatenablog.com/images/favicon.ico',
   LINK : 'http://hatenablog.com/',
   LOGIN_URL : 'https://www.hatena.ne.jp/login',
   CONFIG_DETAIL_URL: 'http://blog.hatena.ne.jp/my/config/detail',
   ADMIN_URL: 'http://blog.hatena.ne.jp/',
+
+  getBlogs : function(){
+    var self = this;
+    return request(self.ADMIN_URL, { responseType: 'document' }).addCallback(function(res){
+      var doc = res.response;
+      var itemElements = doc.querySelectorAll('.sidebar-index .admin-menu-blogpath');
+      return $A(itemElements).map(function(itemElement){
+        return {
+          title:     itemElement.textContent.replace(/^\s*/, '').replace(/\s*$/, ''),
+          admin_url: itemElement.querySelector('a').href,
+          icon_url:  itemElement.querySelector('img').src
+        };
+      });
+    });
+  },
 
   check : function(ps) {
     // TODO
@@ -932,7 +947,7 @@ Models.register({
   post : function(ps) {
     // TODO
   }
-});
+};
 
 Models.register({
   name : 'Pinboard',
@@ -4167,6 +4182,33 @@ Models.removeGooglePlusPages = function() {
     Models.remove(model);
   });
   Models.googlePlusPages = [];
+};
+
+// HatenaBlog
+Models.hatenaBlogs = [];
+Models.getHatenaBlogs = function() {
+  Models.removeHatenaBlogs();
+  return Models.hatenaBlog.getBlogs().addCallback(function(blogs) {
+    return blogs.map(function(blog) {
+      // blog is {title, admin_url, icon_url}
+      var model = update({}, Models.hatenaBlog);
+      model.name      = model.name + ' - ' + blog.title;
+      model.ICON      = blog.icon_url;
+      model.ADMIN_URL = blog.admin_url;
+      Models.register(model);
+      Models.hatenaBlogs.push(model);
+      return model;
+    });
+  }).addErrback(function(e) {
+    alert('HatenaBlog: ' +
+      (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+  });
+};
+Models.removeHatenaBlogs = function() {
+  Models.hatenaBlogs.forEach(function(model) {
+    Models.remove(model);
+  });
+  Models.hatenaBlogs = [];
 };
 
 // WebHook
