@@ -108,9 +108,6 @@
     // HatenaBlog
     this.enableHatenaBlog_check = new Check('enableHatenaBlog', !!Config.post.enable_hatenablog);
     this.hatenaBlog_list = new HatenaBlogList();
-    if (this.enableHatenaBlog_check.body()) {
-      this.hatenaBlog_list.update();
-    }
 
     // WebHook
     this.enable_webhook_check = new Check('enable_webhook', !!Config.post.enable_webhook);
@@ -796,13 +793,13 @@
     this.field = $('list_HatenaBlog');
     this.button = $('getHatenaBlog_button');
     connect(this.button, 'onclick', this, 'clicked');
-    this.field.appendChild(background.Models.googlePlusPages.reduce(function (df, model) {
+    this.field.appendChild(background.Models.hatenaBlogs.reduce(function (df, model) {
       df.appendChild(self.createElement(model));
       return df;
     }, $DF()));
   }
   HatenaBlogList.prototype = {
-    update : function() {
+    clicked : function () {
       var self = this;
       $D(this.field);
       background.Models.getHatenaBlogs().addCallback(function (models) {
@@ -811,10 +808,6 @@
           return df;
         }, $DF()));
       });
-    },
-    clicked : function () {
-      var self = this;
-      self.update();
     },
     createElement : function (model) {
       var img = $N('img', {
