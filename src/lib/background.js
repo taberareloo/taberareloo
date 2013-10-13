@@ -561,13 +561,17 @@
       Models['Google+'].removeCommunityCategory(ps.pageUrl, ps.page);
     },
     loadPatchesInContent: function (req, sender) {
-      Patches.loadInTab(sender.tab);
+      if (req.visibility !== 'prerender') { // if (sender.tab.index !== -1) {
+        Patches.loadInTab(sender.tab);
+      }
     }
   };
 
   chrome.tabs.onReplaced.addListener(function (new_tab_id, old_tab_id) {
     chrome.tabs.get(new_tab_id, function (tab) {
-      Patches.loadInTab(tab);
+      if (tab.index !== -1) {
+        Patches.loadInTab(tab);
+      }
     });
   });
 

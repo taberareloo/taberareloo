@@ -622,7 +622,8 @@
 
   // Start patch
   chrome.runtime.sendMessage(TBRL.id, {
-    request: 'loadPatchesInContent'
+    request: 'loadPatchesInContent',
+    visibility: document.webkitVisibilityState
   }, function () {});
 
   exports.TBRL = TBRL;
