@@ -447,6 +447,10 @@
   if (TBRL.Config.post.enable_google_plus_pages) {
     Models.getGooglePlusPages();
   }
+  // HatenaBlog
+  if (TBRL.Config.post.enable_hatenablog) {
+    Models.getHatenaBlogs();
+  }
   // WebHook
   if (TBRL.Config.post.enable_webhook && TBRL.Config.post.webhook_url) {
     Models.addWebHooks();
