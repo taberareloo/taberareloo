@@ -944,6 +944,12 @@ Models.hatenaBlog = {
     });
   },
 
+  getUserName: function(){
+    return Hatena.getToken().addCallback(function(set) {
+      return set['name'];
+    });
+  },
+
   getApiKey : function() {
     var model = Models.hatenaBlog;
     if (model.token) {
