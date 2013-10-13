@@ -926,18 +926,20 @@ Models.hatenaBlog = {
 
   getBlogs : function(){
     var self = this;
-    return request(self.ADMIN_URL, { responseType: 'document' }).addCallback(function(res){
-      var doc = res.response;
-      var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
-      var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
-      return $A(sidebarElements).map(function(sidebarElement){
-        var blogBoxElement = blogBoxElements.shift();
-        return {
-          url:       blogBoxElement.querySelector('.blog-host a').href,
-          title:     sidebarElement.textContent.replace(/^\s*/, '').replace(/\s*$/, ''),
-          admin_url: sidebarElement.querySelector('a').href,
-          icon_url:  sidebarElement.querySelector('img').src
-        };
+    return Hatena.getToken().addCallback(function() {
+      return request(self.ADMIN_URL, { responseType: 'document' }).addCallback(function(res){
+        var doc = res.response;
+        var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
+        var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
+        return $A(sidebarElements).map(function(sidebarElement){
+          var blogBoxElement = blogBoxElements.shift();
+          return {
+            url:       blogBoxElement.querySelector('.blog-host a').href,
+            title:     sidebarElement.textContent.replace(/^\s*/, '').replace(/\s*$/, ''),
+            admin_url: sidebarElement.querySelector('a').href,
+            icon_url:  sidebarElement.querySelector('img').src
+          };
+        });
       });
     });
   },
