@@ -199,6 +199,15 @@
       );
       $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
 
+      // HatenaBlog
+      $('label_HatenaBlog').appendChild(
+        $T(chrome.i18n.getMessage('label_HatenaBlog'))
+      );
+      $('label_enableHatenaBlog').appendChild(
+        $T(chrome.i18n.getMessage('label_enable'))
+      );
+      $('getHatenaBlog_button').value = chrome.i18n.getMessage('label_get');
+
       // WebHook
       $('label_enable_webhook').appendChild($T(chrome.i18n.getMessage('label_enable')));
 
