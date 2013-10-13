@@ -978,8 +978,52 @@ Models.hatenaBlog = {
     return true;
   },
 
-  post : function(ps) {
+  post : function(ps){
+    var self = this;
+
+    self.getUserName().addCallback(function(userName) {
+      self.getApiKey().addCallback(function(apiKey){
+        var xml = self.generateXML({
+          userName : escapeHTML(userName),
+          title    : new Date().toString(),
+          body     : escapeHTML(ps.body),
+          isDraft  : escapeHTML('false')
+        });
+
+        return request(self.postEndpoint(), {
+          method      : 'post',
+          mode        : 'raw',
+          sendContent : xml,
+          headers     : self.generateHeaders(userName, apiKey)
+        });
+      });
+    });
+  },
+
+  postEndpoint: function() {
+    var self = this;
+    return self.ADMIN_URL + 'atom/entry';
+  },
+
+  generateHeaders: function(userName, apiKey) {
     // TODO
+    return {};
+  },
+
+  // @param data { userName, title, body, isDraft }
+  generateXML: function(data) {
+    var template = '<?xml version="1.0" encoding="utf-8"?>' +
+                   '<entry xmlns="http://www.w3.org/2005/Atom"' +
+                          'xmlns:app="http://www.w3.org/2007/app">' +
+                     '<title>%title%</title>' +
+                     '<author><name>%userName%</name></author>' +
+                     '<content type="text/plain">%body%</content>' +
+                     '<app:control>' +
+                       '<app:draft>%isDraft%</app:draft>' +
+                     '</app:control>' +
+                   '</entry>';
+
+    return templateExtract(template, data);
   }
 };
 
