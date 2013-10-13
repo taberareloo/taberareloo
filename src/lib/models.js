@@ -917,6 +917,24 @@ Models.register({
 });
 
 Models.register({
+  name : 'HatenaBlog',
+  ICON : 'http://hatenablog.com/images/favicon.ico',
+  LINK : 'http://hatenablog.com/',
+  LOGIN_URL : 'https://www.hatena.ne.jp/login',
+  CONFIG_DETAIL_URL: 'http://blog.hatena.ne.jp/my/config/detail',
+  ADMIN_URL: 'http://blog.hatena.ne.jp/',
+
+  check : function(ps) {
+    // TODO
+    return true;
+  },
+
+  post : function(ps) {
+    // TODO
+  }
+});
+
+Models.register({
   name : 'Pinboard',
   ICON : 'https://pinboard.in/favicon.ico',
   LINK : 'https://pinboard.in/',
