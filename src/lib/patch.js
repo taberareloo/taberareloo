@@ -322,8 +322,11 @@
           self.readFromFileEntry(patch.fileEntry).addCallback(function (script) {
             chrome.tabs.executeScript(tab.id, {
               code : script
-            }, function () {});
-            console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
+            }, function (result) {
+              if (typeof result !== 'undefined') {
+                console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
+              }
+            });
           });
         }
       });
