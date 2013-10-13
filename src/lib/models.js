@@ -944,6 +944,29 @@ Models.hatenaBlog = {
     });
   },
 
+  getApiKey : function() {
+    var model = Models.hatenaBlog;
+    if (model.token) {
+      return succeed(model.token);
+    } else {
+      return Hatena.getToken().addCallback(function() {
+        return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).addCallback(function(res){
+          var doc = res.response;
+          var tokenElement = doc.querySelector('.api-key')
+          if (!tokenElement) {
+            throw new Error('HatenaBlog#getToken: failed to find ApiKey');
+          }
+          model.token = tokenElement.textContent;
+          return model.token;
+        }).addErrback(function(e) {
+          model.token = undefined;
+          throw new Error('HatenaBlog#getToken: ' +
+                (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+        });
+      });
+    }
+  },
+
   check : function(ps) {
     // TODO
     return true;
