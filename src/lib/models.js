@@ -994,7 +994,8 @@ Models.hatenaBlog = {
           method      : 'post',
           mode        : 'raw',
           sendContent : xml,
-          headers     : self.generateHeaders(userName, apiKey)
+          username    : userName,
+          password    : apiKey
         });
       });
     });
@@ -1003,11 +1004,6 @@ Models.hatenaBlog = {
   postEndpoint: function() {
     var self = this;
     return self.ADMIN_URL + 'atom/entry';
-  },
-
-  generateHeaders: function(userName, apiKey) {
-    // TODO
-    return {};
   },
 
   // @param data { userName, title, body, isDraft }
