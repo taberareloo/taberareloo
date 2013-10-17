@@ -974,19 +974,52 @@ Models.hatenaBlog = {
   },
 
   check : function(ps) {
-    // TODO
-    return true;
+    return /regular|photo|quote|link|video/.test(ps.type) || (ps.type === 'photo' && !ps.file);
   },
 
   post : function(ps){
     var self = this;
 
-    self.getUserName().addCallback(function(userName) {
+    var template;
+    var mode = 'raw';
+    if (ps.type === 'regular') {
+      template = '<p>%body%</p>';
+    } else if (ps.type === 'quote') {
+      template = '<blockquote>' +
+                   '%body%' +
+                   '<p><cite><a href="%pageUrl%">%page%</a></cite></p>' +
+                 '</blockquote>';
+    } else if (ps.type === 'photo') {
+      template = '<p><a href="%pageUrl%"><img src="%itemUrl%"></a></p>' +
+                 '<p><cite><a href="%pageUrl%">%page%</a></cite></p>';
+    } else if (ps.type === 'link') {
+      template = '<p><a href="%itemUrl%">%item%</a></p>';
+    } else if (ps.type === 'video') {
+      template = '<p>%itemUrl%:embed</p>' +
+                 '<p><a href="%itemUrl%">%item%</a></p>';
+    }
+
+    if (ps.description) {
+      template += '<p>%description%</p>';
+    }
+
+    var data = {
+      body        : self.paragraph(ps.body),
+      description : self.paragraph(ps.description),
+      item        : escapeHTML(ps.item || ''),
+      itemUrl     : escapeHTML(ps.itemUrl || ''),
+      page        : escapeHTML(ps.page || ''),
+      pageUrl     : escapeHTML(ps.pageUrl || '')
+    };
+
+    var body = templateExtract(template, data);
+
+    return self.getUserName().addCallback(function(userName) {
       self.getApiKey().addCallback(function(apiKey){
         var xml = self.generateXML({
           userName : escapeHTML(userName),
           title    : '',
-          body     : escapeHTML(ps.body),
+          body     : escapeHTML(body),
           isDraft  : escapeHTML('false')
         });
 
@@ -999,6 +1032,11 @@ Models.hatenaBlog = {
         });
       });
     });
+  },
+
+  paragraph: function(text) {
+    if (!text) return '';
+    return '<p>' + text.replace(/^\n*/, '').replace(/\n*$/, '').replace(/\n+/g, '</p><p>') + '</p>';
   },
 
   postEndpoint: function() {
