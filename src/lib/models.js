@@ -1017,10 +1017,11 @@ Models.hatenaBlog = {
     return self.getUserName().addCallback(function(userName) {
       self.getApiKey().addCallback(function(apiKey){
         var xml = self.generateXML({
-          userName : escapeHTML(userName),
-          title    : '',
-          body     : escapeHTML(body),
-          isDraft  : escapeHTML('false')
+          userName   : escapeHTML(userName),
+          title      : '',
+          body       : escapeHTML(body),
+          isDraft    : escapeHTML('false'),
+          categories : ps.tags
         });
 
         return request(self.postEndpoint(), {
@@ -1044,14 +1045,19 @@ Models.hatenaBlog = {
     return (self.ADMIN_URL + 'atom/entry').replace(/^http:/, 'https:');
   },
 
-  // @param data { userName, title, body, isDraft }
+  // @param data { userName, title, body, isDraft, categories }
   generateXML: function(data) {
+    var categories = (data.categories || []).map(function(name) {
+        return '<category term="' + escapeHTML(name) + '" />';
+    }).join("");
+
     var template = '<?xml version="1.0" encoding="utf-8"?>' +
                    '<entry xmlns="http://www.w3.org/2005/Atom"' +
                           'xmlns:app="http://www.w3.org/2007/app">' +
                      '<title>%title%</title>' +
                      '<author><name>%userName%</name></author>' +
                      '<content type="text/plain">%body%</content>' +
+                     categories +
                      '<app:control>' +
                        '<app:draft>%isDraft%</app:draft>' +
                      '</app:control>' +
