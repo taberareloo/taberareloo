@@ -1041,7 +1041,7 @@ Models.hatenaBlog = {
 
   postEndpoint: function() {
     var self = this;
-    return self.ADMIN_URL + 'atom/entry';
+    return (self.ADMIN_URL + 'atom/entry').replace(/^http:/, 'https:');
   },
 
   // @param data { userName, title, body, isDraft }
