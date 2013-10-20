@@ -981,7 +981,6 @@ Models.hatenaBlog = {
     var self = this;
 
     var template;
-    var mode = 'raw';
     if (ps.type === 'regular') {
       template = '<p>%body%</p>';
     } else if (ps.type === 'quote') {
