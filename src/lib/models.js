@@ -916,7 +916,7 @@ Models.register({
   }
 });
 
-Models.hatenaBlog = {
+Models.register({
   name : 'HatenaBlog',
   ICON : 'http://hatenablog.com/images/favicon.ico',
   LINK : 'http://hatenablog.com/',
@@ -951,7 +951,7 @@ Models.hatenaBlog = {
   },
 
   getApiKey : function() {
-    var model = Models.hatenaBlog;
+    var model = Models.HatenaBlog;
     if (model.token) {
       return succeed(model.token);
     } else {
@@ -973,7 +973,10 @@ Models.hatenaBlog = {
     }
   },
 
-  check : function(ps) {
+  // ここでcheckを定義すると，HatenaBlog自体が投稿可能になってしまう．
+  // Models.HatenaBlog自体は投稿可能ではなく，ユーザーの持っている個別のブログに投稿できる．
+  // ここではなく，getBlogsしたあとにcheckを定義しています．
+  _check : function(ps) {
     return /regular|photo|quote|link|video/.test(ps.type) || (ps.type === 'photo' && !ps.file);
   },
 
@@ -1064,7 +1067,7 @@ Models.hatenaBlog = {
 
     return templateExtract(template, data);
   }
-};
+});
 
 Models.register({
   name : 'Pinboard',
@@ -4305,10 +4308,12 @@ Models.removeGooglePlusPages = function() {
 Models.hatenaBlogs = [];
 Models.getHatenaBlogs = function() {
   Models.removeHatenaBlogs();
-  return Models.hatenaBlog.getBlogs().addCallback(function(blogs) {
+  return Models.HatenaBlog.getBlogs().addCallback(function(blogs) {
     return blogs.map(function(blog) {
       // blog is {url, title, admin_url, icon_url}
-      var model = update({}, Models.hatenaBlog);
+      var model = update({}, Models.HatenaBlog);
+      model.check = model._check;
+      delete model._check;
       model.LINK      = blog.url;
       model.name      = model.name + ' - ' + blog.title;
       model.ICON      = blog.icon_url;
