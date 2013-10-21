@@ -117,18 +117,20 @@
         var notifications = [];
         posters = [].concat(posters);
         posters.forEach(function (p) {
-          (TBRL.Config.post.notification_on_posting ?
+          ds[p.name] = (TBRL.Config.post.notification_on_posting ?
             TBRL.Notification.notify({title: p.name, message: 'Posting...'}) : succeed(null)
           ).addCallback(function (notification) {
+            var deferred;
+
             models[p.name] = p;
             try {
-              ds[p.name] = (ps.favorite && new RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ? p.favor(ps) : p.post(ps);
+              deferred = (ps.favorite && new RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ? p.favor(ps) : p.post(ps);
             } catch (e) {
-              ds[p.name] = fail(e);
+              deferred = fail(e);
             }
 
             if (notification) {
-              ds[p.name].addCallbacks(
+              deferred.addCallbacks(
                 function (res) {
                   TBRL.Notification.notify({
                     title: p.name,
@@ -156,6 +158,8 @@
                 }
               );
             }
+
+            return deferred;
           });
         });
         return new DeferredHash(ds).addCallback(function (ress) {
