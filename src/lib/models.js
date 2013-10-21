@@ -917,6 +917,160 @@ Models.register({
 });
 
 Models.register({
+  name : 'HatenaBlog',
+  ICON : 'http://hatenablog.com/images/favicon.ico',
+  LINK : 'http://hatenablog.com/',
+  LOGIN_URL : 'https://www.hatena.ne.jp/login',
+  CONFIG_DETAIL_URL: 'http://blog.hatena.ne.jp/my/config/detail',
+  ADMIN_TOP_URL: 'http://blog.hatena.ne.jp/',
+  BLOG_ADMIN_URL: undefined, // 個別のブログのインスタンスで定義される
+
+  getBlogs : function(){
+    var self = this;
+    return Hatena.getToken().addCallback(function() {
+      return request(self.ADMIN_TOP_URL, { responseType: 'document' }).addCallback(function(res){
+        var doc = res.response;
+        var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
+        var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
+        return $A(sidebarElements).map(function(sidebarElement){
+          var blogBoxElement = blogBoxElements.shift();
+          return {
+            url:       blogBoxElement.querySelector('.blog-host a').href,
+            title:     sidebarElement.textContent.replace(/^\s*/, '').replace(/\s*$/, ''),
+            admin_url: sidebarElement.querySelector('a').href,
+            icon_url:  sidebarElement.querySelector('img').src
+          };
+        });
+      });
+    });
+  },
+
+  getUserName: function(){
+    return Hatena.getToken().addCallback(function(set) {
+      return set['name'];
+    });
+  },
+
+  getApiKey : function() {
+    var model = Models.HatenaBlog;
+    if (model.token) {
+      return succeed(model.token);
+    } else {
+      return Hatena.getToken().addCallback(function() {
+        return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).addCallback(function(res){
+          var doc = res.response;
+          var tokenElement = doc.querySelector('.api-key')
+          if (!tokenElement) {
+            throw new Error('HatenaBlog#getToken: failed to find ApiKey');
+          }
+          model.token = tokenElement.textContent;
+          return model.token;
+        }).addErrback(function(e) {
+          model.token = undefined;
+          throw new Error('HatenaBlog#getToken: ' +
+                (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+        });
+      });
+    }
+  },
+
+  // ここでcheckを定義すると，HatenaBlog自体が投稿可能になってしまう．
+  // Models.HatenaBlog自体は投稿可能ではなく，ユーザーの持っている個別のブログに投稿できる．
+  // ここではなく，getBlogsしたあとにcheckを定義しています．
+  _check : function(ps) {
+    return /regular|quote|link|video/.test(ps.type) || (ps.type === 'photo' && !ps.file);
+  },
+
+  post : function(ps){
+    var self = this;
+
+    var template;
+    if (ps.type === 'regular') {
+      template = '<p>%body%</p>';
+    } else if (ps.type === 'quote') {
+      template = '<blockquote>' +
+                   '%body%' +
+                   '<p><cite><a href="%pageUrl%">%page%</a></cite></p>' +
+                 '</blockquote>';
+    } else if (ps.type === 'photo') {
+      template = '<p><a href="%pageUrl%"><img src="%itemUrl%"></a></p>' +
+                 '<p><cite><a href="%pageUrl%">%page%</a></cite></p>';
+    } else if (ps.type === 'link') {
+      template = '<p><a href="%itemUrl%">%item%</a></p>';
+    } else if (ps.type === 'video') {
+      template = '<p>%itemUrl%:embed</p>' +
+                 '<p><a href="%itemUrl%">%item%</a></p>';
+    }
+
+    if (ps.description) {
+      template += '<p>%description%</p>';
+    }
+
+    var data = {
+      body        : self.paragraph(ps.body),
+      description : self.paragraph(ps.description),
+      item        : escapeHTML(ps.item || ''),
+      itemUrl     : escapeHTML(ps.itemUrl || ''),
+      page        : escapeHTML(ps.page || ''),
+      pageUrl     : escapeHTML(ps.pageUrl || '')
+    };
+
+    var body = templateExtract(template, data);
+
+    return self.getUserName().addCallback(function(userName) {
+      self.getApiKey().addCallback(function(apiKey){
+        var xml = self.generateXML({
+          userName   : escapeHTML(userName),
+          title      : '',
+          body       : escapeHTML(body),
+          isDraft    : escapeHTML('false'),
+          categories : ps.tags
+        });
+
+        return request(self.postEndpoint(), {
+          method      : 'post',
+          mode        : 'raw',
+          sendContent : xml,
+          username    : userName,
+          password    : apiKey
+        });
+      });
+    });
+  },
+
+  paragraph: function(text) {
+    if (!text) return '';
+    return '<p>' + text.replace(/^\n*/, '').replace(/\n*$/, '').replace(/\n+/g, '</p><p>') + '</p>';
+  },
+
+  postEndpoint: function() {
+    var self = this;
+    return (self.BLOG_ADMIN_URL + 'atom/entry').replace(/^http:/, 'https:');
+  },
+
+  // @param data { userName, title, body, isDraft, categories }
+  generateXML: function(data) {
+    var categories = (data.categories || []).map(function(name) {
+        return '<category term="' + escapeHTML(name) + '" />';
+    }).join("");
+
+    var template = '<?xml version="1.0" encoding="utf-8"?>' +
+                   '<entry xmlns="http://www.w3.org/2005/Atom"' +
+                          'xmlns:app="http://www.w3.org/2007/app">' +
+                     '<title>%title%</title>' +
+                     '<author><name>%userName%</name></author>' +
+                     '<content type="text/plain">%body%</content>' +
+                     categories +
+                     '<app:control>' +
+                       '<app:draft>%isDraft%</app:draft>' +
+                     '</app:control>' +
+                   '</entry>';
+
+    return templateExtract(template, data);
+  }
+});
+
+Models.register({
   name : 'Pinboard',
   ICON : 'https://pinboard.in/favicon.ico',
   LINK : 'https://pinboard.in/',
@@ -4149,6 +4303,36 @@ Models.removeGooglePlusPages = function() {
     Models.remove(model);
   });
   Models.googlePlusPages = [];
+};
+
+// HatenaBlog
+Models.hatenaBlogs = [];
+Models.getHatenaBlogs = function() {
+  Models.removeHatenaBlogs();
+  return Models.HatenaBlog.getBlogs().addCallback(function(blogs) {
+    return blogs.map(function(blog) {
+      // blog is {url, title, admin_url, icon_url}
+      var model = update({}, Models.HatenaBlog);
+      model.check = model._check;
+      delete model._check;
+      model.LINK      = blog.url;
+      model.name      = model.name + ' - ' + blog.title;
+      model.ICON      = blog.icon_url;
+      model.BLOG_ADMIN_URL = blog.admin_url;
+      Models.register(model);
+      Models.hatenaBlogs.push(model);
+      return model;
+    });
+  }).addErrback(function(e) {
+    alert('HatenaBlog: ' +
+      (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
+  });
+};
+Models.removeHatenaBlogs = function() {
+  Models.hatenaBlogs.forEach(function(model) {
+    Models.remove(model);
+  });
+  Models.hatenaBlogs = [];
 };
 
 // WebHook

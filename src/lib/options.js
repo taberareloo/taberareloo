@@ -105,6 +105,10 @@
     this.enableGooglePlusKey_check = new Check('taberareloo_on_google_plus', !!Config.post.taberareloo_on_google_plus);
     this.googlePlusKey_short = new Shortcutkey('shortcutkey_taberareloo_on_google_plus', true);
 
+    // HatenaBlog
+    this.enableHatenaBlog_check = new Check('enableHatenaBlog', !!Config.post.enable_hatenablog);
+    this.hatenaBlog_list = new HatenaBlogList();
+
     // WebHook
     this.enable_webhook_check = new Check('enable_webhook', !!Config.post.enable_webhook);
     this.webhook_url_input = new Input('webhook_url', Config.post.webhook_url);
@@ -192,6 +196,15 @@
       );
       $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
 
+      // HatenaBlog
+      $('label_HatenaBlog').appendChild(
+        $T(chrome.i18n.getMessage('label_HatenaBlog'))
+      );
+      $('label_enableHatenaBlog').appendChild(
+        $T(chrome.i18n.getMessage('label_enable'))
+      );
+      $('getHatenaBlog_button').value = chrome.i18n.getMessage('label_get');
+
       // WebHook
       $('label_enable_webhook').appendChild($T(chrome.i18n.getMessage('label_enable')));
 
@@ -212,6 +225,7 @@
       var k = this.quick_short.body();
       var tcheck = this.tumble_check.body();
       var gcheck = this.enableGooglePlusPages_check.body();
+      var enable_hatenablog = this.enableHatenaBlog_check.body();
       var enable_webhook = this.enable_webhook_check.body();
       var webhook_url = this.webhook_url_input.body();
       if (!Shortcutkey.isConflict(lk, qk, k)) {
@@ -248,6 +262,7 @@
             'enable_google_plus_pages' : gcheck,
             'taberareloo_on_google_plus' : this.enableGooglePlusKey_check.body(),
             'shortcutkey_taberareloo_on_google_plus' : this.googlePlusKey_short.body(),
+            'enable_hatenablog' : enable_hatenablog,
             'enable_webhook' : enable_webhook,
             'webhook_url' : webhook_url
           },
@@ -272,6 +287,9 @@
           background.Models.addWebHooks();
         } else {
           background.Models.removeWebHooks();
+        }
+        if (!enable_hatenablog) {
+          background.Models.removeHatenaBlogs();
         }
         chrome.runtime.sendMessage({request: 'initialize'});
         window.close();
@@ -766,6 +784,45 @@
     },
     remove: function () {
       background.Models.removeGooglePlusPages();
+    }
+  };
+
+  // HatenaBlog
+  function HatenaBlogList() {
+    var self = this;
+    this.field = $('list_HatenaBlog');
+    this.button = $('getHatenaBlog_button');
+    connect(this.button, 'onclick', this, 'clicked');
+    this.field.appendChild(background.Models.hatenaBlogs.reduce(function (df, model) {
+      df.appendChild(self.createElement(model));
+      return df;
+    }, $DF()));
+  }
+  HatenaBlogList.prototype = {
+    clicked : function () {
+      var self = this;
+      $D(this.field);
+      background.Models.getHatenaBlogs().addCallback(function (models) {
+        self.field.appendChild(models.reduce(function (df, model) {
+          df.appendChild(self.createElement(model));
+          return df;
+        }, $DF()));
+      });
+    },
+    createElement : function (model) {
+      var img = $N('img', {
+        src   : model.ICON,
+        class : 'list_icon'
+      });
+      var label = $N('p', {
+        class : 'list_text'
+      }, model.name);
+      return $N('div', {
+        'class' : 'list'
+      }, [img, label]);
+    },
+    remove: function () {
+      background.Models.removeHatenaBlogs();
     }
   };
 
