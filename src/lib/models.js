@@ -977,7 +977,7 @@ Models.register({
   // Models.HatenaBlog自体は投稿可能ではなく，ユーザーの持っている個別のブログに投稿できる．
   // ここではなく，getBlogsしたあとにcheckを定義しています．
   _check : function(ps) {
-    return /regular|photo|quote|link|video/.test(ps.type) || (ps.type === 'photo' && !ps.file);
+    return /regular|quote|link|video/.test(ps.type) || (ps.type === 'photo' && !ps.file);
   },
 
   post : function(ps){
