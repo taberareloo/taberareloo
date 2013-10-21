@@ -922,12 +922,13 @@ Models.register({
   LINK : 'http://hatenablog.com/',
   LOGIN_URL : 'https://www.hatena.ne.jp/login',
   CONFIG_DETAIL_URL: 'http://blog.hatena.ne.jp/my/config/detail',
-  ADMIN_URL: 'http://blog.hatena.ne.jp/',
+  ADMIN_TOP_URL: 'http://blog.hatena.ne.jp/',
+  BLOG_ADMIN_URL: undefined, // 個別のブログのインスタンスで定義される
 
   getBlogs : function(){
     var self = this;
     return Hatena.getToken().addCallback(function() {
-      return request(self.ADMIN_URL, { responseType: 'document' }).addCallback(function(res){
+      return request(self.ADMIN_TOP_URL, { responseType: 'document' }).addCallback(function(res){
         var doc = res.response;
         var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
         var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
@@ -1044,7 +1045,7 @@ Models.register({
 
   postEndpoint: function() {
     var self = this;
-    return (self.ADMIN_URL + 'atom/entry').replace(/^http:/, 'https:');
+    return (self.BLOG_ADMIN_URL + 'atom/entry').replace(/^http:/, 'https:');
   },
 
   // @param data { userName, title, body, isDraft, categories }
@@ -4317,7 +4318,7 @@ Models.getHatenaBlogs = function() {
       model.LINK      = blog.url;
       model.name      = model.name + ' - ' + blog.title;
       model.ICON      = blog.icon_url;
-      model.ADMIN_URL = blog.admin_url;
+      model.BLOG_ADMIN_URL = blog.admin_url;
       Models.register(model);
       Models.hatenaBlogs.push(model);
       return model;
