@@ -1,7 +1,6 @@
 # -*- ruby -*-
 require 'rubygems'
 require 'crxmake'
-require 'net/github-upload'
 require 'json'
 $name     = "taberareloo"
 $manifest = "src/manifest.json"
@@ -42,26 +41,4 @@ namespace :pkg do
   end
   directory "package"
 end
-
-desc "upload"
-task :upload do
-  login = `git config github.user`.chomp
-  token = `git config github.token`.chomp
-  repos = $name
-  gh = Net::GitHub::Upload.new(
-    :login => login,
-    :token => token
-  )
-  direct_link = gh.upload(
-    :repos => repos,
-    :file  => "package/#{$name}.crx",
-    :description => "latest version: #{$version}"
-  )
-  direct_link = gh.upload(
-    :repos => repos,
-    :file  => "updates.xml",
-    :description => "updates.xml version: #{$version}"
-  )
-end
-
 # vim: syntax=ruby fileencoding=utf-8
