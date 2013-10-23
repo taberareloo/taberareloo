@@ -127,7 +127,7 @@ var Tumblr = {
                   return res;
                 });
               } else {
-                form['images[o1]'] = '';
+                form['images[o1]'] = form['photo_src[]'];
                 form['post[photoset_layout]'] = '1';
                 form['post[photoset_order]'] = 'o1';
               }
