@@ -1,8 +1,8 @@
 /*global chrome:true, Repository:true, $X:true, createURI:true*/
 /*global createFlavoredString:true, $A:true, TBRL:true, request:true*/
 /*global update:true, DeferredHash:true, succeed:true, $N:true*/
-/*global Deferred:true, queryHash:true, unescapeHTML:true, queryString:true*/
-/*global joinText:true, getStyle:true, tagName:true, downloadFile:true*/
+/*global Deferred:true, queryHash:true, unescapeHTML:true*/
+/*global getStyle:true, tagName:true, downloadFile:true*/
 /*global getFileExtension:true, getElementDimensions:true*/
 /*global getViewportDimensions:true*/
 /*global getPageDimensions:true, base64ToFileEntry:true, MochiKit:true*/

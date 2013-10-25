@@ -4,7 +4,7 @@
 /*global Keybind:true, get_active_feed:true, get_active_item:true*/
 /*global $X:true, createFlavoredString:true, update:true, Extractors:true*/
 /*global $N:true, Deferred:true, keyString:true, stop:true, Tumblr:true*/
-/*global tagName:true, MochiKit:true, MouseEvent:true*/
+/*global MouseEvent:true*/
 (function (exports) {
   'use strict';
 
