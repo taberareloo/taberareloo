@@ -176,42 +176,6 @@
         });
       }
     });
-    var googlePlusCommunitiesURLs = [
-      'https://plus.google.com/communities/*',
-      'https://plus.google.com/u/0/communities/*'
-    ];
-    Menus._register({
-      type: 'separator',
-      contexts: ['all'],
-      documentUrlPatterns: googlePlusCommunitiesURLs
-    });
-    Menus._register({
-      title: 'Google+ Community ...',
-      contexts: ['all'],
-      documentUrlPatterns: googlePlusCommunitiesURLs
-    });
-    Menus._register({
-      title: 'Add to destinations',
-      contexts: ['all'],
-      documentUrlPatterns: googlePlusCommunitiesURLs,
-      onclick: function (info, tab) {
-        chrome.tabs.sendMessage(tab.id, {
-          request: 'contextMenusAddGooglePlusCommunityCategory',
-          content: info
-        });
-      }
-    }, 'Google+ Community ...');
-    Menus._register({
-      title: 'Remove from destinations',
-      contexts: ['all'],
-      documentUrlPatterns: googlePlusCommunitiesURLs,
-      onclick: function (info, tab) {
-        chrome.tabs.sendMessage(tab.id, {
-          request: 'contextMenusRemoveGooglePlusCommunityCategory',
-          content: info
-        });
-      }
-    }, 'Google+ Community ...');
     var patchFileURLs = [
       'http://*/*.tbrl.js',
       'https://*/*.tbrl.js'

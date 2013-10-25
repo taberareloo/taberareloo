@@ -447,10 +447,6 @@
   if (TBRL.Config.post.multi_tumblelogs) {
     Models.getMultiTumblelogs(false);
   }
-  // Google+ Pages
-  if (TBRL.Config.post.enable_google_plus_pages) {
-    Models.getGooglePlusPages();
-  }
   // HatenaBlog
   if (TBRL.Config.post.enable_hatenablog) {
     Models.getHatenaBlogs();
@@ -551,14 +547,6 @@
 
         Tumblr.getForm(Tumblr.TUMBLR_URL + 'new/text').addCallback(sendInfo);
       }
-    },
-    addGooglePlusCommunityCategory: function (req) {
-      var ps = req.content;
-      Models['Google+'].addCommunityCategory(ps.pageUrl, ps.page);
-    },
-    removeGooglePlusCommunityCategory: function (req) {
-      var ps = req.content;
-      Models['Google+'].removeCommunityCategory(ps.pageUrl, ps.page);
     },
     loadPatchesInContent: function (req, sender) {
       if (req.visibility !== 'prerender') { // if (sender.tab.index !== -1) {

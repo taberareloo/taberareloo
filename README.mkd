@@ -16,7 +16,6 @@ Services example:
 +  GoogleBookmarks
 +  FriendFeed
 +  Twitter
-+  Google+
 +  Pocket
 +  Instapaper
 +  Evernote

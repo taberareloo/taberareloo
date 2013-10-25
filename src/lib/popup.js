@@ -151,9 +151,6 @@
       this[ps.type]();
     }
 
-    if (this.posters.hasPoster('Google+')) {
-      this.savers.scope = this.streams = new Streams(this.posters, ps.scope);
-    }
     if (this.posters.hasPoster('Pinterest')) {
       this.savers.pinboard = this.pinboards = new Pinboards(this.posters);
     }
@@ -618,71 +615,6 @@
         this.container.removeAttribute('style');
       }
       this.shown = !this.shown;
-    }
-  };
-
-  function Streams(posters, scope) {
-    this.posters = posters;
-    var container = this.container = $N('div', {id : 'streams'});
-    var selectBox = this.selectBox = $N('select', {
-      id: 'scope',
-      name: 'scope',
-      style: 'font-size:1em; width:100%; margin-bottom: 1em;',
-      disabled: 'true'
-    }, $N('option', {value : ''}, 'Not seem to log in Google+ (will check 1m later)'));
-    container.appendChild(selectBox);
-    $('widgets').appendChild(container);
-
-    var streams = background.Models['Google+'].getStreams();
-    var communities = background.Models['Google+'].getCommunities();
-    if (streams) {
-      $D(selectBox);
-      selectBox.appendChild(
-        $N('option', {value : '', selected : 'selected'}, 'Select Google+ Stream (or same as last one)')
-      );
-      if (streams && streams.presets.length) {
-        for (var i = 0, len = streams.presets.length; i < len; i++) {
-          var preset = streams.presets[i];
-          selectBox.appendChild($N('option', {value : JSON.stringify(preset)}, preset[0].name));
-        }
-      }
-      if (streams && streams.circles.length) {
-        var optGroup = $N('optgroup', {label : 'Stream'});
-        for (var i = 0, len = streams.circles.length; i < len; i++) {
-          var circle = streams.circles[i];
-          optGroup.appendChild($N('option', {value : JSON.stringify(circle)}, circle[0].name));
-        }
-        selectBox.appendChild(optGroup);
-      }
-      if (communities.length) {
-        var optGroup = $N('optgroup', {label : 'Community Category'});
-        for (var i = 0, len = communities.length; i < len; i++) {
-          var category = communities[i];
-          optGroup.appendChild($N('option', {value : JSON.stringify(category)}, category[0].name));
-        }
-        selectBox.appendChild(optGroup);
-      }
-      posters.hooks.push(function () {
-        if (this.body().some(function (poster) { return poster.name === 'Google+'; })) {
-          selectBox.removeAttribute('disabled');
-          if (scope) {
-            var savedScope = selectBox.querySelector('[value="' + scope.replace(/"/g, '\\"') + '"]');
-            if (savedScope) {
-              savedScope.selected = true;
-            }
-          }
-        } else {
-          selectBox.setAttribute('disabled', 'true');
-        }
-      });
-      posters.postCheck();
-    }
-  }
-
-  Streams.prototype = {
-    constructor : Streams,
-    body : function () {
-      return this.selectBox.options[this.selectBox.selectedIndex].value;
     }
   };
 
@@ -1508,7 +1440,6 @@
   exports.Link = Link;
   exports.Pic = Pic;
   exports.Notify = Notify;
-  exports.Streams = Streams;
   exports.Pinboards = Pinboards;
   exports.Posters = Posters;
   exports.PosterItem = PosterItem;
