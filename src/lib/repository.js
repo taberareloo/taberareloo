@@ -65,6 +65,11 @@
         return;
       }
       defs = [].concat(defs);
+      defs.forEach(function (d) {
+        if (this.hasOwnProperty(d.name)) {
+          this.remove(this[d.name]);
+        }
+      }, this);
       if (target) {
         var vals = this.values;
         this.clear();
@@ -77,9 +82,6 @@
         defs = vals;
       }
       defs.forEach(function (d) {
-        if (this.hasOwnProperty(d.name)) {
-          this.remove(this[d.name]);
-        }
         this.list.push(d);
         this[d.name] = d;
       }, this);
