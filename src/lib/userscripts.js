@@ -4,7 +4,7 @@
 /*global Keybind:true, get_active_feed:true, get_active_item:true*/
 /*global $X:true, createFlavoredString:true, update:true, Extractors:true*/
 /*global $N:true, Deferred:true, keyString:true, stop:true, Tumblr:true*/
-/*global tagName:true, MochiKit:true, MouseEvent:true*/
+/*global MouseEvent:true*/
 (function (exports) {
   'use strict';
 
@@ -562,68 +562,6 @@
         }
       } + '());';
       document.head.appendChild(script);
-    }
-  });
-
-  UserScripts.register({
-    name  : 'Taberareloo on Google+ Stream',
-    timer : null,
-    check : function () {
-      return TBRL.config.post.taberareloo_on_google_plus &&
-        TBRL.config.post.shortcutkey_taberareloo_on_google_plus &&
-        (/^https:\/\/plus\.google\.com\//.test(location.href));
-    },
-    exec : function () {
-      var self = this;
-      this.load();
-      this.timer = setInterval(function () {
-        self.load();
-      }, 500);
-    },
-    load : function () {
-      var self = this;
-      $X('//div[starts-with(@id, "update-") and not(contains(@class, "taberareloo"))]').forEach(function (elem) {
-        elem.addEventListener('keydown', self.fire, false);
-        elem.className += ' taberareloo';
-      });
-    },
-    fire : function (ev) {
-      var elem = ev.target;
-      var tag  = tagName(elem);
-      if (tag === 'input' ||
-          tag === 'textarea' ||
-          elem.classList.contains('editable') ||
-          MochiKit.DOM.getNodeAttribute(elem, 'g_editable') ||
-          MochiKit.DOM.getNodeAttribute(elem, 'contenteditable')) {
-        return null;
-      }
-      var key = TBRL.config.post.shortcutkey_taberareloo_on_google_plus;
-      if (key === keyString(ev)) {
-        stop(ev);
-        var sel = createFlavoredString(window.getSelection());
-        var ctx = update({
-          document  : document,
-          window    : window,
-          selection : (sel.raw) ? sel : null,
-          target    : elem,
-          event     : {},
-          title     : null,
-          mouse     : null,
-          menu      : null
-        }, window.location);
-        var ext = Extractors['ReBlog - Google+'];
-        return ext.check(ctx) ? TBRL.share(ctx, ext, true) : null;
-      }
-    },
-    unload: function () {
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
-      var self = this;
-      $X('//div[starts-with(@id, "update-") and contains(@class, "taberareloo")]').forEach(function (elem) {
-        elem.removeEventListener('keydown', self.fire, false);
-      });
     }
   });
 }(this));

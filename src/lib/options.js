@@ -98,13 +98,6 @@
     this.tumble_check = new Check('multi_tumblelogs', !!Config.post.multi_tumblelogs);
     this.tumble_list = new TumbleList();
 
-    // Google+ Pages
-    this.enableGooglePlusPages_check = new Check('enableGooglePlusPages', !!Config.post.enable_google_plus_pages);
-    this.googlePlusPages_list = new GooglePlusPagesList();
-
-    this.enableGooglePlusKey_check = new Check('taberareloo_on_google_plus', !!Config.post.taberareloo_on_google_plus);
-    this.googlePlusKey_short = new Shortcutkey('shortcutkey_taberareloo_on_google_plus', true);
-
     // HatenaBlog
     this.enableHatenaBlog_check = new Check('enableHatenaBlog', !!Config.post.enable_hatenablog);
     this.hatenaBlog_list = new HatenaBlogList();
@@ -172,7 +165,6 @@
         $('shortcutkey_play_on_tumblr_play_clear').value =
         $('shortcutkey_play_on_tumblr_like_clear').value =
         $('shortcutkey_play_on_tumblr_count_clear').value =
-        $('shortcutkey_taberareloo_on_google_plus_clear').value = chrome.i18n.getMessage('label_clear');
 
       $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
       $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
@@ -186,15 +178,6 @@
       $('label_multipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_multipleTumblelog')));
       $('label_enableMultipleTumblelog').appendChild($T(chrome.i18n.getMessage('label_enable')));
       $('multi_tumblelogs_button').value = chrome.i18n.getMessage('label_get');
-
-      // Google+ Pages
-      $('label_GooglePlusPages').appendChild(
-        $T(chrome.i18n.getMessage('label_GooglePlusPages'))
-      );
-      $('label_enableGooglePlusPages').appendChild(
-        $T(chrome.i18n.getMessage('label_enable'))
-      );
-      $('getGooglePlusPages_button').value = chrome.i18n.getMessage('label_get');
 
       // HatenaBlog
       $('label_HatenaBlog').appendChild(
@@ -224,7 +207,6 @@
       var qk = this.quote_quick_short.body();
       var k = this.quick_short.body();
       var tcheck = this.tumble_check.body();
-      var gcheck = this.enableGooglePlusPages_check.body();
       var enable_hatenablog = this.enableHatenaBlog_check.body();
       var enable_webhook = this.enable_webhook_check.body();
       var webhook_url = this.webhook_url_input.body();
@@ -259,9 +241,6 @@
             'multi_tumblelogs'   : tcheck,
             'post_with_queue'    : this.queue_check.body(),
             'not_queue_reblog_post': this.not_queue_reblog_post_check.body(),
-            'enable_google_plus_pages' : gcheck,
-            'taberareloo_on_google_plus' : this.enableGooglePlusKey_check.body(),
-            'shortcutkey_taberareloo_on_google_plus' : this.googlePlusKey_short.body(),
             'enable_hatenablog' : enable_hatenablog,
             'enable_webhook' : enable_webhook,
             'webhook_url' : webhook_url
@@ -279,9 +258,6 @@
         });
         if (!tcheck) {
           this.tumble_list.remove();
-        }
-        if (!gcheck) {
-          this.googlePlusPages_list.remove();
         }
         if (enable_webhook && webhook_url) {
           background.Models.addWebHooks();
@@ -748,45 +724,6 @@
     }
   };
 
-  // Google+ Pages
-  function GooglePlusPagesList() {
-    var self = this;
-    this.field = $('list_GooglePlusPages');
-    this.button = $('getGooglePlusPages_button');
-    connect(this.button, 'onclick', this, 'clicked');
-    this.field.appendChild(background.Models.googlePlusPages.reduce(function (df, model) {
-      df.appendChild(self.createElement(model));
-      return df;
-    }, $DF()));
-  }
-  GooglePlusPagesList.prototype = {
-    clicked : function () {
-      var self = this;
-      $D(this.field);
-      background.Models.getGooglePlusPages().addCallback(function (models) {
-        self.field.appendChild(models.reduce(function (df, model) {
-          df.appendChild(self.createElement(model));
-          return df;
-        }, $DF()));
-      });
-    },
-    createElement : function (model) {
-      var img = $N('img', {
-        src   : model.ICON,
-        class : 'list_icon'
-      });
-      var label = $N('p', {
-        class : 'list_text'
-      }, model.name);
-      return $N('div', {
-        'class' : 'list'
-      }, [img, label]);
-    },
-    remove: function () {
-      background.Models.removeGooglePlusPages();
-    }
-  };
-
   // HatenaBlog
   function HatenaBlogList() {
     var self = this;
@@ -1095,7 +1032,6 @@
   exports.TemplateInput = TemplateInput;
   exports.Shortcutkey = Shortcutkey;
   exports.TumbleList = TumbleList;
-  exports.GooglePlusPagesList = GooglePlusPagesList;
   exports.initPatches = initPatches;
   exports.initBackup = initBackup;
 }(this));
