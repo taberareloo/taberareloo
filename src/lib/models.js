@@ -346,7 +346,7 @@ var Tumblr = {
 
   getTumblelogs : function(){
     var self = this;
-    return request(Tumblr.LINK + 'settings', { responseType: 'document' }).addCallback(function(res){
+    return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).addCallback(function(res){
       var doc = res.response;
       if($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -354,15 +354,15 @@ var Tumblr = {
       Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
       Tumblr.blogs = [Tumblr.channel_id];
       return Array.prototype.slice.call(doc.querySelectorAll(
-        '#fixed_navigation > .vertical_tab > ' +
-          'a[href^="/blog/"][href$="/settings"]:not([href^="/blog/' + Tumblr.channel_id + '/settings"])'
+        '#popover_blogs .popover_menu_item ' +
+          'a[href^="/blog/"]:not([href^="/blog/' + Tumblr.channel_id + '"])'
       )).reverse().map(function(a){
-        var id = a.getAttribute('href').replace(/^\/blog\/|\/settings/g, '');
+        var id = a.getAttribute('href').replace(/^\/blog\//g, '');
         Tumblr.blogs.push(id);
 
         return {
           id : id,
-          name: a.textContent
+          name: a.textContent.trim()
         };
       });
     });
