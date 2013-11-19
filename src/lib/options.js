@@ -164,7 +164,7 @@
         $('shortcutkey_dashboard_plus_taberareloo_manually_clear').value =
         $('shortcutkey_play_on_tumblr_play_clear').value =
         $('shortcutkey_play_on_tumblr_like_clear').value =
-        $('shortcutkey_play_on_tumblr_count_clear').value =
+        $('shortcutkey_play_on_tumblr_count_clear').value = chrome.i18n.getMessage('label_clear');
 
       $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
       $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
