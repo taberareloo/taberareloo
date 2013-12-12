@@ -1,4 +1,5 @@
 // -*- coding: utf-8 -*-
+/*global CommandQueue:true*/
 
 var skin = chrome.runtime.getURL('skin/');
 var Models = new Repository();
@@ -10,6 +11,8 @@ var Tumblr = {
   TUMBLR_URL : 'http://www.tumblr.com/',
   LINK : 'https://www.tumblr.com/',
   LOGIN_URL : 'https://www.tumblr.com/login',
+
+  queue : new CommandQueue(500),
 
   /**
    * ポストを削除する。
@@ -79,19 +82,21 @@ var Tumblr = {
 
 
   _post : function (form) {
-   return request(Tumblr.TUMBLR_URL + 'svc/secure_form_key', {
-      method  : 'POST',
-      headers : {
-        'X-tumblr-form-key' : form.form_key
-      }
-    }).addCallback(function (res) {
-      var secure_form_key = res.getResponseHeader('X-tumblr-secure-form-key');
-      return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-        headers     : {
-          'Content-Type'     : 'application/json',
-          'X-tumblr-puppies' : secure_form_key
-        },
-        sendContent : JSON.stringify(form)
+    return this.queue.push(function () {
+      return request(Tumblr.TUMBLR_URL + 'svc/secure_form_key', {
+        method  : 'POST',
+        headers : {
+          'X-tumblr-form-key' : form.form_key
+        }
+      }).addCallback(function (res) {
+        var secure_form_key = res.getResponseHeader('X-tumblr-secure-form-key');
+        return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+          headers     : {
+            'Content-Type'     : 'application/json',
+            'X-tumblr-puppies' : secure_form_key
+          },
+          sendContent : JSON.stringify(form)
+        });
       });
     });
   },

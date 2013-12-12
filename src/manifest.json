@@ -12,6 +12,7 @@
        "lib/proto.js",
        "lib/utils.js",
        "lib/repository.js",
+       "lib/command_queue.js",
        "lib/models.js",
        "lib/background.js",
        "lib/menu.js",
