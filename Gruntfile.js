@@ -31,6 +31,7 @@
         all: [
           'Gruntfile.js',
           'src/lib/background.js',
+          'src/lib/command_queue.js',
           'src/lib/content.js',
           'src/lib/extractors.js',
           'src/lib/menu.js',
