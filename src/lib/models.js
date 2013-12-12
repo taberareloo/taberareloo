@@ -77,6 +77,25 @@ var Tumblr = {
     return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && ((ps.type !== 'audio') || ps.suffix === '.mp3');
   },
 
+
+  _post : function (form) {
+   return request(Tumblr.TUMBLR_URL + 'svc/secure_form_key', {
+      method  : 'POST',
+      headers : {
+        'X-tumblr-form-key' : form.form_key
+      }
+    }).addCallback(function (res) {
+      var secure_form_key = res.getResponseHeader('X-tumblr-secure-form-key');
+      return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
+        headers     : {
+          'Content-Type'     : 'application/json',
+          'X-tumblr-puppies' : secure_form_key
+        },
+        sendContent : JSON.stringify(form)
+      });
+    });
+  },
+
   /**
    * 新規エントリーをポストする。
    *
@@ -118,10 +137,7 @@ var Tumblr = {
                     form['post[photoset_layout]'] = '1';
                     form['post[photoset_order]'] = 'o1';
 
-                    return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-                      headers: {'Content-Type': 'application/json'},
-                      sendContent: JSON.stringify(form)
-                    });
+                    return self._post(form);
                   }
 
                   return res;
@@ -133,10 +149,7 @@ var Tumblr = {
               }
             }
 
-            return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-              headers: {'Content-Type': 'application/json'},
-              sendContent: JSON.stringify(form)
-            });
+            return self._post(form);
           }()).addErrback(function(err){
             if (self.retry) {
               throw err;
@@ -274,10 +287,7 @@ var Tumblr = {
       });
       that.appendTags(form, ps);
       return that.postForm(function(){
-        return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
-          headers: {'Content-Type': 'application/json'},
-          sendContent: JSON.stringify(form)
-        });
+        return that._post(form);
       });
     });
   },
