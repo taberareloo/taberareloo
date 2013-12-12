@@ -145,6 +145,8 @@
                   return res;
                 },
                 function (res) {
+                  console.error(res);
+                  console.error(res.stack);
                   TBRL.Notification.notify({
                     title: p.name,
                     message: 'Posting... Error',
