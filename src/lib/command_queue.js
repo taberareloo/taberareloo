@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-/*global Deferred:true*/
+/*global Deferred:true, maybeDeferred:true*/
 (function (exports) {
   'use strict';
 
@@ -11,7 +11,7 @@
   function CommandQueue(interval) {
     this._commands = [];
     this._runId = null;
-    this._interval = (interval == null) ? 1000 : interval;
+    this._interval = (interval == null) ? 0 : interval;
   }
 
   CommandQueue.prototype.push = function (callback) {
@@ -24,25 +24,27 @@
   CommandQueue.prototype._run = function () {
     var that = this;
 
-    function run() {
-      var command;
-
-      command = that._commands.shift();
-      command.callback().addCallbacks(
-        function (result) {
-          command.df.callback(result);
-        },
-        function (err) {
-          command.df.errback(err);
-        }
-      );
-
-      // CommandQueue is empty
+    function next() {
       if (that._commands.length === 0) {
         that._runId = null;
       } else {
         that._runId = setTimeout(run, that._interval);
       }
+    }
+
+    function run() {
+      var command, deferred;
+
+      command = that._commands.shift();
+      deferred = command.df;
+      maybeDeferred(command.callback()).addCallbacks(
+        function (result) {
+          deferred.callback(result);
+        },
+        function (err) {
+          deferred.errback(err);
+        }
+      ).addBoth(next);
     }
 
     if (that._runId != null) {
