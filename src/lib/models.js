@@ -370,7 +370,7 @@ var Tumblr = {
       Tumblr.blogs = [Tumblr.channel_id];
       return Array.prototype.slice.call(doc.querySelectorAll(
         '#popover_blogs .popover_menu_item ' +
-          'a[href^="/blog/"]:not([href^="/blog/' + Tumblr.channel_id + '"])'
+          'a[href^="/blog/"]:not([href="/blog/' + Tumblr.channel_id + '"])'
       )).reverse().map(function(a){
         var id = a.getAttribute('href').replace(/^\/blog\//g, '');
         Tumblr.blogs.push(id);
