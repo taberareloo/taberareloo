@@ -25,6 +25,21 @@
 (function () {
   'use strict';
 
+  var request = require('request');
+  var xml2js = require('xml2js');
+  var Promise = require('bluebird');
+
+  var base    = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/taberareloo.crx';
+  var updates = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/updates.xml';
+  var key;
+
+  if (process.env.CI === 'yes') {
+    key = process.env.PRIVATE;
+    if (key.indexOf('\n') < 0) {
+      key = key.replace(/\\n/g, '\n');
+    }
+  }
+
   module.exports = function (grunt) {
     grunt.initConfig({
       jshint: {
@@ -49,16 +64,83 @@
           jshintrc: '.jshintrc',
           force: false
         }
+      },
+      crx: {
+        canary: {
+          src: 'out/',
+          dest: 'pkg/taberareloo.crx',
+          baseURL: base,
+          privateKey: key
+        }
+      },
+      clean: {
+        canary: ['out']
+      },
+      copy: {
+        canary: {
+          files: [
+            {expand: true, cwd: 'src/', src: ['**'], dest: 'out/'},
+          ]
+        }
       }
     });
 
     // load tasks
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-crx');
+
+    grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
+      var manifest = grunt.file.readJSON('src/manifest.json');
+      var date = new Date();
+      var done = this.async();
+
+      function getStamp() {
+        return new Promise(function (resolve) {
+          request(updates, function (error, response, body) {
+            var parser;
+            if (error || response.statusCode !== 200) {
+              return resolve(0);
+            }
+            parser = new xml2js.Parser();
+            parser.parseString(body, function (error, result) {
+              var version, vs;
+              if (error) {
+                return resolve(0);
+              }
+              // 2 or 3 dot style: major.minor.patch.build
+              version = result.gupdate.app[0].updatecheck[0].$.version;
+              vs = version.split('.');
+              // contains build level
+              if (vs.length === 4) {
+                return resolve(parseInt(vs[3], 10) + 1);
+              } else {
+                return resolve(1);
+              }
+            });
+          });
+        });
+      }
+
+      getStamp().then(function (stamp) {
+        var version;
+        version = manifest.version + '.' + stamp;
+        grunt.log.writeln('packaging as version ' + version);
+        manifest.version = version;
+        manifest.update_url = updates;
+        manifest.name = 'Taberareloo Canary';
+        manifest.description = 'Taberareloo Canary build at ' + date;
+        grunt.file.write('out/manifest.json', JSON.stringify(manifest, null, 2));
+        done();
+      });
+    });
 
     // alias
     grunt.registerTask('lint', 'jshint');
     grunt.registerTask('travis', 'jshint');
     grunt.registerTask('default', 'lint');
+    grunt.registerTask('canary', ['clean:canary', 'copy:canary', 'canary-manifest', 'crx:canary', 'clean:canary']);
   };
 }());
 /* vim: set sw=2 ts=2 et tw=80 : */

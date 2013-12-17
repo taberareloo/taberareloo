@@ -10,7 +10,14 @@
     "chai": "*",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.7",
-    "grunt-contrib-jshint": "~0.6.4"
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-crx": "git+https://github.com/Constellation/grunt-crx.git#1606e8790f424de79966c90c9c31accbccc44e5c",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "semver": "~2.2.1",
+    "bluebird": "~0.11.5-1",
+    "xml2js": "~0.4.0",
+    "request": "~2.30.0"
   },
   "scripts": {
     "test": "node_modules/.bin/grunt travis"
