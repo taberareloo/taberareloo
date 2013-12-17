@@ -92,8 +92,6 @@
     grunt.loadNpmTasks('grunt-crx');
 
     grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
-      var manifest = grunt.file.readJSON('src/manifest.json');
-      var date = new Date();
       var done = this.async();
 
       function getStamp() {
@@ -124,6 +122,8 @@
       }
 
       getStamp().then(function (stamp) {
+        var manifest = grunt.file.readJSON('src/manifest.json');
+        var date = new Date();
         var version;
         version = manifest.version + '.' + stamp;
         grunt.log.writeln('packaging as version ' + version);
