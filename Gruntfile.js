@@ -25,6 +25,7 @@
 (function () {
   'use strict';
 
+  var semver = require('semver');
   var request = require('request');
   var xml2js = require('xml2js');
   var Promise = require('bluebird');
@@ -93,8 +94,9 @@
 
     grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
       var done = this.async();
+      var manifest = grunt.file.readJSON('src/manifest.json');
 
-      function getStamp() {
+      function getStamp(current) {
         return new Promise(function (resolve) {
           request(updates, function (error, response, body) {
             var parser;
@@ -103,28 +105,34 @@
             }
             parser = new xml2js.Parser();
             parser.parseString(body, function (error, result) {
-              var version, vs;
+              var version, vs, build;
               if (error) {
                 return resolve(0);
               }
               // 2 or 3 dot style: major.minor.patch.build
               version = result.gupdate.app[0].updatecheck[0].$.version;
               vs = version.split('.');
+
               // contains build level
               if (vs.length === 4) {
-                return resolve(parseInt(vs[3], 10) + 1);
+                build = parseInt(vs.pop(), 10) + 1;
               } else {
-                return resolve(1);
+                build = 1;
               }
+              version = vs.join('.');
+              if (semver.lt(version, current)) {
+                build = 0;
+              }
+              return resolve(build);
             });
           });
         });
       }
 
-      getStamp().then(function (stamp) {
-        var manifest = grunt.file.readJSON('src/manifest.json');
+      getStamp(manifest.version).then(function (stamp) {
         var date = new Date();
         var version;
+
         version = manifest.version + '.' + stamp;
         grunt.log.writeln('packaging as version ' + version);
         manifest.version = version;
