@@ -43,7 +43,9 @@
         key = key.replace(/\\n/g, '\n');
       }
     } else {
-      key = grunt.file.read(privateKey);
+      if (grunt.file.exists(privateKey)) {
+        key = grunt.file.read(privateKey);
+      }
     }
 
     grunt.initConfig({
