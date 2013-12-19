@@ -32,16 +32,20 @@
 
   var base    = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/taberareloo.crx';
   var updates = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/updates.xml';
-  var key;
-
-  if (process.env.CI === 'yes') {
-    key = process.env.PRIVATE;
-    if (key.indexOf('\n') < 0) {
-      key = key.replace(/\\n/g, '\n');
-    }
-  }
+  var privateKey = 'private.pem';
 
   module.exports = function (grunt) {
+    var key;
+
+    if (process.env.CI === 'yes') {
+      key = process.env.PRIVATE;
+      if (key.indexOf('\n') < 0) {
+        key = key.replace(/\\n/g, '\n');
+      }
+    } else {
+      key = grunt.file.read(privateKey);
+    }
+
     grunt.initConfig({
       jshint: {
         all: [
