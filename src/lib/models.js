@@ -609,17 +609,26 @@ Models.register({
   post : function(ps) {
     var self = this;
     return this.getDataURL(ps).addCallback(function(url) {
-      return self.Photo.post(ps, url);
+      if (chrome.downloads) {
+        return self.download(url);
+      }
+      else {
+        return self.Photo.post(ps, url);
+      }
     });
   },
 
-  append : function(file, ps) {
-    putContents(file, joinText([
-      joinText([joinText(ps.tags, ' '), ps.item, ps.itemUrl, ps.body, ps.description], '\n\n', true),
-      getContents(file)
-    ], '\n\n\n'));
-
-    return succeed();
+  download : function (url) {
+    var deferred = new Deferred();
+    chrome.downloads.download({url : url}, function (id) {
+      if (id) {
+        return deferred.callback();
+      }
+      else {
+        return deferred.errback(chrome.runtime.lastError.message);
+      }
+    });
+    return deferred;
   },
 
   getDataURL : function(ps) {
