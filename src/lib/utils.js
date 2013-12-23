@@ -1199,8 +1199,7 @@
     var context = '';
     if (u.protocol !== 'chrome-extension:') {
       context = 'content';
-    }
-    else {
+    } else {
       switch (u.pathname) {
       case '/popup.html':
         context = 'popup';

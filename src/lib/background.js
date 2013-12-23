@@ -256,8 +256,7 @@
           var pos = localStorage.getItem('popup_position');
           if (pos) {
             pos = JSON.parse(pos);
-          }
-          else {
+          } else {
             pos = {
               top  : 50,
               left : 50
@@ -268,8 +267,7 @@
               windowId : win.id,
               url      : chrome.runtime.getURL('popup.html') + query
             });
-          }
-          else {
+          } else {
             chrome.windows.create({
               url     : chrome.runtime.getURL('popup.html') + query,
               top     : win.top  + pos.top,

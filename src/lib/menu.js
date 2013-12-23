@@ -10,8 +10,7 @@
 
       if (createProperties.type === 'separator') {
         name = 'separator_' + (++this.separators);
-      }
-      else {
+      } else {
         name = createProperties.title;
       }
 
@@ -48,8 +47,7 @@
         self.values.forEach(function (menu) {
           if (menu.parent && self[menu.parent]) {
             menu.properties.parentId = self[menu.parent].id || top_menu_id;
-          }
-          else {
+          } else {
             menu.properties.parentId = top_menu_id;
           }
           if (menu.properties.generatedId) {

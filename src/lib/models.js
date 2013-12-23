@@ -285,8 +285,7 @@ var Tumblr = {
         }
         if (form[name]) {
           form[name] += '\n\n' + value;
-        }
-        else {
+        } else {
           form[name] = value;
         }
       });
@@ -611,8 +610,7 @@ Models.register({
     return this.getDataURL(ps).addCallback(function(url) {
       if (chrome.downloads) {
         return self.download(url);
-      }
-      else {
+      } else {
         return self.Photo.post(ps, url);
       }
     });
@@ -623,8 +621,7 @@ Models.register({
     chrome.downloads.download({url : url}, function (id) {
       if (id) {
         return deferred.callback();
-      }
-      else {
+      } else {
         return deferred.errback(chrome.runtime.lastError.message);
       }
     });
@@ -2359,8 +2356,7 @@ Models.register({
         typeCode = 'I';
         media.mediaUrl = ps.itemUrl;
         media.mediaThumbnailUrl = ps.itemUrl;
-      }
-      else {
+      } else {
         media.mediaUrl = ps.itemUrl || ps.pageUrl;
       }
 
@@ -2935,8 +2931,7 @@ Models.register({
         img_url : ps.itemUrl,
         img     : ps.file
       };
-    }
-    else {
+    } else {
       sendContent = {
         details : caption,
         link    : ps.pageUrl,
@@ -3028,8 +3023,7 @@ Models.register({
         ps.description,
         (ps.body) ? '“' + ps.body + '”' : ''
       ], "\n\n", true);
-    }
-    else {
+    } else {
       caption = ps.item || ps.page;
     }
 
@@ -3082,8 +3076,7 @@ Models.register({
         if (gyazo_id) window.localStorage.gyazo_id = gyazo_id;
         if (res.responseText && !/\.png$/.test(res.responseText)) {
           return res.responseText + '.png';
-        }
-        else {
+        } else {
           return res.responseText;
         }
       });
@@ -3138,8 +3131,7 @@ Models.register({
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
         return data.csrf_token;
-      }
-      else {
+      } else {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
@@ -3163,8 +3155,7 @@ Models.register({
     case 'photo':
       if (ps.file) {
         return this.upload(ps);
-      }
-      else {
+      } else {
         sendContent.url = ps.itemUrl;
       }
       break;

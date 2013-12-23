@@ -917,8 +917,7 @@
               index++;
               if (index < patches.length) {
                 addFileToZip();
-              }
-              else {
+              } else {
                 downloadZip();
               }
             });
@@ -928,8 +927,7 @@
         zipWriter.add('taberareloo-settings.json', new zip.TextReader(data), function () {
           if (patches.length) {
             addFileToZip();
-          }
-          else {
+          } else {
             downloadZip();
           }
         });
@@ -967,8 +965,7 @@
                   }
                   deferred.callback();
                 });
-              }
-              else {
+              } else {
                 entry.getData(new zip.BlobWriter('application/javascript'), function (blob) {
                   blob.name = entry.filename;
                   background.Patches.install(blob, true).addCallback(function () {
