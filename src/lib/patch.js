@@ -112,7 +112,7 @@
                       this.onwriteend = null;
                       this.truncate(this.position);
                       self.loadAndRegister(fileEntry, metadata, url).addCallback(function (patch) {
-                        console.log('Install patch: ' + fileEntry.fullPath);
+                        console.log('Patch: Installed: ' + fileEntry.fullPath);
                         if (!no_alert) {
                           alert(chrome.i18n.getMessage('message_installed', fileName));
                         }
@@ -167,7 +167,7 @@
           fileEntry.remove(
             function () {
               self.unregister(patch);
-              console.log('Uninstall patch: ' + fileEntry.fullPath);
+              console.log('Patch: Uninstalled: ' + fileEntry.fullPath);
               if (!no_alert) {
                 alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
               }
@@ -212,7 +212,7 @@
             script = document.createElement('script');
             script.src = fileEntry.toURL();
             document.body.appendChild(script);
-            console.log('Load patch: ' + fileEntry.fullPath);
+            console.log('Patch: Loaded in backgorund: ' + fileEntry.fullPath);
           }
           url = url || preference.origin || metadata.downloadURL;
           return self._register(fileEntry, metadata, url, script);
@@ -331,7 +331,9 @@
     },
 
     loadInTab : function (tab) {
+      console.groupCollapsed('Patches: Load in ' + tab.url);
       var self = this;
+      var deferredList = [];
       this.values.forEach(function (patch) {
         var pattern = null;
         if (patch.metadata.match && Array.isArray(patch.metadata.match)) {
@@ -347,20 +349,27 @@
           (patch.metadata.include.indexOf('content') !== -1) &&
           pattern && pattern.test(tab.url)
         ) {
+          var deferred = new Deferred();
           self.readFromFileEntry(patch.fileEntry).addCallback(function (script) {
             chrome.tabs.executeScript(tab.id, {
               code : script
             }, function (result) {
               if (typeof result !== 'undefined') {
-                console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
+                console.log(patch.fileEntry.fullPath);
               }
+              deferred.callback();
             });
           });
+          deferredList.push(deferred);
         }
+      });
+      return new DeferredList(deferredList).addCallback(function () {
+        console.groupEnd();
       });
     },
 
     loadInPopup : function (doc) {
+      console.groupCollapsed('Patches: Load in popup');
       var deferredList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
@@ -379,14 +388,17 @@
             deferred.errback();
           };
           (doc.body || doc.documentElement).appendChild(script);
-          console.log('Load patch in popup : ' + patch.fileEntry.fullPath);
+          console.log(patch.fileEntry.fullPath);
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList);
+      return new DeferredList(deferredList).addCallback(function () {
+        console.groupEnd();
+      });
     },
 
     loadInOptions : function (doc) {
+      console.groupCollapsed('Patches: Load in options');
       var deferredList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
@@ -405,11 +417,13 @@
             deferred.errback();
           };
           (doc.body || doc.documentElement).appendChild(script);
-          console.log('Load patch in options : ' + patch.fileEntry.fullPath);
+          console.log(patch.fileEntry.fullPath);
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList);
+      return new DeferredList(deferredList).addCallback(function () {
+        console.groupEnd();
+      });
     },
 
     parseMatchPattern : function (input) {
@@ -477,7 +491,7 @@
             return false;
           }
           if (semver.gt(metadata.version, patch.metadata.version)) {
-            console.log('Found new version: ' + url);
+            console.log('Patch: Found new version: ' + url);
             TBRL.Notification.notify({
               title   : fileName,
               message : chrome.i18n.getMessage('message_released'),
@@ -517,7 +531,11 @@
     }
   });
   Patches.initailize().addCallback(function () {
-    Patches.load();
+    console.groupCollapsed('Patches: Load');
+    Patches.load().addCallback(function () {
+      console.groupEnd();
+      console.log('Patches: loaded!');
+    });
   });
 
 }(this));
