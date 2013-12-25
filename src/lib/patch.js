@@ -488,7 +488,7 @@
       return c_value;
     },
 
-    require : function (url) {
+    require : function (url, delay) {
       var name = window.url.parse(url).path.split(/[\/\\]/).pop();
       var ret = new Deferred();
       var deferred;
@@ -509,7 +509,7 @@
       deferred.addCallback(function (patch) {
         setTimeout(function () {
           ret.callback(!!patch);
-        }, 100);
+        }, (typeof delay === 'number') ? delay : 500);
       });
       return ret;
     }
