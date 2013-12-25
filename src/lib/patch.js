@@ -500,12 +500,10 @@
             disabled : false
           }));
           deferred = this.loadAndRegister(patch.fileEntry, patch.metadata);
-        }
-        else {
+        } else {
           return succeed(true);
         }
-      }
-      else {
+      } else {
         deferred = this.install(url, true);
       }
       deferred.addCallback(function (patch) {
