@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 /*global MochiKit:true, Repository:true, Deferred:true, succeed:true, chrome:true*/
 /*global TBRL:true, request:true, semver:true, DeferredHash:true, DeferredList:true*/
+/*global $A:true*/
 (function (exports) {
   'use strict';
 
@@ -223,19 +224,46 @@
 
     load : function () {
       var self = this;
-      this.dirEntry.createReader().readEntries(function (fileEntries) {
+      var deferred = new Deferred();
+
+      var _load = function (fileEntries) {
         var ds = {};
-        for (var i = 0, len = fileEntries.length ; i < len ; i++) {
-          var fileEntry = fileEntries[i];
+        fileEntries.sort(function (a, b) {
+          if (a.name === b.name) {
+            return 0;
+          }
+          return (a.name < b.name) ? -1 : 1;
+        });
+        fileEntries.forEach(function (fileEntry) {
+          console.log('Loading: ' + fileEntry.fullPath);
           ds[fileEntry.name] = self.loadAndRegister(fileEntry);
-        }
+        });
         return new DeferredHash(ds).addCallback(function () {
           var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
           if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
             self.checkUpdates();
           }
         });
-      });
+      };
+
+      var dirReader = this.dirEntry.createReader();
+      var fileEntries = [];
+      var readEntries = function () {
+        dirReader.readEntries(function (entries) {
+          if (!entries.length) {
+            _load(fileEntries).addCallback(function () {
+              deferred.callback();
+            });
+          } else {
+            fileEntries = fileEntries.concat($A(entries));
+            readEntries();
+          }
+        }, function (e) {
+          deferred.errback(e);
+        });
+      };
+      readEntries();
+      return deferred;
     },
 
     removeAll : function () {
