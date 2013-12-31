@@ -3073,12 +3073,10 @@ Models.register({
         }
       }).addCallback(function(res) {
         var gyazo_id = res.getResponseHeader('X-Gyazo-Id');
-        if (gyazo_id) window.localStorage.gyazo_id = gyazo_id;
-        if (res.responseText && !/\.png$/.test(res.responseText)) {
-          return res.responseText + '.png';
-        } else {
-          return res.responseText;
+        if (gyazo_id) {
+          window.localStorage.gyazo_id = gyazo_id;
         }
+        return res.responseText;
       });
     });
   },
