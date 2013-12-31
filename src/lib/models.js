@@ -3084,11 +3084,9 @@ Models.register({
   _download : function(ps) {
     var self = this;
     return (
-      !ps.itemUrl && ps.file // capture
-        ? succeed(ps.file)
-        : canvasRequest(ps.itemUrl).addCallback(function(data) { // must be png
-          return self.base64ToFileEntry(data.binary, 'image/png', 'png');
-        })
+      ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function(entry) {
+        return getFileFromEntry(entry);
+      })
     );
   },
 
