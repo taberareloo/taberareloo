@@ -197,6 +197,7 @@
       ).addCallback(function (metadata) {
         if (metadata) {
           var script = null;
+          url = url || preference.origin || metadata.downloadURL;
           if (
             !disabled &&
             (
@@ -205,17 +206,25 @@
               (metadata.include.indexOf('background') !== -1)
             )
           ) {
+            var deferred = new Deferred();
             var patch = self[fileName] || {};
             if (patch.dom) {
               patch.dom.parentNode.removeChild(patch.dom);
             }
             script = document.createElement('script');
             script.src = fileEntry.toURL();
+            script.onload = function () {
+              console.log('Load patch: ' + fileEntry.fullPath);
+              deferred.callback(self._register(fileEntry, metadata, url, script));
+            };
+            script.onerror = function () {
+              deferred.errback();
+            };
             document.body.appendChild(script);
-            console.log('Patch: Loaded in backgorund: ' + fileEntry.fullPath);
+            return deferred;
+          } else {
+            return self._register(fileEntry, metadata, url, script);
           }
-          url = url || preference.origin || metadata.downloadURL;
-          return self._register(fileEntry, metadata, url, script);
         } else {
           fileEntry.remove(function () {});
         }
@@ -382,13 +391,13 @@
           var script = doc.createElement('script');
           script.src = patch.fileEntry.toURL();
           script.onload = function () {
+            console.log(patch.fileEntry.fullPath);
             deferred.callback();
           };
           script.onerror = function () {
             deferred.errback();
           };
           (doc.body || doc.documentElement).appendChild(script);
-          console.log(patch.fileEntry.fullPath);
           deferredList.push(deferred);
         }
       });
@@ -411,13 +420,13 @@
           var script = doc.createElement('script');
           script.src = patch.fileEntry.toURL();
           script.onload = function () {
+            console.log(patch.fileEntry.fullPath);
             deferred.callback();
           };
           script.onerror = function () {
             deferred.errback();
           };
           (doc.body || doc.documentElement).appendChild(script);
-          console.log(patch.fileEntry.fullPath);
           deferredList.push(deferred);
         }
       });
