@@ -460,13 +460,19 @@
   var onRequestsHandlers = {
     capture: function (req, sender, func) {
       callLater(0.5, function () {
-        chrome.tabs.captureVisibleTab(sender.tab.windowId, function (data) {
+        chrome.tabs.captureVisibleTab(sender.tab.windowId, { format : 'png' }, function (data) {
           func(data);
         });
       });
     },
     base64ToFileEntry: function (req, sender, func) {
-      createFileEntryFromBlob(base64ToBlob(req.content, 'image/png'), 'png').addCallback(function (entry) {
+      var type = 'image/png';
+      var ext  = 'png';
+      if (/^data\:(image\/([a-z]+))[,;]/.test(req.content)) {
+        type = RegExp.$1;
+        ext  = RegExp.$2;
+      }
+      createFileEntryFromBlob(base64ToBlob(req.content, type), ext).addCallback(function (entry) {
         return getFileFromEntry(entry).addCallback(function (file) {
           var key = getURLFromFile(file);
           GlobalFileEntryCache[key] = entry;
