@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 /*global MochiKit:true, Repository:true, Deferred:true, succeed:true, chrome:true*/
 /*global TBRL:true, request:true, semver:true, DeferredHash:true, DeferredList:true*/
+/*global $A:true*/
 (function (exports) {
   'use strict';
 
@@ -111,7 +112,7 @@
                       this.onwriteend = null;
                       this.truncate(this.position);
                       self.loadAndRegister(fileEntry, metadata, url).addCallback(function (patch) {
-                        console.log('Install patch: ' + fileEntry.fullPath);
+                        console.log('Patch: Installed: ' + fileEntry.fullPath);
                         if (!no_alert) {
                           alert(chrome.i18n.getMessage('message_installed', fileName));
                         }
@@ -166,7 +167,7 @@
           fileEntry.remove(
             function () {
               self.unregister(patch);
-              console.log('Uninstall patch: ' + fileEntry.fullPath);
+              console.log('Patch: Uninstalled: ' + fileEntry.fullPath);
               if (!no_alert) {
                 alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
               }
@@ -196,6 +197,7 @@
       ).addCallback(function (metadata) {
         if (metadata) {
           var script = null;
+          url = url || preference.origin || metadata.downloadURL;
           if (
             !disabled &&
             (
@@ -204,17 +206,25 @@
               (metadata.include.indexOf('background') !== -1)
             )
           ) {
+            var deferred = new Deferred();
             var patch = self[fileName] || {};
             if (patch.dom) {
               patch.dom.parentNode.removeChild(patch.dom);
             }
             script = document.createElement('script');
             script.src = fileEntry.toURL();
+            script.onload = function () {
+              console.log('Load patch: ' + fileEntry.fullPath);
+              deferred.callback(self._register(fileEntry, metadata, url, script));
+            };
+            script.onerror = function () {
+              deferred.errback();
+            };
             document.body.appendChild(script);
-            console.log('Load patch: ' + fileEntry.fullPath);
+            return deferred;
+          } else {
+            return self._register(fileEntry, metadata, url, script);
           }
-          url = url || preference.origin || metadata.downloadURL;
-          return self._register(fileEntry, metadata, url, script);
         } else {
           fileEntry.remove(function () {});
         }
@@ -223,19 +233,46 @@
 
     load : function () {
       var self = this;
-      this.dirEntry.createReader().readEntries(function (fileEntries) {
+      var deferred = new Deferred();
+
+      var _load = function (fileEntries) {
         var ds = {};
-        for (var i = 0, len = fileEntries.length ; i < len ; i++) {
-          var fileEntry = fileEntries[i];
+        fileEntries.sort(function (a, b) {
+          if (a.name === b.name) {
+            return 0;
+          }
+          return (a.name < b.name) ? -1 : 1;
+        });
+        fileEntries.forEach(function (fileEntry) {
+          console.log('Loading: ' + fileEntry.fullPath);
           ds[fileEntry.name] = self.loadAndRegister(fileEntry);
-        }
+        });
         return new DeferredHash(ds).addCallback(function () {
           var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
           if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
             self.checkUpdates();
           }
         });
-      });
+      };
+
+      var dirReader = this.dirEntry.createReader();
+      var fileEntries = [];
+      var readEntries = function () {
+        dirReader.readEntries(function (entries) {
+          if (!entries.length) {
+            _load(fileEntries).addCallback(function () {
+              deferred.callback();
+            });
+          } else {
+            fileEntries = fileEntries.concat($A(entries));
+            readEntries();
+          }
+        }, function (e) {
+          deferred.errback(e);
+        });
+      };
+      readEntries();
+      return deferred;
     },
 
     removeAll : function () {
@@ -303,7 +340,9 @@
     },
 
     loadInTab : function (tab) {
+      console.groupCollapsed('Patches: Load in ' + tab.url);
       var self = this;
+      var deferredList = [];
       this.values.forEach(function (patch) {
         var pattern = null;
         if (patch.metadata.match && Array.isArray(patch.metadata.match)) {
@@ -319,20 +358,27 @@
           (patch.metadata.include.indexOf('content') !== -1) &&
           pattern && pattern.test(tab.url)
         ) {
+          var deferred = new Deferred();
           self.readFromFileEntry(patch.fileEntry).addCallback(function (script) {
             chrome.tabs.executeScript(tab.id, {
               code : script
             }, function (result) {
               if (typeof result !== 'undefined') {
-                console.log('Load patch in ' + tab.url + ' : ' + patch.fileEntry.fullPath);
+                console.log(patch.fileEntry.fullPath);
               }
+              deferred.callback();
             });
           });
+          deferredList.push(deferred);
         }
+      });
+      return new DeferredList(deferredList).addCallback(function () {
+        console.groupEnd();
       });
     },
 
     loadInPopup : function (doc) {
+      console.groupCollapsed('Patches: Load in popup');
       var deferredList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
@@ -345,20 +391,23 @@
           var script = doc.createElement('script');
           script.src = patch.fileEntry.toURL();
           script.onload = function () {
+            console.log(patch.fileEntry.fullPath);
             deferred.callback();
           };
           script.onerror = function () {
             deferred.errback();
           };
           (doc.body || doc.documentElement).appendChild(script);
-          console.log('Load patch in popup : ' + patch.fileEntry.fullPath);
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList);
+      return new DeferredList(deferredList).addCallback(function () {
+        console.groupEnd();
+      });
     },
 
     loadInOptions : function (doc) {
+      console.groupCollapsed('Patches: Load in options');
       var deferredList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
@@ -371,17 +420,19 @@
           var script = doc.createElement('script');
           script.src = patch.fileEntry.toURL();
           script.onload = function () {
+            console.log(patch.fileEntry.fullPath);
             deferred.callback();
           };
           script.onerror = function () {
             deferred.errback();
           };
           (doc.body || doc.documentElement).appendChild(script);
-          console.log('Load patch in options : ' + patch.fileEntry.fullPath);
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList);
+      return new DeferredList(deferredList).addCallback(function () {
+        console.groupEnd();
+      });
     },
 
     parseMatchPattern : function (input) {
@@ -449,7 +500,7 @@
             return false;
           }
           if (semver.gt(metadata.version, patch.metadata.version)) {
-            console.log('Found new version: ' + url);
+            console.log('Patch: Found new version: ' + url);
             TBRL.Notification.notify({
               title   : fileName,
               message : chrome.i18n.getMessage('message_released'),
@@ -489,7 +540,11 @@
     }
   });
   Patches.initailize().addCallback(function () {
-    Patches.load();
+    console.groupCollapsed('Patches: Load');
+    Patches.load().addCallback(function () {
+      console.groupEnd();
+      console.log('Patches: loaded!');
+    });
   });
 
 }(this));
