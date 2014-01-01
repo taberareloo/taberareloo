@@ -468,9 +468,10 @@
     base64ToFileEntry: function (req, sender, func) {
       var type = 'image/png';
       var ext  = 'png';
-      if (/^data\:(image\/([a-z]+))[,;]/.test(req.content)) {
-        type = RegExp.$1;
-        ext  = RegExp.$2;
+      var m = ('' + req.content).match(/^data:(image\/(\w+))[,;]/);
+      if (m) {
+        type = m[1];
+        ext  = m[2];
       }
       createFileEntryFromBlob(base64ToBlob(req.content, type), ext).addCallback(function (entry) {
         return getFileFromEntry(entry).addCallback(function (file) {
