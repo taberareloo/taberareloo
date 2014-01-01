@@ -3073,12 +3073,10 @@ Models.register({
         }
       }).addCallback(function(res) {
         var gyazo_id = res.getResponseHeader('X-Gyazo-Id');
-        if (gyazo_id) window.localStorage.gyazo_id = gyazo_id;
-        if (res.responseText && !/\.png$/.test(res.responseText)) {
-          return res.responseText + '.png';
-        } else {
-          return res.responseText;
+        if (gyazo_id) {
+          window.localStorage.gyazo_id = gyazo_id;
         }
+        return res.responseText;
       });
     });
   },
@@ -3086,11 +3084,9 @@ Models.register({
   _download : function(ps) {
     var self = this;
     return (
-      !ps.itemUrl && ps.file // capture
-        ? succeed(ps.file)
-        : canvasRequest(ps.itemUrl).addCallback(function(data) { // must be png
-          return self.base64ToFileEntry(data.binary, 'image/png', 'png');
-        })
+      ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function(entry) {
+        return getFileFromEntry(entry);
+      })
     );
   },
 
