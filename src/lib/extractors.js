@@ -1345,6 +1345,7 @@
           doc.removeEventListener('mouseout', onMouseOut, true);
           doc.removeEventListener('click', onClick, true);
           doc.removeEventListener('keydown', onKeyDown, true);
+          doc.removeEventListener('contextmenu', onClick, true);
 
           unpoint(target);
         }
@@ -1353,6 +1354,7 @@
         doc.addEventListener('mouseout', onMouseOut, true);
         doc.addEventListener('click', onClick, true);
         doc.addEventListener('keydown', onKeyDown, true);
+        doc.addEventListener('contextmenu', onClick, true);
 
         return deferred;
       },
@@ -1578,6 +1580,7 @@
         }
 
         function finalize() {
+          doc.removeEventListener('click', onClick, true);
           doc.removeEventListener('mousedown', onMouseDown, true);
           doc.removeEventListener('mousemove', onMouseMove, true);
           doc.removeEventListener('mouseup', onMouseUp, true);
