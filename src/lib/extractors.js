@@ -5,7 +5,7 @@
 /*global getStyle:true, tagName:true, downloadFile:true*/
 /*global getFileExtension:true, getElementDimensions:true*/
 /*global getViewportDimensions:true*/
-/*global getPageDimensions:true, base64ToFileEntry:true, MochiKit:true*/
+/*global getPageDimensions:true, base64ToFileEntry:true*/
 /*global cancel:true, keyString:true, setElementPosition:true*/
 /*global $D:true, $T:true, setStyle:true, setElementDimensions:true*/
 (function (exports) {
@@ -1226,7 +1226,6 @@
         }
 
         var win = ctx.window;
-        self.makeOpaqueFlash(ctx.document);
 
         return succeed().addCallback(function () {
           switch (type) {
@@ -1293,16 +1292,6 @@
           img.src = res;
         });
         return ret;
-      },
-      makeOpaqueFlash: function (doc) {
-        doc = doc || document;
-
-        $X('//*[self::object or self::embed][contains(@type, "flash")][boolean(@wmode)=false or (@wmode!="opaque" and @wmode!="transparent")]', doc).forEach(function (flash) {
-          var _;
-          flash.setAttribute('wmode', 'opaque');
-          flash = MochiKit.DOM.swapDOM(flash, flash.cloneNode(false));
-          _ = (flash.offsetWidth);  // do offsetWidth for painting
-        });
       },
       selectElement: function (ctx) {
         var deferred = new Deferred();
