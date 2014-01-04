@@ -5,7 +5,7 @@
 /*global getStyle:true, tagName:true, downloadFile:true*/
 /*global getFileExtension:true, getElementDimensions:true*/
 /*global getViewportDimensions:true*/
-/*global getPageDimensions:true, base64ToFileEntry:true, MochiKit:true*/
+/*global getPageDimensions:true, base64ToFileEntry:true*/
 /*global cancel:true, keyString:true, setElementPosition:true*/
 /*global $D:true, $T:true, setStyle:true, setElementDimensions:true*/
 (function (exports) {
@@ -1226,7 +1226,6 @@
         }
 
         var win = ctx.window;
-        self.makeOpaqueFlash(ctx.document);
 
         return succeed().addCallback(function () {
           switch (type) {
@@ -1294,16 +1293,6 @@
         });
         return ret;
       },
-      makeOpaqueFlash: function (doc) {
-        doc = doc || document;
-
-        $X('//*[self::object or self::embed][contains(@type, "flash")][boolean(@wmode)=false or (@wmode!="opaque" and @wmode!="transparent")]', doc).forEach(function (flash) {
-          var _;
-          flash.setAttribute('wmode', 'opaque');
-          flash = MochiKit.DOM.swapDOM(flash, flash.cloneNode(false));
-          _ = (flash.offsetWidth);  // do offsetWidth for painting
-        });
-      },
       selectElement: function (ctx) {
         var deferred = new Deferred();
         var self = this;
@@ -1345,6 +1334,7 @@
           doc.removeEventListener('mouseout', onMouseOut, true);
           doc.removeEventListener('click', onClick, true);
           doc.removeEventListener('keydown', onKeyDown, true);
+          doc.removeEventListener('contextmenu', onClick, true);
 
           unpoint(target);
         }
@@ -1353,6 +1343,7 @@
         doc.addEventListener('mouseout', onMouseOut, true);
         doc.addEventListener('click', onClick, true);
         doc.addEventListener('keydown', onKeyDown, true);
+        doc.addEventListener('contextmenu', onClick, true);
 
         return deferred;
       },
@@ -1578,6 +1569,7 @@
         }
 
         function finalize() {
+          doc.removeEventListener('click', onClick, true);
           doc.removeEventListener('mousedown', onMouseDown, true);
           doc.removeEventListener('mousemove', onMouseMove, true);
           doc.removeEventListener('mouseup', onMouseUp, true);
