@@ -1038,11 +1038,18 @@ Models.register({
 
     var body = templateExtract(template, data);
 
+    // regularのときはユーザーがタイトルを入力できる．
+    // pageとitemが一致しないとき，ユーザーが何か入力しているので，タイトルに設定する．
+    var title = '';
+    if (ps.type === 'regular' || ps.page !== ps.item) {
+      title = ps.item;
+    }
+
     return self.getUserName().addCallback(function(userName) {
       self.getApiKey().addCallback(function(apiKey){
         var xml = self.generateXML({
           userName   : escapeHTML(userName),
-          title      : '',
+          title      : escapeHTML(title),
           body       : escapeHTML(body),
           isDraft    : escapeHTML('false'),
           categories : ps.tags
