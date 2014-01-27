@@ -1982,22 +1982,26 @@ Models.register({
   },
   post : function(ps){
     var that = this;
-    return request('http://getpocket.com/edit', { responseType: 'document' }).addCallback(function(res) {
-      var doc = res.response;
-      var form = doc.getElementsByTagName('form')[0];
-      if (/login/.test(form.getAttribute('action'))) {
+    return this.checkLogin().addCallback(function(){
+      return request(that.LINK + 'edit', {
+        responseType : 'document',
+        queryString : {
+          tags  : ps.tags ? ps.tags.join(',') : '',
+          url   : ps.itemUrl
+        }
+      }).addCallback(function(res){
+        var doc = res.response;
+        if (doc.body.classList.contains('page-login')) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+        }
+      });
+    });
+  },
+  checkLogin : function(){
+    var that = this;
+    return getCookies('.getpocket.com', 'sess_user_id').addCallback(function(cookies){
+      if (!cookies.length) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-      } else {
-        return request('http://getpocket.com/edit_process.php', {
-          queryString: {
-            BL: 1
-          },
-          sendContent: update(formContents(form), {
-            tags : ps.tags? ps.tags.join(',') : '',
-            title: ps.item,
-            url  : ps.itemUrl
-          })
-        });
       }
     });
   }
