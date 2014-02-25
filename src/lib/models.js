@@ -1910,20 +1910,18 @@ Models.register({
           sendContent : {
             status                  : status,
             'media_data[]'          : window.btoa(binary),
-            iframe_callback         : 'window.top.swift_tweetbox_taberareloo',
+            iframe_callback         : 'window.top.swift_tweetbox_' + (new Date()).getTime(),
             post_authenticity_token : token.authenticity_token
           },
-          headers : {
-            Referer : self.URL
-          }
+          multipart : true
         }).addCallback(function(res) {
           var html = res.responseText;
-          var json = html.extract(/window.top.swift_tweetbox_taberareloo\((\{.+\})\);/);
+          var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
           json = JSON.parse(json);
         }).addErrback(function(e) {
           var res  = e.message;
           var html = res.responseText;
-          var json = html.extract(/window.top.swift_tweetbox_taberareloo\((\{.+\})\);/);
+          var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
           json = JSON.parse(json);
           throw new Error(json.error);
         });
