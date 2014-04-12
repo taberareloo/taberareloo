@@ -2322,7 +2322,7 @@ Models.register({
   LINK     : 'http://pick.naver.jp/',
   LOGIN_URL: 'https://ssl.naver.jp/login?fromUrl=http://pick.naver.jp/',
 
-  POST_URL : 'http://naver.jp/api/html/post/mainboard',
+  POST_URL : 'http://pick.naver.jp/api/html/post/mainboard',
 
   SHORTEN_SERVICE : 'bit.ly',
 
@@ -2359,13 +2359,14 @@ Models.register({
     return maybeDeferred(
       (status.length < 300 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
     ).addCallback(function(status) {
-      var typeCode = 'U';
+      var typeCode = 'T';
       var media = {};
       if (ps.type === 'photo') {
         typeCode = 'I';
         media.mediaUrl = ps.itemUrl;
         media.mediaThumbnailUrl = ps.itemUrl;
-      } else {
+      } else if (ps.type !== 'regular') {
+        typeCode = 'U';
         media.mediaUrl = ps.itemUrl || ps.pageUrl;
       }
 
