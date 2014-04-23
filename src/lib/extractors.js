@@ -1569,7 +1569,6 @@
         }
 
         function finalize() {
-          doc.removeEventListener('click', onClick, true);
           doc.removeEventListener('mousedown', onMouseDown, true);
           doc.removeEventListener('mousemove', onMouseMove, true);
           doc.removeEventListener('mouseup', onMouseUp, true);
