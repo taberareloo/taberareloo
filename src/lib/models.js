@@ -2559,7 +2559,7 @@ Models.register({
   LINK       : 'https://mail.google.com/mail/',
   LOGIN_URL  : 'https://accounts.google.com/ServiceLogin?service=mail',
 
-  HOME_URL   : 'https://mail.google.com/mail/',
+  HOME_URL   : 'https://mail.google.com/mail/u/0/',
 
   GLOBALS_REGEX : /<script\b[^>]*>(?:\/\/\s*<!\[CDATA\[)?\s*\bvar\s+GLOBALS\s*=\s*([[]+(?:(?:(?![\]]\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;)[\s\S])*)*[\]])\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;/i,
 
