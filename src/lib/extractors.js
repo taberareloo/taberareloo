@@ -257,7 +257,8 @@
           // ログインしているとphoto-drag-proxyが前面に表示される
           // アノテーション上の場合はphoto_notesの孫要素となる
           if ($X('./ancestor-or-self::div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-view ")]', ctx.target)) {
-              ctx.target = $X('//div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-media-view ")]/img')[0] || ctx.target;
+            ctx.target = $X('//div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-media-view ")]/img')[0] || ctx.target;
+
           } else if (
               (ctx.target.src && ctx.target.src.match('spaceball.gif')) ||
               ctx.target.id === 'photo-drag-proxy' ||
