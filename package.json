@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "chai": "*",
-    "grunt": "~0.4.1",
+    "grunt": "^0.4.5",
     "grunt-cli": "~0.1.7",
     "grunt-contrib-jshint": "~0.6.4",
     "grunt-crx": "git+https://github.com/Constellation/grunt-crx.git#1606e8790f424de79966c90c9c31accbccc44e5c",
@@ -17,7 +17,9 @@
     "semver": "~2.2.1",
     "bluebird": "~0.11.5-1",
     "xml2js": "~0.4.0",
-    "request": "~2.30.0"
+    "request": "~2.30.0",
+    "grunt-webstore-upload": "^0.6.0",
+    "grunt-contrib-compress": "^0.9.1"
   },
   "scripts": {
     "test": "node_modules/.bin/grunt travis"

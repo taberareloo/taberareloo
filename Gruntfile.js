@@ -83,6 +83,16 @@
       clean: {
         canary: ['out']
       },
+      compress: {
+        main: {
+          options: {
+            archive: 'pkg/taberareloo.zip'
+          },
+          files: [
+            { expand: true, cwd: 'src/', src: [ '**/*' ], dest: './' }
+          ]
+        }
+      },
       copy: {
         canary: {
           files: [
@@ -97,6 +107,7 @@
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-crx');
+    grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
       var done = this.async();
