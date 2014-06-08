@@ -250,13 +250,16 @@
       ICON : 'http://www.flickr.com/favicon.ico',
 
       API_KEY : 'ecf21e55123e4b31afa8dd344def5cc5',
-      RE : new RegExp('^https?://(?:.+?.)?static.?flickr.com/\\d+?/(\\d+?)_.*'),
+      RE : new RegExp('^https?://(?:.+?.)?static.?flickr.com/\\d+?(?:/\\d+?)?/(\\d+?)_.*'),
       getImageId : function (ctx) {
         // 他サイトに貼られているFlickrにも対応する
         if (/flickr\.com/.test(ctx.host)) {
           // ログインしているとphoto-drag-proxyが前面に表示される
           // アノテーション上の場合はphoto_notesの孫要素となる
-          if (
+          if ($X('./ancestor-or-self::div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-view ")]', ctx.target)) {
+            ctx.target = $X('//div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-media-view ")]/img')[0] || ctx.target;
+
+          } else if (
               (ctx.target.src && ctx.target.src.match('spaceball.gif')) ||
               ctx.target.id === 'photo-drag-proxy' ||
               $X('./ancestor-or-self::div[@id="photo-drag-proxy"]', ctx.target)
