@@ -105,7 +105,7 @@
           baseURL: base,
           privateKey: key
         },
-        canary: {
+        master: {
           src: 'src/',
           dest: 'pkg/taberareloo.crx',
           baseURL: base,
