@@ -91,12 +91,20 @@
           files: [
             { expand: true, cwd: 'src/', src: [ '**/*' ], dest: './' }
           ]
+        },
+        canary: {
+          options: {
+            archive: 'pkg/taberareloo.zip'
+          },
+          files: [
+            { expand: true, cwd: 'out/', src: [ '**/*' ], dest: './' }
+          ]
         }
       },
       copy: {
         canary: {
           files: [
-            {expand: true, cwd: 'src/', src: ['**'], dest: 'out/'},
+            { expand: true, cwd: 'src/', src: [ '**' ], dest: 'out/'},
           ]
         }
       }
@@ -165,7 +173,14 @@
     grunt.registerTask('lint', 'jshint');
     grunt.registerTask('travis', 'jshint');
     grunt.registerTask('default', 'lint');
-    grunt.registerTask('canary', ['clean:canary', 'copy:canary', 'canary-manifest', 'crx:canary', 'clean:canary']);
+    grunt.registerTask('canary', [
+      'clean:canary',
+      'copy:canary',
+      'canary-manifest',
+      'crx:canary',
+      'compress:canary',
+      'clean:canary'
+    ]);
   };
 }());
 /* vim: set sw=2 ts=2 et tw=80 : */
