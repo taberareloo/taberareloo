@@ -32,21 +32,47 @@
 
   var base    = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/taberareloo.crx';
   var updates = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/updates.xml';
-  var privateKey = 'private.pem';
+  var PRIVATE_KEY = 'private.pem';
+  var CREDENTIALS = 'oauth.json';
 
   module.exports = function (grunt) {
     var key;
+    var credentials = {};
 
-    if (process.env.CI === 'yes') {
-      key = process.env.PRIVATE;
-      if (key.indexOf('\n') < 0) {
-        key = key.replace(/\\n/g, '\n');
+    function readPrivateKey(filename) {
+      var key;
+
+      if (process.env.CI === 'yes') {
+        key = process.env.PRIVATE;
+        if (key.indexOf('\n') < 0) {
+          return key.replace(/\\n/g, '\n');
+        }
       }
-    } else {
-      if (grunt.file.exists(privateKey)) {
-        key = grunt.file.read(privateKey);
+
+      if (grunt.file.exists(filename)) {
+        return grunt.file.read(filename);
       }
+
+      return null;
     }
+
+    function readCredentials(filename) {
+      if (process.env.CI === 'yes') {
+        return {
+          client_id: process.env.CLIENT_ID,
+          client_secret: process.env.CLIENT_SECRET
+        };
+      }
+
+      if (grunt.file.exists(filename)) {
+        return JSON.parse(grunt.file.read(filename));
+      }
+
+      return {};
+    }
+
+    key = readPrivateKey(PRIVATE_KEY);
+    credentials = readCredentials(CREDENTIALS);
 
     grunt.initConfig({
       jshint: {
@@ -78,13 +104,19 @@
           dest: 'pkg/taberareloo.crx',
           baseURL: base,
           privateKey: key
+        },
+        canary: {
+          src: 'src/',
+          dest: 'pkg/taberareloo.crx',
+          baseURL: base,
+          privateKey: key
         }
       },
       clean: {
         canary: ['out']
       },
       compress: {
-        main: {
+        master: {
           options: {
             archive: 'pkg/taberareloo.zip'
           },
@@ -107,6 +139,21 @@
             { expand: true, cwd: 'src/', src: [ '**' ], dest: 'out/'},
           ]
         }
+      },
+      webstore_upload: {
+        options: {
+          publish: false,
+          client_id: credentials.client_id,
+          client_secret: credentials.client_secret,
+          browser_path: '/usr/bin/google-chrome'
+        },
+        master: {
+          options: {
+            publish: true,
+            appID: 'ldcnohnnlpgglecmkldelbmiokgmikno',
+            zip: 'pkg/taberareloo.zip'
+          }
+        }
       }
     });
 
@@ -116,6 +163,7 @@
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-crx');
     grunt.loadNpmTasks('grunt-contrib-compress');
+    grunt.loadNpmTasks('grunt-webstore-upload');
 
     grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
       var done = this.async();
@@ -173,13 +221,24 @@
     grunt.registerTask('lint', 'jshint');
     grunt.registerTask('travis', 'jshint');
     grunt.registerTask('default', 'lint');
-    grunt.registerTask('canary', [
+
+    grunt.registerTask('canary:build', [
       'clean:canary',
       'copy:canary',
       'canary-manifest',
       'crx:canary',
       'compress:canary',
       'clean:canary'
+    ]);
+
+    grunt.registerTask('master:build', [
+      'crx:master',
+      'compress:master'
+    ]);
+
+    grunt.registerTask('master:upload', [
+      'compress:master',
+      'webstore_upload:master'
     ]);
   };
 }());

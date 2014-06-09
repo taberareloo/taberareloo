@@ -18,7 +18,7 @@
     "bluebird": "~0.11.5-1",
     "xml2js": "~0.4.0",
     "request": "~2.30.0",
-    "grunt-webstore-upload": "^0.6.0",
+    "grunt-webstore-upload": "git+https://github.com/Constellation/grunt-webstore-upload.git#fix",
     "grunt-contrib-compress": "^0.9.1"
   },
   "scripts": {
