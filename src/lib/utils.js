@@ -1222,5 +1222,18 @@
 
   exports.inContext = inContext;
 
+  function delay(time) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, time);
+    });
+  }
+
+  exports.delay = delay;
+
+  function defer() {
+    return delay(0);
+  }
+
+  exports.defer = defer;
 }(this));
 /* vim: set sw=2 ts=2 et tw=80 : */
