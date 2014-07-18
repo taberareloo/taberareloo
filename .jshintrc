@@ -15,6 +15,7 @@
     "white": true,
     "sub": true,
 
+    "maxerr": 10000000,
     "browser": true,
     "devel": true
 }

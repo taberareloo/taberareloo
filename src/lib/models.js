@@ -25,7 +25,7 @@
     remove : function (id) {
       var self = this;
       return this.getToken().addCallback(function (token) {
-        return request(Tumblr.TUMBLR_URL+'delete', {
+        return request(Tumblr.TUMBLR_URL + 'delete', {
           //denyRedirection: true,
           referrer    : Tumblr.TUMBLR_URL,
           sendContent : {
@@ -352,7 +352,7 @@
      */
     getToken : function () {
       var self = this;
-      return request(Tumblr.TUMBLR_URL+'new/text', { responseType: 'document' }).addCallback(function (res) {
+      return request(Tumblr.TUMBLR_URL + 'new/text', { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
         if ($X('id("logged_out_container")', doc)[0])
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -584,7 +584,7 @@
       return request(this.URL + 'gateway/in/api/add_asset', {
         referrer : this.URL,
         sendContent : {
-          collection_id : 'i'+id,
+          collection_id : 'i' + id,
           inappropriate : false,
         },
       }).addCallback(function (res) {
@@ -801,7 +801,7 @@
     upload : function (ps) {
       return this.getToken().addCallback(function (set) {
         ps.rkm = set['rkm'];
-        return request('http://f.hatena.ne.jp/'+set['name']+'/up', {
+        return request('http://f.hatena.ne.jp/' + set['name'] + '/up', {
           sendContent : update({
             mode : 'enter'
           }, ps)
@@ -814,7 +814,7 @@
       return this.getToken().addCallback(function (set) {
         var name = set['name'];
         var rkm  = set['rkm'];
-        return request('http://f.hatena.ne.jp/'+name+'/haiku', {
+        return request('http://f.hatena.ne.jp/' + name + '/haiku', {
           method: 'POST',
           sendContent: {
             name : name,
@@ -906,7 +906,7 @@
       if (tags) {
         return succeed(tags);
       } else {
-        return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function (res) {
+        return request('http://b.hatena.ne.jp/' + user + '/tags.json').addCallback(function (res) {
           try{
             tags = JSON.parse(res.responseText)['tags'];
           } catch(e) {
@@ -1393,7 +1393,7 @@
       }
 
       return (this.getCh = function (url) {
-        url='info:'+url;
+        url='info:' + url;
 
         var c = [0x9E3779B9,0x9E3779B9,0xE6359A60],i,j,k=0,l,f=Math.floor;
         for (l=url.length ; l>=12 ; l-=12) {
@@ -1409,7 +1409,7 @@
           c[f((i-1)/4)]+=url.charCodeAt(k+i-1)<<(r(i-1,4)+(i>8?1:0))*8;
         m(c);
 
-        return'6'+c[2];
+        return'6' + c[2];
       })(url);
     },
 
@@ -1444,7 +1444,7 @@
 
         var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
         var fs = formContents(form);
-        return request('https://www.google.com'+form.getAttribute('action'), {
+        return request('https://www.google.com' + form.getAttribute('action'), {
           //denyRedirection: true,
           sendContent  : update(fs, {
             title      : ps.item,
@@ -2311,7 +2311,7 @@
         // public
         form['gist[public]'] = '1';
         form['authenticity_token'] = token.value;
-        return request(self.URL+'gists', {
+        return request(self.URL + 'gists', {
           sendContent: form
         });
       });
@@ -2463,7 +2463,7 @@
       }).addCallback(function (res) {
         /*
         return map(function (s) {
-          return ''+s.@title || ''+s;
+          return '' + s.@title || '' + s;
         }, createXML(res.responseText).li.span);
         */
       });
