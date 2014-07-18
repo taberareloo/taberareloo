@@ -44,10 +44,6 @@ see [wiki page](https://github.com/Constellation/taberareloo/wiki/)
 
 + post to a lot of services
 
-## VERSION
-
-3.0.11-dev
-
 ## DEPENDENCIES
 
 + Chromium or Google Chrome
