@@ -13,6 +13,7 @@
     "strict": true,
     "trailing": true,
     "white": true,
+    "sub": true,
 
     "browser": true,
     "devel": true
