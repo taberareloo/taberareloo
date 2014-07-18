@@ -224,8 +224,9 @@
 
       return request(url, { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
-        if ($X('id("logged_out_container")', doc)[0])
+        if ($X('id("logged_out_container")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+        }
 
         form.form_key = Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
         form.channel_id = Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
@@ -363,9 +364,11 @@
       var self = this;
       return request(Tumblr.TUMBLR_URL + 'new/text', { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
-        if ($X('id("logged_out_container")', doc)[0])
+        if ($X('id("logged_out_container")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-        return self.token = $X('//input[@name="form_key"]/@value', doc)[0];
+        }
+        self.token = $X('//input[@name="form_key"]/@value', doc)[0];
+        return self.token;
       });
     },
 
@@ -373,8 +376,9 @@
       var self = this;
       return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
-        if ($X('id("logged_out_container")', doc)[0])
+        if ($X('id("logged_out_container")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
         Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
         Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
         Tumblr.blogs = [Tumblr.channel_id];
@@ -417,7 +421,11 @@
           'post[three]' : ps.pageUrl,
           MAX_FILE_SIZE: '10485760'
         };
-        ps.file ? (form['photo[]'] = ps.file) : (form['photo_src[]'] = finalUrl);
+        if (ps.file) {
+          form['photo[]'] = ps.file;
+        } else {
+          form['photo_src[]'] = finalUrl;
+        }
         return form;
       });
     }
@@ -440,7 +448,7 @@
     convertToForm : function (ps) {
       var thumb = '';
       if (ps.pageUrl) {
-        thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
+        thumb = TBRL.Config['entry']['thumbnail_template'].replace(new RegExp('{url}', 'g'), ps.pageUrl);
       }
       return succeed({
         'post[type]'  : ps.type,
@@ -478,8 +486,9 @@
         'post[two]'   : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n'),
         MAX_FILE_SIZE: '10485760'
       };
-      if (ps.itemUrl)
+      if (ps.itemUrl) {
         res['post[three]'] = ps.itemUrl;
+      }
       return succeed(res);
     }
   };
@@ -565,17 +574,19 @@
             title   : ps.item,
           },
         }).addCallback(function (res) {
-          if (res.responseText.match('(FAILED:|ERROR:) +(.*?)</span>'))
+          if (res.responseText.match('(FAILED:|ERROR:) +(.*?)</span>')) {
             throw new Error(RegExp.$2.trim());
+          }
 
-          if (res.responseText.match('login'))
+          if (res.responseText.match('login')) {
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          }
         });
       });
     },
 
     favor : function (ps) {
-      return this.iLoveThis(ps.favorite.id)
+      return this.iLoveThis(ps.favorite.id);
     },
 
     remove : function (id) {
@@ -597,12 +608,14 @@
         },
       }).addCallback(function (res) {
         var error = res.responseText.extract(/"error":"(.*?)"/);
-        if (error === 'AUTH_FAILED')
+        if (error === 'AUTH_FAILED') {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
 
         // NOT_FOUND / EXISTS / TOO_BIG
-        if (error)
+        if (error) {
           throw new Error(RegExp.$1.trim());
+        }
       });
     },
   });
@@ -639,13 +652,10 @@
     },
 
     getDataURL : function (ps) {
-      return (
-        ps.file
-          ? fileToDataURL(ps.file).addCallback(function (url) {
-            return url;
-          })
-          : succeed(ps.itemUrl)
-      );
+      if (!ps.file) {
+        succeed(ps.itemUrl);
+      }
+      return fileToDataURL(ps.file).addCallback(function (url) { return url; });
     },
 
     Photo : {
@@ -751,7 +761,7 @@
         var that = this;
         return request(this.JSON).addCallback(function (res) {
           var data = JSON.parse(res.responseText);
-          if (!data["login"]) {
+          if (!data['login']) {
             delete that['data'];
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
           }
@@ -891,7 +901,7 @@
     getSuggestions : function (url) {
       var that = this;
       return this.getToken().addCallback(function (set) {
-        return DeferredHash({
+        return new DeferredHash({
           tags: that.getUserTags(set['name']),
           data: that.getURLData(url)
         });
@@ -904,7 +914,7 @@
           duplicated : !!data['bookmarked_data'],
           recommended : data['recommend_tags'],
           tags : resses['tags'][1]
-        }
+        };
       });
     },
 
@@ -920,12 +930,13 @@
           } catch(e) {
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
           }
-          return that.tags = items(tags).map(function (pair) {
+          that.tags = items(tags).map(function (pair) {
             return {
               name      : pair[0],
               frequency : pair[1].count
-            }
+            };
           });
+          return that.tags;
         });
       }
     },
@@ -991,7 +1002,7 @@
         return Hatena.getToken().addCallback(function () {
           return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).addCallback(function (res) {
             var doc = res.response;
-            var tokenElement = doc.querySelector('.api-key')
+            var tokenElement = doc.querySelector('.api-key');
             if (!tokenElement) {
               throw new Error('HatenaBlog#getToken: failed to find ApiKey');
             }
@@ -1078,7 +1089,9 @@
     },
 
     paragraph: function (text) {
-      if (!text) return '';
+      if (!text) {
+        return '';
+      }
       return '<p>' + text.replace(/^\n*/, '').replace(/\n*$/, '').replace(/\n+/g, '</p><p>') + '</p>';
     },
 
@@ -1091,7 +1104,7 @@
     generateXML: function (data) {
       var categories = (data.categories || []).map(function (name) {
           return '<category term="' + escapeHTML(name) + '" />';
-      }).join("");
+      }).join('');
 
       var template = '<?xml version="1.0" encoding="utf-8"?>' +
                      '<entry xmlns="http://www.w3.org/2005/Atom"' +
@@ -1211,7 +1224,7 @@
             // 入力の有無で簡易的に保存済みをチェックする
             // (submitボタンのラベルやalertの有無でも判定できる)
             duplicated : !!(form.tags || form.description),
-          }
+          };
         })
       };
 
@@ -1387,17 +1400,18 @@
 
     getCh : function (url) {
       function r(x,y) {
-        return Math.floor((x/y-Math.floor(x/y))*y+.1);
+        return Math.floor((x/y-Math.floor(x/y))*y+0.1);
       }
       function m(c) {
         var i,j,s=[13,8,13,12,16,5,3,10,15];
         for (i=0;i<9;i+=1) {
           j=c[r(i+2,3)];
-          c[r(i,3)]=(c[r(i,3)]-c[r(i+1,3)]-j)^(r(i,3)==1?j<<s[i]:j>>>s[i]);
+          c[r(i,3)] = (c[r(i,3)]-c[r(i+1,3)]-j)^(r(i,3)===1?j<<s[i]:j>>>s[i]);
         }
       }
 
-      return (this.getCh = function (url) {
+      // update getCh
+      this.getCh = function (url) {
         url='info:' + url;
 
         var c = [0x9E3779B9,0x9E3779B9,0xE6359A60],i,j,k=0,l,f=Math.floor;
@@ -1410,12 +1424,15 @@
         }
         c[2]+=url.length;
 
-        for (i=l;i>0;i--)
+        for (i=l;i>0;i--) {
           c[f((i-1)/4)]+=url.charCodeAt(k+i-1)<<(r(i-1,4)+(i>8?1:0))*8;
+        }
         m(c);
 
         return'6' + c[2];
-      })(url);
+      };
+
+      return this.getCh(url);
     },
 
     post : function (url) {
@@ -1444,8 +1461,9 @@
         responseType: 'document'
       }).addCallback(function (res) {
         var doc = res.response;
-        if (doc.getElementById('gaia_loginform'))
+        if (doc.getElementById('gaia_loginform')) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+        }
 
         var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
         var fs = formContents(form);
@@ -1800,10 +1818,8 @@
           link_q        : (ps.itemUrl) ? '"' + ps.itemUrl + '"' : null
         });
       }
-      return (TBRL.Config['post']['always_shorten_url']
-        ? shortenUrls(status, Models[self.SHORTEN_SERVICE])
-        : succeed(status)
-      ).addCallback(function (status) {
+      return (TBRL.Config['post']['always_shorten_url'] ?
+          shortenUrls(status, Models[self.SHORTEN_SERVICE]) : succeed(status)).addCallback(function (status) {
         var len = self.getActualLength(status);
         if (len > maxlen) {
           throw 'too many characters to post (' + (len - maxlen) + ' over)';
@@ -1834,8 +1850,9 @@
         }));
       }).addCallback(function (res) {
         var msg = res.responseText.extract(/notification.setMessage\("(.*?)"\)/);
-        if (msg)
+        if (msg) {
           throw unescapeHTML(msg).trimTag();
+        }
       });
     },
 
@@ -1847,13 +1864,14 @@
       var self = this;
       return request(this.URL + '/settings/account').addCallback(function (res) {
         var html = res.responseText;
-        if (~html.indexOf('class="signin"'))
+        if (~html.indexOf('class="signin"')) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
 
         return {
           authenticity_token : html.extract(/authenticity_token.+value="(.+?)"/),
           siv                : html.extract(/logout\?siv=(.+?)"/)
-        }
+        };
       });
     },
 
