@@ -1,5 +1,14 @@
 // -*- coding: utf-8 -*-
 /*global CommandQueue:true*/
+/*global TBRL:true, update:true, addBefore:true, zip:true, gatherResults:true, maybeDeferred:true*/
+/*global request:true, createHTML:true, chrome:true, queryString:true, getFileFromEntry:true */
+/*global base64ToBlob:true, createFileEntryFromBlob:true, download:true, succeed:true*/
+/*global joinText:true, getCookies:true, $X:true, getFileExtension:true, getFlavor:true*/
+/*global fileToBinaryString:true, Sandbox:true, formContents:true, unescapeHTML:true*/
+/*global items:true, $A:true, map:true, templateExtract:true, convertToHTMLString:true*/
+/*global Deferred:true, DeferredHash:true, methodcaller:true, escape:true, SparkMD5:true*/
+/*global escapeHTML:true, getURLFromFile:true, fail:true, fileToDataURL:true, isJSON:true*/
+/*global Repository:true, cutBase64Header:true, fileToPNGDataURL:true, getFinalUrl:true*/
 (function (exports) {
   'use strict';
 
@@ -23,7 +32,6 @@
      * @return {Deferred}
      */
     remove : function (id) {
-      var self = this;
       return this.getToken().addCallback(function (token) {
         return request(Tumblr.TUMBLR_URL + 'delete', {
           //denyRedirection: true,
@@ -44,8 +52,9 @@
      * @return {Deferred}
      */
     trimReblogInfo : function (form) {
-      if (!TBRL.Config['entry']['trim_reblog_info'])
-       return null;
+      if (!TBRL.Config['entry']['trim_reblog_info']) {
+        return null;
+      }
 
       function trimQuote(entry) {
         entry = entry.replace(/<p><\/p>/g, '').replace(/<p><a[^<]+<\/a>:<\/p>/g, '');
@@ -429,10 +438,9 @@
 
   Tumblr.Link = {
     convertToForm : function (ps) {
+      var thumb = '';
       if (ps.pageUrl) {
-        var thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
-      } else {
-        var thumb = '';
+        thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
       }
       return succeed({
         'post[type]'  : ps.type,
@@ -631,7 +639,6 @@
     },
 
     getDataURL : function (ps) {
-      var self = this;
       return (
         ps.file
           ? fileToDataURL(ps.file).addCallback(function (url) {
@@ -732,7 +739,7 @@
     }
   });
 
-  Models.register({
+  var Hatena = {
     name : 'Hatena',
     ICON : 'http://www.hatena.ne.jp/favicon.ico',
     JSON : 'http://b.hatena.ne.jp/my.name',
@@ -741,15 +748,15 @@
       if (this.data) {
         return succeed(this.data);
       } else {
-        var self = this;
-        return request(Hatena.JSON).addCallback(function (res) {
+        var that = this;
+        return request(this.JSON).addCallback(function (res) {
           var data = JSON.parse(res.responseText);
           if (!data["login"]) {
-            delete self['data'];
-            throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+            delete that['data'];
+            throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
           }
-          self.data  = data;
-          return self.data;
+          that.data  = data;
+          return that.data;
         });
       }
     },
@@ -759,7 +766,9 @@
         return '[' + t + ']';
       }).join('') : '' ;
     }
-  });
+  };
+
+  Models.register(Hatena);
 
   // FIXME
   // thx id: secondlife & Hatena.inc
@@ -810,7 +819,6 @@
     },
 
     uploadWithBase64 : function (file) {
-      var self = this;
       return this.getToken().addCallback(function (set) {
         var name = set['name'];
         var rkm  = set['rkm'];
@@ -867,7 +875,7 @@
               return s.toUpperCase();
             }),
             title   : title,
-            comment : Models.Hatena.reprTags(tags) + description.replace(/[\n\r]+/g, ' ')
+            comment : Hatena.reprTags(tags) + description.replace(/[\n\r]+/g, ' ')
           }
         });
       });
@@ -929,8 +937,9 @@
           url  : url
         }
       }).addCallback(function (res) {
+        var json = null;
         try{
-          var json = JSON.parse(res.responseText);
+          json = JSON.parse(res.responseText);
         } catch(e) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -1297,21 +1306,17 @@
     getCurrentUser : function (defaultUser) {
       if (defaultUser) {
         return succeed(defaultUser);
-      } else if (this.currentUser) {
+      }
+      if (this.currentUser) {
         return succeed(this.currentUser);
-      } else {
-        var that = this;
-        return this.getInfo().addCallback(function (info) {
-          if (!info.is_logged_in) {
-            throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-          }
-          return info.logged_in_username;
-        });
       }
-      function extractUsername(username) {
-        var matched = decodeURIComponent(username).match(/^(.*?) /);
-        return (matched) ? matched[1] : null;
-      }
+      var that = this;
+      return this.getInfo().addCallback(function (info) {
+        if (!info.is_logged_in) {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+        }
+        return info.logged_in_username;
+      });
     },
 
     getInfo : function () {
@@ -1414,7 +1419,7 @@
     },
 
     post : function (url) {
-      return request('http://www.google.com/search?client=navclient-auto&ch=' + GoogleWebHistory.getCh(url) + '&features=Rank&q=info:' + escape(url));
+      return request('http://www.google.com/search?client=navclient-auto&ch=' + this.getCh(url) + '&features=Rank&q=info:' + escape(url));
     }
   });
 
@@ -1744,7 +1749,6 @@
     },
 
     post : function (ps) {
-      var self = this;
       return this.getToken().addCallback(function (token) {
         return request('https://friendfeed.com/a/bookmarklet', {
           //denyRedirection: true,
@@ -1877,7 +1881,6 @@
     },
 
     getRecipients : function () {
-      var self = this;
       return request(this.URL + '/direct_messages/recipients_list?twttr=true').addCallback(function (res) {
         return map(function (pair) {
           return {id:pair[0], name:pair[1]};
@@ -1895,7 +1898,6 @@
     },
 
     upload : function (ps, status, file) {
-      var self = this;
       var UPLOAD_URL = 'https://upload.twitter.com/i/tweet/create_with_media.iframe';
       var SIZE_LIMIT = 3145728;
 
@@ -2427,11 +2429,12 @@
     },
 
     addBookmark: function (url, title, tags, description, priv) {
+      var that = this;
       return request('http://www.diigo.com/item/new/bookmark', { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
         var element = doc.getElementById('newBookmarkForm');
         if (!element) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
         var form = formContents(element);
         return request('http://www.diigo.com/item/save/bookmark', {
@@ -2507,7 +2510,6 @@
     VERSION : '3.0.0',
 
     shorten : function (url) {
-      var self = this;
       if (/\/\/(?:bit\.ly|j\.mp)/.test(url))
         return succeed(url);
 
@@ -2529,7 +2531,6 @@
     },
 
     callMethod : function (method, ps) {
-      var self = this;
       return request(this.URL + '/' + method, {
         queryString : update({
           login   : this.USER,
@@ -2581,7 +2582,6 @@
     },
 
     getGmailAt : function () {
-      var self = this;
       return getCookies('mail.google.com', 'GMAIL_AT').addCallback(function (cookies) {
         if (cookies.length) {
           return cookies[cookies.length-1].value;
@@ -2655,7 +2655,6 @@
     },
 
     download : function (ps) {
-      var self = this;
       return (
         ps.file
           ? succeed(ps.file)
@@ -2793,7 +2792,6 @@
     },
 
     _download : function (ps) {
-      var self = this;
       return (
         ps.file
           ? succeed(ps.file)
@@ -3094,7 +3092,6 @@
     },
 
     _download : function (ps) {
-      var self = this;
       return (
         ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function (entry) {
           return getFileFromEntry(entry);
@@ -3135,7 +3132,7 @@
         }
 
         var doc       = createHTML(res.responseText);
-        var postUrl   = doc.querySelector('form[name="share_form"]').getAttribute('action');
+        /* var postUrl   = doc.querySelector('form[name="share_form"]').getAttribute('action'); */
         var postKey   = doc.querySelector('input[name="post_key"]').value;
         var url       = doc.querySelector('input[name="u"]').value;
         var key       = doc.querySelector('input[name="k"]').value;
