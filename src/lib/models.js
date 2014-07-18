@@ -2014,6 +2014,7 @@
   Models.register({
     name : 'Yahoo',
     APP_ID : 'KaZybVOxg67G6sNQLuSMqenqXLGGIbfVJGCWgHrPWGMlQS5BGWIgAVcueAxAByQBatwmBYewBgEs3.3y',
+    /* jshint ignore:start */
     // 冗長な表記を許すcode map
     // 配列の許容 配列は優先度が高いものを先頭に
     katakana: {
@@ -2065,6 +2066,7 @@
       'ャ':'lya','ュ':'lyu','ョ':'lyo','ヮ':'lwa',
       '。':'.','、':',','ー':'-'
     },
+    /* jshint ignore:end */
     lengthMap: {},
 
     parse : function (ps) {
