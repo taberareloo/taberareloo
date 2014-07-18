@@ -201,7 +201,6 @@
       $('save').value = chrome.i18n.getMessage('label_save');
     },
     save : function () {
-      alert('ok');
       var lk = this.link_quick_short.body();
       var qk = this.quote_quick_short.body();
       var tcheck = this.tumble_check.body();
