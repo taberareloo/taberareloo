@@ -2063,7 +2063,7 @@
       'ァ':'la','ィ':'li','ゥ':'lu','ェ':'le','ォ':'lo',
       'ヵ':'lka','ヶ':'lke','ッ':'ltu',
       'ャ':'lya','ュ':'lyu','ョ':'lyo','ヮ':'lwa',
-      '。':".",'、':",",'ー':"-"
+      '。':'.','、':',','ー':'-'
     },
     lengthMap: {},
 
@@ -2097,7 +2097,9 @@
     // 同一の読み仮名に対して複数のpatternを許容する
     // 重たくなるかも? なる、なの :おまひま
     getSparseTags : function (tags, str, delimiter) {
-      if (!delimiter) delimiter = ' [';
+      if (!delimiter) {
+        delimiter = ' [';
+      }
       var self = this;
       return this.getKanaReadings(str).addCallback(function (rs) {
         var katakana = rs.join('').split(' [').join('\u0000').toKatakana();
@@ -2121,18 +2123,18 @@
       });
     },
 
-    duplicateRomaReadings:function (s) {
+    duplicateRomaReadings : function (s) {
       // 分岐件数依存で一定数(この場合20)以上になるようであれば打ち切る(Tombloo標準の優先文字を使う)
       // 分岐件数が「ジェジェジェジェジェジェジェジェジェジェジェ」などになると天文学的になるのに対する対応
       // abbreviation scorerが後になるほど評価対象として低いので, 結果に影響が出ない
       var stack = [];
       var count = 1;
       for (var i = 0, roma, kana, table = this.katakana ; i < s.length ; i += kana.length) {
-        kana = s.substring(i, i+2);
+        kana = s.substring(i, i + 2);
         roma = table[kana];
 
         if (!roma) {
-          kana = s.substring(i, i+1);
+          kana = s.substring(i, i + 1);
           roma = table[kana] || kana;
         }
 
@@ -2142,14 +2144,14 @@
           if (r > 20) {
             stack.push(roma[0]);
           } else {
-            count=r;
+            count = r;
             stack.push(roma);
           }
         } else {
           stack.push(roma);
         }
       }
-      return this.stackWalker(stack).map(function (l) { return l.join('') });
+      return this.stackWalker(stack).map(function (l) { return l.join(''); });
     },
 
     stackWalker: function (stack) {
@@ -2165,30 +2167,34 @@
             var d = $A(current);
             d.push(element);
             returnee.push(d);
-            if (next !== last_num)
-              walker(d, next)
+            if (next !== last_num) {
+              walker(d, next);
+            }
           }
         } else {
           // 一つしかないときはcloneする必要がない
           current.push(elements);
           returnee.push(current);
-          if (next !== last_num)
-            walker(current, next)
+          if (next !== last_num) {
+            walker(current, next);
+          }
         }
       }
-      for (var i = 0; i < last_num; ++i) res[i] = [];
+      for (var i = 0; i < last_num; ++i) {
+        res[i] = [];
+      }
       walker([], 0);
-      return res[last_num-1];
+      return res[last_num - 1];
     },
 
     toSparseRomaReadings: function (s) {
       var res = [];
       for (var i = 0, roma, kana, table = this.katakana, len = s.length; i < len; i += kana.length) {
-        kana = s.substring(i, i+2);
+        kana = s.substring(i, i + 2);
         roma = table[kana];
 
         if (!roma) {
-          kana = s.substring(i, i+1);
+          kana = s.substring(i, i + 1);
           roma = table[kana] || kana;
         }
 
@@ -2204,8 +2210,9 @@
   });
   items(Models.Yahoo.katakana).forEach(function (pair) {
     var val = pair[1];
-    if (Array.isArray(val))
+    if (Array.isArray(val)) {
       Models.Yahoo.lengthMap[pair[0]] = val.length;
+    }
   });
 
   Models.register({
@@ -2215,14 +2222,15 @@
     LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
     check : function (ps) {
-      return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
+      return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
     },
 
     post : function (ps) {
       var self = this;
       return request('http://bookmarks.yahoo.co.jp/action/post').addCallback(function (res) {
-        if (res.responseText.indexOf('login_form')!=-1)
+        if (res.responseText.indexOf('login_form') !== -1) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
 
         var doc = createHTML(res.responseText);
         return formContents($X('id("addbookmark")/descendant::div[contains(concat(" ",normalize-space(@class)," ")," bd ")]', doc)[0]);
@@ -2233,9 +2241,9 @@
             title      : ps.item,
             url        : ps.itemUrl,
             desc       : joinText([ps.body, ps.description], ' ', true),
-            tags       : ps.tags? ps.tags.join(' ') : '',
+            tags       : ps.tags ? ps.tags.join(' ') : '',
             crumbs     : fs.crumbs,
-            visibility : ps.private===null? fs.visibility : (ps.private? 0 : 1)
+            visibility : ps.private === null ? fs.visibility : (ps.private ? 0 : 1)
           }
         });
       });
@@ -2256,13 +2264,14 @@
         }
       }).addCallback(function (res) {
         var doc = createHTML(res.responseText);
-        if (!$X('id("bmtsave")', doc)[0])
+        if (!$X('id("bmtsave")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+        }
 
         function getTags(part) {
-          try{
-            return JSON.parse(unescapeHTML(res.responseText.extract(RegExp('^' + part + ' ?= ?(.+);$', 'm'), 1))) || [];
-          }catch(e) {
+          try {
+            return JSON.parse(unescapeHTML(res.responseText.extract(new RegExp('^' + part + ' ?= ?(.+);$', 'm'), 1))) || [];
+          } catch (e) {
             return [];
           }
         }
@@ -2274,7 +2283,7 @@
             return {
               name      : tag,
               frequency : -1
-            }
+            };
           })
         };
       });
@@ -2288,7 +2297,7 @@
     LOGIN_URL : 'https://gist.github.com/login',
     URL  : 'https://gist.github.com/',
     check: function (ps) {
-      return /regular|quote/.test(ps.type);
+      return (/regular|quote/).test(ps.type);
     },
     post : function (ps) {
       var self = this;
@@ -2301,12 +2310,12 @@
         var form = formContents($X('descendant::form[@action="/gists"]', doc)[0]);
         var content;
         switch (ps.type) {
-          case 'regular':
-            content = ps.description;
-            break;
-          case 'quote':
-            content = joinText([ps.body, '', ps.itemUrl, '', ps.description], '\n\n');
-            break;
+        case 'regular':
+          content = ps.description;
+          break;
+        case 'quote':
+          content = joinText([ps.body, '', ps.itemUrl, '', ps.description], '\n\n');
+          break;
         }
         form['gist[files][][content]'] = content;
         form['gist[description]'] = ps.item;
@@ -2338,10 +2347,9 @@
       var that = this;
       return getCookies('.naver.jp', 'NJID_AUT').addCallback(function (cookies) {
         if (cookies.length) {
-          return cookies[cookies.length-1].value;
-        } else {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
+          return cookies[cookies.length - 1].value;
         }
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       });
     },
 
@@ -2353,7 +2361,7 @@
             ps.type === 'photo' ? ps.page : '',
             ps.type === 'photo' ? ps.pageUrl : '',
             ps.body ? '“' + ps.body + '”' : ''
-          ], "\n", true);
+          ], '\n', true);
         return self.update(status, ps);
       });
     },
@@ -2392,7 +2400,7 @@
             rnd            : new Date().getTime()
           })
         });
-      })
+      });
     }
   });
 
