@@ -154,6 +154,17 @@
             zip: 'pkg/taberareloo.zip'
           }
         }
+      },
+      shell: {
+        'release-patch': {
+          command: 'node_modules/.bin/xyz -t X.Y.Z -m "version X.Y.Z" -i patch'
+        },
+        'release-minor': {
+          command: 'node_modules/.bin/xyz -t X.Y.Z -m "version X.Y.Z" -i minor'
+        },
+        'release-major': {
+          command: 'node_modules/.bin/xyz -t X.Y.Z -m "version X.Y.Z" -i major'
+        }
       }
     });
 
@@ -164,6 +175,7 @@
     grunt.loadNpmTasks('grunt-crx');
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-webstore-upload');
+    grunt.loadNpmTasks('grunt-shell');
 
     grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
       var done = this.async();
@@ -240,6 +252,10 @@
       'compress:master',
       'webstore_upload:master'
     ]);
+
+    grunt.registerTask('release-patch', ['shell:release-patch']);
+    grunt.registerTask('release-minor', ['shell:release-minor']);
+    grunt.registerTask('release-major', ['shell:release-major']);
   };
 }());
 /* vim: set sw=2 ts=2 et tw=80 : */
