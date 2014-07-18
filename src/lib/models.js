@@ -20,9 +20,9 @@ var Tumblr = {
    * @param {Number || String} id ポストID。
    * @return {Deferred}
    */
-  remove : function(id){
+  remove : function (id) {
     var self = this;
-    return this.getToken().addCallback(function(token){
+    return this.getToken().addCallback(function (token) {
       return request(Tumblr.TUMBLR_URL+'delete', {
         //denyRedirection: true,
         referrer    : Tumblr.TUMBLR_URL,
@@ -41,19 +41,19 @@ var Tumblr = {
    * @param {Array} form reblogフォーム。
    * @return {Deferred}
    */
-  trimReblogInfo : function(form){
-    if(!TBRL.Config['entry']['trim_reblog_info'])
+  trimReblogInfo : function (form) {
+    if (!TBRL.Config['entry']['trim_reblog_info'])
      return null;
 
-    function trimQuote(entry){
+    function trimQuote(entry) {
       entry = entry.replace(/<p><\/p>/g, '').replace(/<p><a[^<]+<\/a>:<\/p>/g, '');
-      entry = (function callee(all, contents){
+      entry = (function callee(all, contents) {
         return contents.replace(/<blockquote>(([\n\r]|.)+)<\/blockquote>/gm, callee);
       })(null, entry);
       return entry.trim();
     }
 
-    switch(form['post[type]']){
+    switch (form['post[type]']) {
     case 'link':
       form['post[three]'] = trimQuote(form['post[three]']);
       break;
@@ -76,7 +76,7 @@ var Tumblr = {
    * @param {Object} ps
    * @return {Boolean}
    */
-  check : function(ps){
+  check : function (ps) {
     return /regular|photo|quote|link|conversation|video|audio/.test(ps.type) && ((ps.type !== 'audio') || ps.suffix === '.mp3');
   },
 
@@ -107,24 +107,24 @@ var Tumblr = {
    * @param {Object} ps
    * @return {Deferred}
    */
-  post : function(ps){
+  post : function (ps) {
     var self = this;
-    if(TBRL.Config.post['tumblr_default_quote']){
+    if (TBRL.Config.post['tumblr_default_quote']) {
       ps = update({}, ps);
       ps.flavors = update({}, ps.flavors);
       delete ps['flavors']['html'];
     }
     var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
-    return this.postForm(function(){
-      return self.getForm(endpoint).addCallback(function postUpdate(form){
+    return this.postForm(function () {
+      return self.getForm(endpoint).addCallback(function postUpdate(form) {
         var type;
         type = ps.type.capitalize();
-        return Tumblr[type].convertToForm(ps).addCallback(function(form2){
+        return Tumblr[type].convertToForm(ps).addCallback(function (form2) {
           // merging forms
           update(form, form2);
           self.appendTags(form, ps);
 
-          if (TBRL.Config.post.multi_tumblelogs && !Tumblr.blogs.some(function(id){ return id === form.channel_id; })) {
+          if (TBRL.Config.post.multi_tumblelogs && !Tumblr.blogs.some(function (id) { return id === form.channel_id; })) {
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', form.channel_id));
           }
 
@@ -133,7 +133,7 @@ var Tumblr = {
               if (form['photo[]']) {
                 return request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
                   sendContent: form
-                }).addCallback(function(res){
+                }).addCallback(function (res) {
                   var response = JSON.parse(res.response);
 
                   if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
@@ -155,7 +155,7 @@ var Tumblr = {
             }
 
             return self._post(form);
-          }()).addErrback(function(err){
+          }()).addErrback(function (err) {
             if (self.retry) {
               throw err;
             }
@@ -177,7 +177,7 @@ var Tumblr = {
    * @param {Object} url フォームURL。
    * @return {Deferred}
    */
-  getForm : function(url){
+  getForm : function (url) {
     var form = {
       form_key: Tumblr.form_key,
       channel_id: Tumblr.channel_id,
@@ -203,7 +203,7 @@ var Tumblr = {
     }
 
     if (TBRL.Config.post.multi_tumblelogs) {
-      return Models.getMultiTumblelogs(true).addCallback(function(){
+      return Models.getMultiTumblelogs(true).addCallback(function () {
         form.form_key = Tumblr.form_key;
         form.channel_id = Tumblr.channel_id;
 
@@ -211,9 +211,9 @@ var Tumblr = {
       });
     }
 
-    return request(url, { responseType: 'document' }).addCallback(function(res){
+    return request(url, { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
-      if($X('id("logged_out_container")', doc)[0])
+      if ($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
       form.form_key = Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
@@ -229,7 +229,7 @@ var Tumblr = {
    * @param {Object} url フォームURL。
    * @return {Deferred}
    */
-  appendTags : function(form, ps){
+  appendTags : function (form, ps) {
     form['post[state]'] = (ps.private) ? 'private' : '0';
     if (TBRL.Config.post['post_with_queue']) {
       if (ps.type !== 'regular') {
@@ -268,7 +268,7 @@ var Tumblr = {
    * @param {Object} ps
    * @return {Deferred}
    */
-  favor : function(ps){
+  favor : function (ps) {
     // メモをreblogフォームの適切なフィールドの末尾に追加する
     var form = ps.favorite.form;
     var that = this;
@@ -277,8 +277,8 @@ var Tumblr = {
 
     return Tumblr[ps.type.capitalize()].convertToForm({
       description : ps.description
-    }).addCallback(function(res) {
-      items(res).forEach(function(item) {
+    }).addCallback(function (res) {
+      items(res).forEach(function (item) {
         var name = item[0], value = item[1];
         if (!value) {
           return;
@@ -290,7 +290,7 @@ var Tumblr = {
         }
       });
       that.appendTags(form, ps);
-      return that.postForm(function(){
+      return that.postForm(function () {
         return that._post(form);
       });
     });
@@ -303,9 +303,9 @@ var Tumblr = {
    * @param {Function} fn
    * @return {Deferred}
    */
-  postForm : function(fn){
+  postForm : function (fn) {
     var self = this;
-    return succeed().addCallback(fn).addCallback(function(res){
+    return succeed().addCallback(fn).addCallback(function (res) {
       if (self.retry) {
         self.retry = false;
       }
@@ -330,11 +330,11 @@ var Tumblr = {
       }
 
       var doc = createHTML(response);
-      if($X('id("logged_out_container")', doc)[0]){
+      if ($X('id("logged_out_container")', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-      } else if($X('id("posts")', doc)[0]){
+      } else if ($X('id("posts")', doc)[0]) {
         return null;
-      } else if(response.match('more tomorrow')) {
+      } else if (response.match('more tomorrow')) {
         throw new Error('You\'ve exceeded your daily post limit.');
       } else {
         throw new Error(doc.getElementById('errors').textContent.trim());
@@ -348,21 +348,21 @@ var Tumblr = {
    *
    * @return {Deferred} トークン(form_key)が返される。
    */
-  getToken : function(){
+  getToken : function () {
     var self = this;
-    return request(Tumblr.TUMBLR_URL+'new/text', { responseType: 'document' }).addCallback(function(res){
+    return request(Tumblr.TUMBLR_URL+'new/text', { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
-      if($X('id("logged_out_container")', doc)[0])
+      if ($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       return self.token = $X('//input[@name="form_key"]/@value', doc)[0];
     });
   },
 
-  getTumblelogs : function(){
+  getTumblelogs : function () {
     var self = this;
-    return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).addCallback(function(res){
+    return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
-      if($X('id("logged_out_container")', doc)[0])
+      if ($X('id("logged_out_container")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
       Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
@@ -370,7 +370,7 @@ var Tumblr = {
       return Array.prototype.slice.call(doc.querySelectorAll(
         '#popover_blogs .popover_menu_item ' +
           'a[href^="/blog/"]:not([href="/blog/' + Tumblr.channel_id + '"])'
-      )).reverse().map(function(a){
+      )).reverse().map(function (a) {
         var id = a.getAttribute('href').replace(/^\/blog\//g, '');
         Tumblr.blogs.push(id);
 
@@ -385,7 +385,7 @@ var Tumblr = {
 
 
 Tumblr.Regular = {
-  convertToForm : function(ps){
+  convertToForm : function (ps) {
     return succeed({
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
@@ -395,7 +395,7 @@ Tumblr.Regular = {
 };
 
 Tumblr.Photo = {
-  convertToForm : function(ps){
+  convertToForm : function (ps) {
     // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
     return (ps.itemUrl ? getFinalUrl(ps.itemUrl) : succeed(null)).addCallback(function (finalUrl) {
       var form = {
@@ -413,7 +413,7 @@ Tumblr.Photo = {
 };
 
 Tumblr.Video = {
-  convertToForm : function(ps){
+  convertToForm : function (ps) {
     return succeed({
       'post[type]' : ps.type,
       'post[one]'  : getFlavor(ps, 'html') || ps.itemUrl,
@@ -426,8 +426,8 @@ Tumblr.Video = {
 };
 
 Tumblr.Link = {
-  convertToForm : function(ps){
-    if(ps.pageUrl){
+  convertToForm : function (ps) {
+    if (ps.pageUrl) {
       var thumb = TBRL.Config['entry']['thumbnail_template'].replace(RegExp('{url}', 'g'), ps.pageUrl);
     } else {
       var thumb = '';
@@ -442,7 +442,7 @@ Tumblr.Link = {
 };
 
 Tumblr.Conversation = {
-  convertToForm : function(ps){
+  convertToForm : function (ps) {
     return succeed({
       'post[type]' : ps.type,
       'post[one]'  : ps.item,
@@ -452,7 +452,7 @@ Tumblr.Conversation = {
 };
 
 Tumblr.Quote = {
-  convertToForm : function(ps){
+  convertToForm : function (ps) {
     return succeed({
       'post[type]' : ps.type,
       'post[one]'  : getFlavor(ps, 'html'),
@@ -462,13 +462,13 @@ Tumblr.Quote = {
 };
 
 Tumblr.Audio = {
-  convertToForm : function(ps){
+  convertToForm : function (ps) {
     var res = {
       'post[type]'  : ps.type,
       'post[two]'   : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n'),
       MAX_FILE_SIZE: '10485760'
     };
-    if(ps.itemUrl)
+    if (ps.itemUrl)
       res['post[three]'] = ps.itemUrl;
     return succeed(res);
   }
@@ -483,11 +483,11 @@ Models.register({
   LOGIN_URL : 'http://4u-beautyimg.com/admin/login',
   URL : 'http://4u-beautyimg.com/',
 
-  check : function(ps){
+  check : function (ps) {
     return ps.type === 'photo' && !ps.file;
   },
 
-  post : function(ps){
+  post : function (ps) {
     var self = this;
     return request(this.URL + 'power/manage/register', {
       referrer : ps.pageUrl,
@@ -498,18 +498,18 @@ Models.register({
         src         : ps.itemUrl,
         bookmarklet : 1
       }
-    }).addCallback(function(res){
-      if(/login/.test(res.responseText)){
+    }).addCallback(function (res) {
+      if (/login/.test(res.responseText)) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
   },
 
-  favor : function(ps){
+  favor : function (ps) {
     return this.iLoveHer(ps.favorite.id);
   },
 
-  iLoveHer : function(id){
+  iLoveHer : function (id) {
     var self = this;
     return request(this.URL + 'user/manage/do_register', {
       redirectionLimit : 0,
@@ -518,9 +518,9 @@ Models.register({
       queryString : {
         src : id
       }
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       var doc = res.response;
-      if($X('//form[@action="' + this.URL + 'admin/login"]', doc)[0]){
+      if ($X('//form[@action="' + this.URL + 'admin/login"]', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
     });
@@ -533,19 +533,19 @@ Models.register({
   LINK : 'http://ffffound.com/',
   URL  : 'http://ffffound.com/',
 
-  getToken : function(){
-    return request(this.URL + 'bookmarklet.js').addCallback(function(res){
+  getToken : function () {
+    return request(this.URL + 'bookmarklet.js').addCallback(function (res) {
       return res.responseText.match(/token ?= ?'(.*?)'/)[1];
     });
   },
 
-  check : function(ps){
+  check : function (ps) {
     return ps.type === 'photo' && !ps.file;
   },
 
-  post : function(ps){
+  post : function (ps) {
     var self = this;
-    return this.getToken().addCallback(function(token){
+    return this.getToken().addCallback(function (token) {
       return request(self.URL + 'add_asset', {
         referrer : ps.pageUrl,
         queryString : {
@@ -554,21 +554,21 @@ Models.register({
           referer : ps.pageUrl,
           title   : ps.item,
         },
-      }).addCallback(function(res){
-        if(res.responseText.match('(FAILED:|ERROR:) +(.*?)</span>'))
+      }).addCallback(function (res) {
+        if (res.responseText.match('(FAILED:|ERROR:) +(.*?)</span>'))
           throw new Error(RegExp.$2.trim());
 
-        if(res.responseText.match('login'))
+        if (res.responseText.match('login'))
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       });
     });
   },
 
-  favor : function(ps){
+  favor : function (ps) {
     return this.iLoveThis(ps.favorite.id)
   },
 
-  remove : function(id){
+  remove : function (id) {
     return request(this.URL + 'gateway/in/api/remove_asset', {
       referrer : this.URL,
       sendContent : {
@@ -577,7 +577,7 @@ Models.register({
     });
   },
 
-  iLoveThis : function(id){
+  iLoveThis : function (id) {
     var self = this;
     return request(this.URL + 'gateway/in/api/add_asset', {
       referrer : this.URL,
@@ -585,13 +585,13 @@ Models.register({
         collection_id : 'i'+id,
         inappropriate : false,
       },
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       var error = res.responseText.extract(/"error":"(.*?)"/);
-      if(error === 'AUTH_FAILED')
+      if (error === 'AUTH_FAILED')
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       // NOT_FOUND / EXISTS / TOO_BIG
-      if(error)
+      if (error)
         throw new Error(RegExp.$1.trim());
     });
   },
@@ -601,13 +601,13 @@ Models.register({
   name : 'Local',
   ICON : skin + 'local.ico',
 
-  check : function(ps) {
+  check : function (ps) {
     return ps.type === 'photo';
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
-    return this.getDataURL(ps).addCallback(function(url) {
+    return this.getDataURL(ps).addCallback(function (url) {
       if (chrome.downloads) {
         return self.download(url);
       } else {
@@ -628,11 +628,11 @@ Models.register({
     return deferred;
   },
 
-  getDataURL : function(ps) {
+  getDataURL : function (ps) {
     var self = this;
     return (
       ps.file
-        ? fileToDataURL(ps.file).addCallback(function(url) {
+        ? fileToDataURL(ps.file).addCallback(function (url) {
           return url;
         })
         : succeed(ps.itemUrl)
@@ -641,7 +641,7 @@ Models.register({
 
   Photo : {
     queue: [],
-    post : function(ps, url) {
+    post : function (ps, url) {
       var that = this;
       if (!/^(?:http|data)/.test(url)) {
         return fail('ps.itemUrl is not URL');
@@ -681,7 +681,7 @@ Models.register({
         var code = '(' + executor.toString() + '(' + JSON.stringify(ary) + '))';
         chrome.tabs.executeScript(tab.id, {
           code: code
-        }, function() { });
+        }, function () { });
       }
 
       chrome.tabs.query({
@@ -735,14 +735,14 @@ Models.register({
   ICON : 'http://www.hatena.ne.jp/favicon.ico',
   JSON : 'http://b.hatena.ne.jp/my.name',
 
-  getToken : function(){
-    if(this.data){
+  getToken : function () {
+    if (this.data) {
       return succeed(this.data);
     } else {
       var self = this;
-      return request(Hatena.JSON).addCallback(function(res){
+      return request(Hatena.JSON).addCallback(function (res) {
         var data = JSON.parse(res.responseText);
-        if(!data["login"]){
+        if (!data["login"]) {
           delete self['data'];
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
@@ -753,7 +753,7 @@ Models.register({
   },
 
   reprTags: function (tags) {
-    return tags ? tags.map(function(t){
+    return tags ? tags.map(function (t) {
       return '[' + t + ']';
     }).join('') : '' ;
   }
@@ -767,23 +767,23 @@ Models.register({
   LINK : 'http://f.hatena.ne.jp/',
   LOGIN_URL : 'https://www.hatena.ne.jp/login',
 
-  check : function(ps){
+  check : function (ps) {
     return ps.type === 'photo';
   },
 
-  getToken : function(){
+  getToken : function () {
     var self = this;
-    return Hatena.getToken().addErrback(function(e){
+    return Hatena.getToken().addErrback(function (e) {
       throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
     });
   },
 
-  post : function(ps){
+  post : function (ps) {
     var that = this;
-    return (ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function(entry) {
+    return (ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function (entry) {
       return getFileFromEntry(entry);
-    })).addCallback(function(file) {
-      return fileToPNGDataURL(file).addCallback(function(container) {
+    })).addCallback(function (file) {
+      return fileToPNGDataURL(file).addCallback(function (container) {
         return that.uploadWithBase64(container);
       });
       // TODO(Constellation) extension guess
@@ -796,8 +796,8 @@ Models.register({
 
   // image1 - image5
   // fototitle1 - fototitle5 (optional)
-  upload : function(ps){
-    return this.getToken().addCallback(function(set){
+  upload : function (ps) {
+    return this.getToken().addCallback(function (set) {
       ps.rkm = set['rkm'];
       return request('http://f.hatena.ne.jp/'+set['name']+'/up', {
         sendContent : update({
@@ -807,9 +807,9 @@ Models.register({
     });
   },
 
-  uploadWithBase64 : function(file){
+  uploadWithBase64 : function (file) {
     var self = this;
-    return this.getToken().addCallback(function(set){
+    return this.getToken().addCallback(function (set) {
       var name = set['name'];
       var rkm  = set['rkm'];
       return request('http://f.hatena.ne.jp/'+name+'/haiku', {
@@ -837,31 +837,31 @@ Models.register({
   POST_URL : 'http://b.hatena.ne.jp/add',
   JSON_URL : 'http://b.hatena.ne.jp/my.name',
 
-  check : function(ps){
+  check : function (ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
-  post : function(ps){
+  post : function (ps) {
     // タイトルは共有されているため送信しない
     return this.addBookmark(ps.itemUrl, null, ps.tags, joinText([ps.body, ps.description], ' ', true));
   },
 
-  getToken : function(){
+  getToken : function () {
     var self = this;
-    return Hatena.getToken().addErrback(function(e){
+    return Hatena.getToken().addErrback(function (e) {
       delete self['tags'];
       throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
     });
   },
 
-  addBookmark : function(url, title, tags, description){
-    return this.getToken().addCallback(function(data){
+  addBookmark : function (url, title, tags, description) {
+    return this.getToken().addCallback(function (data) {
       return request('http://b.hatena.ne.jp/bookmarklet.edit', {
         //denyRedirection: true,
         method: 'POST',
         sendContent : {
           rks     : data['rks'],
-          url     : url.replace(/%[0-9a-f]{2}/g, function(s){
+          url     : url.replace(/%[0-9a-f]{2}/g, function (s) {
             return s.toUpperCase();
           }),
           title   : title,
@@ -878,15 +878,15 @@ Models.register({
    * @param {String} url 関連情報を取得する対象のページURL。
    * @return {Object}
    */
-  getSuggestions : function(url){
+  getSuggestions : function (url) {
     var that = this;
-    return this.getToken().addCallback(function(set){
+    return this.getToken().addCallback(function (set) {
       return DeferredHash({
         tags: that.getUserTags(set['name']),
         data: that.getURLData(url)
       });
-    }).addCallback(function(resses){
-      if(!resses['tags'][0] || !resses['data'][0]){
+    }).addCallback(function (resses) {
+      if (!resses['tags'][0] || !resses['data'][0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       var data = resses['data'][1];
@@ -898,19 +898,19 @@ Models.register({
     });
   },
 
-  getUserTags: function(user){
+  getUserTags: function (user) {
     var that = this;
     var tags = that.tags;
     if (tags) {
       return succeed(tags);
     } else {
-      return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function(res){
+      return request('http://b.hatena.ne.jp/'+user+'/tags.json').addCallback(function (res) {
         try{
           tags = JSON.parse(res.responseText)['tags'];
         } catch(e) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
-        return that.tags = items(tags).map(function(pair){
+        return that.tags = items(tags).map(function (pair) {
           return {
             name      : pair[0],
             frequency : pair[1].count
@@ -920,13 +920,13 @@ Models.register({
     }
   },
 
-  getURLData: function(url){
+  getURLData: function (url) {
     var that = this;
     return request('http://b.hatena.ne.jp/my.entry', {
       queryString : {
         url  : url
       }
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       try{
         var json = JSON.parse(res.responseText);
       } catch(e) {
@@ -946,14 +946,14 @@ Models.register({
   ADMIN_TOP_URL: 'http://blog.hatena.ne.jp/',
   BLOG_ADMIN_URL: undefined, // 個別のブログのインスタンスで定義される
 
-  getBlogs : function(){
+  getBlogs : function () {
     var self = this;
-    return Hatena.getToken().addCallback(function() {
-      return request(self.ADMIN_TOP_URL, { responseType: 'document' }).addCallback(function(res){
+    return Hatena.getToken().addCallback(function () {
+      return request(self.ADMIN_TOP_URL, { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
         var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
         var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
-        return $A(sidebarElements).map(function(sidebarElement){
+        return $A(sidebarElements).map(function (sidebarElement) {
           var blogBoxElement = blogBoxElements.shift();
           return {
             url:       blogBoxElement.querySelector('.blog-host a').href,
@@ -966,19 +966,19 @@ Models.register({
     });
   },
 
-  getUserName: function(){
-    return Hatena.getToken().addCallback(function(set) {
+  getUserName: function () {
+    return Hatena.getToken().addCallback(function (set) {
       return set['name'];
     });
   },
 
-  getApiKey : function() {
+  getApiKey : function () {
     var model = Models.HatenaBlog;
     if (model.token) {
       return succeed(model.token);
     } else {
-      return Hatena.getToken().addCallback(function() {
-        return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).addCallback(function(res){
+      return Hatena.getToken().addCallback(function () {
+        return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).addCallback(function (res) {
           var doc = res.response;
           var tokenElement = doc.querySelector('.api-key')
           if (!tokenElement) {
@@ -986,7 +986,7 @@ Models.register({
           }
           model.token = tokenElement.textContent;
           return model.token;
-        }).addErrback(function(e) {
+        }).addErrback(function (e) {
           model.token = undefined;
           throw new Error('HatenaBlog#getToken: ' +
                 (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
@@ -998,11 +998,11 @@ Models.register({
   // ここでcheckを定義すると，HatenaBlog自体が投稿可能になってしまう．
   // Models.HatenaBlog自体は投稿可能ではなく，ユーザーの持っている個別のブログに投稿できる．
   // ここではなく，getBlogsしたあとにcheckを定義しています．
-  _check : function(ps) {
+  _check : function (ps) {
     return /regular|quote|link|video/.test(ps.type) || (ps.type === 'photo' && !ps.file);
   },
 
-  post : function(ps){
+  post : function (ps) {
     var self = this;
 
     var template;
@@ -1045,8 +1045,8 @@ Models.register({
       title = ps.item;
     }
 
-    return self.getUserName().addCallback(function(userName) {
-      self.getApiKey().addCallback(function(apiKey){
+    return self.getUserName().addCallback(function (userName) {
+      self.getApiKey().addCallback(function (apiKey) {
         var xml = self.generateXML({
           userName   : escapeHTML(userName),
           title      : escapeHTML(title),
@@ -1066,19 +1066,19 @@ Models.register({
     });
   },
 
-  paragraph: function(text) {
+  paragraph: function (text) {
     if (!text) return '';
     return '<p>' + text.replace(/^\n*/, '').replace(/\n*$/, '').replace(/\n+/g, '</p><p>') + '</p>';
   },
 
-  postEndpoint: function() {
+  postEndpoint: function () {
     var self = this;
     return (self.BLOG_ADMIN_URL + 'atom/entry').replace(/^http:/, 'https:');
   },
 
   // @param data { userName, title, body, isDraft, categories }
-  generateXML: function(data) {
-    var categories = (data.categories || []).map(function(name) {
+  generateXML: function (data) {
+    var categories = (data.categories || []).map(function (name) {
         return '<category term="' + escapeHTML(name) + '" />';
     }).join("");
 
@@ -1103,13 +1103,13 @@ Models.register({
   ICON : 'https://pinboard.in/favicon.ico',
   LINK : 'https://pinboard.in/',
 
-  check : function(ps){
+  check : function (ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
-  getCurrentUser : function(){
+  getCurrentUser : function () {
     var that = this;
-    return getCookies('pinboard.in', 'login').addCallback(function(cookies) {
+    return getCookies('pinboard.in', 'login').addCallback(function (cookies) {
       var cookie = cookies[0];
       if (!cookie) {
         new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -1118,10 +1118,10 @@ Models.register({
     });
   },
 
-  post : function(ps){
+  post : function (ps) {
     var that = this;
-    return succeed().addCallback(function(){
-      return that.getCurrentUser().addCallback(function() {
+    return succeed().addCallback(function () {
+      return that.getCurrentUser().addCallback(function () {
         return request('https://pinboard.in/add', {
           queryString : {
             title : ps.item,
@@ -1129,7 +1129,7 @@ Models.register({
           }
         });
       });
-    }).addCallback(function(res) {
+    }).addCallback(function (res) {
       var form = formContents(res.responseText, true);
       var content = {
         title       : ps.item,
@@ -1146,10 +1146,10 @@ Models.register({
     });
   },
 
-  getUserTags : function(){
-    return request('https://pinboard.in/user_tag_list/').addCallback(function(res){
+  getUserTags : function () {
+    return request('https://pinboard.in/user_tag_list/').addCallback(function (res) {
       var tags = JSON.parse(res.responseText.replace(/^var\s+usertags\s*=\s*(\[.+\]);$/, '$1'));
-      return tags.map(function(tag){
+      return tags.map(function (tag) {
         return {
           name: tag,
           frequency: 0
@@ -1158,35 +1158,35 @@ Models.register({
     });
   },
 
-  getRecommendedTags : function(url){
+  getRecommendedTags : function (url) {
     return request('https://pinboard.in/ajax_suggest', {
       queryString : {
         url : url,
       }
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       // 空配列ではなく、空文字列が返ることがある
       return res.responseText?
-        JSON.parse(res.responseText).map(function(tag){
+        JSON.parse(res.responseText).map(function (tag) {
           // 数字のみのタグが数値型になるのを避ける
           return '' + tag;
         }) : [];
     });
   },
 
-  getSuggestions : function(url){
+  getSuggestions : function (url) {
     var that = this;
     var ds = {
       tags        : this.getUserTags(),
       recommended : this.getRecommendedTags(url),
-      suggestions : succeed().addCallback(function(){
-        return that.getCurrentUser().addCallback(function() {
+      suggestions : succeed().addCallback(function () {
+        return that.getCurrentUser().addCallback(function () {
           return request('https://pinboard.in/add', {
             queryString : {
               url : url,
             }
           });
         });
-      }).addCallback(function(res){
+      }).addCallback(function (res) {
         var form = formContents(res.responseText);
         return {
           editPage : 'https://pinboard.in/add?url=' + url,
@@ -1204,7 +1204,7 @@ Models.register({
       })
     };
 
-    return new DeferredHash(ds).addCallback(function(ress){
+    return new DeferredHash(ds).addCallback(function (ress) {
       var res = ress.suggestions[1];
       res.recommended = ress.recommended[1];
       res.tags = ress.tags[1];
@@ -1226,17 +1226,17 @@ Models.register({
    * @param {String} user 対象ユーザー名。未指定の場合、ログインしているユーザー名が使われる。
    * @return {Array}
    */
-  getUserTags : function(user){
-    return this.getCurrentUser(user).addCallback(function(user){
+  getUserTags : function (user) {
+    return this.getCurrentUser(user).addCallback(function (user) {
       // 同期でエラーが起きないようにする
-      return succeed().addCallback(function(){
+      return succeed().addCallback(function () {
         return request('http://feeds.delicious.com/v2/json/tags/' + user);
-      }).addCallback(function(res){
+      }).addCallback(function (res) {
         var tags = JSON.parse(res.responseText);
         if (!tags) {
           return tags;
         }
-        return Object.keys(tags).reduce(function(memo, tag){
+        return Object.keys(tags).reduce(function (memo, tag) {
           if (tag) {
             memo.push({
               name      : tag,
@@ -1256,14 +1256,14 @@ Models.register({
    * @param {String} url 関連情報を取得する対象のページURL。
    * @return {Object}
    */
-  getSuggestions : function(url){
+  getSuggestions : function (url) {
     var that = this;
     var ds = {
       tags : this.getUserTags(),
       suggestions : this.getRecommendedTags(url)
     };
-    return new DeferredHash(ds).addCallback(function(ress){
-      if(!ress['tags'][0] || !ress['suggestions'][0]){
+    return new DeferredHash(ds).addCallback(function (ress) {
+      if (!ress['tags'][0] || !ress['suggestions'][0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
       var res = ress.suggestions[1];
@@ -1272,8 +1272,8 @@ Models.register({
     });
   },
 
-  getRecommendedTags: function(url) {
-    return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url)).addCallback(function(res){
+  getRecommendedTags: function (url) {
+    return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url)).addCallback(function (res) {
       var result = JSON.parse(res.responseText);
       if (result.length) {
         var top_tags = result[0].top_tags;
@@ -1292,14 +1292,14 @@ Models.register({
     });
   },
 
-  getCurrentUser : function(defaultUser){
+  getCurrentUser : function (defaultUser) {
     if (defaultUser) {
       return succeed(defaultUser);
     } else if (this.currentUser) {
       return succeed(this.currentUser);
     } else {
       var that = this;
-      return this.getInfo().addCallback(function(info) {
+      return this.getInfo().addCallback(function (info) {
         if (!info.is_logged_in) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -1312,13 +1312,13 @@ Models.register({
     }
   },
 
-  getInfo : function(){
-    return request('http://previous.delicious.com/save/quick', {method : 'POST'}).addCallback(function(res) {
+  getInfo : function () {
+    return request('http://previous.delicious.com/save/quick', {method : 'POST'}).addCallback(function (res) {
       return JSON.parse(res.responseText);
     });
   },
 
-  check : function(ps){
+  check : function (ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
@@ -1343,16 +1343,16 @@ Models.register({
     return res;
   },
 
-  post : function(ps){
+  post : function (ps) {
     var that = this;
-    return this.getCurrentUser().addCallback(function(user) {
+    return this.getCurrentUser().addCallback(function (user) {
       return request('http://previous.delicious.com/save', {
         queryString :  {
           url   : ps.itemUrl,
           title : ps.item
         },
         responseType: 'document'
-      }).addCallback(function(res){
+      }).addCallback(function (res) {
         var doc = res.response;
         return request('http://previous.delicious.com/save', {
           sendContent : that.transformForm(update(formContents(doc, true), {
@@ -1378,24 +1378,24 @@ Models.register({
   name : 'GoogleWebHistory',
   ICON : Models.Google.ICON,
 
-  getCh : function(url){
-    function r(x,y){
+  getCh : function (url) {
+    function r(x,y) {
       return Math.floor((x/y-Math.floor(x/y))*y+.1);
     }
-    function m(c){
+    function m(c) {
       var i,j,s=[13,8,13,12,16,5,3,10,15];
-      for(i=0;i<9;i+=1){
+      for (i=0;i<9;i+=1) {
         j=c[r(i+2,3)];
         c[r(i,3)]=(c[r(i,3)]-c[r(i+1,3)]-j)^(r(i,3)==1?j<<s[i]:j>>>s[i]);
       }
     }
 
-    return (this.getCh = function(url){
+    return (this.getCh = function (url) {
       url='info:'+url;
 
       var c = [0x9E3779B9,0x9E3779B9,0xE6359A60],i,j,k=0,l,f=Math.floor;
-      for(l=url.length ; l>=12 ; l-=12){
-        for(i=0 ; i<16 ; i+=1){
+      for (l=url.length ; l>=12 ; l-=12) {
+        for (i=0 ; i<16 ; i+=1) {
           j=k+i;c[f(i/4)]+=url.charCodeAt(j)<<(r(j,4)*8);
         }
         m(c);
@@ -1403,7 +1403,7 @@ Models.register({
       }
       c[2]+=url.length;
 
-      for(i=l;i>0;i--)
+      for (i=l;i>0;i--)
         c[f((i-1)/4)]+=url.charCodeAt(k+i-1)<<(r(i-1,4)+(i>8?1:0))*8;
       m(c);
 
@@ -1411,7 +1411,7 @@ Models.register({
     })(url);
   },
 
-  post : function(url){
+  post : function (url) {
     return request('http://www.google.com/search?client=navclient-auto&ch=' + GoogleWebHistory.getCh(url) + '&features=Rank&q=info:' + escape(url));
   }
 });
@@ -1423,11 +1423,11 @@ Models.register({
   LOGIN_URL : 'https://www.google.com/accounts/ServiceLogin',
   POST_URL : 'https://www.google.com/bookmarks/mark',
 
-  check : function(ps){
+  check : function (ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
-  post : function(ps){
+  post : function (ps) {
     var that = this;
     return request(this.POST_URL, {
       queryString :  {
@@ -1435,9 +1435,9 @@ Models.register({
         output : 'popup'
       },
       responseType: 'document'
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       var doc = res.response;
-      if(doc.getElementById('gaia_loginform'))
+      if (doc.getElementById('gaia_loginform'))
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
 
       var form = $X('descendant::form[contains(concat(" ",normalize-space(@name)," ")," add_bkmk_form ")]', doc)[0];
@@ -1454,7 +1454,7 @@ Models.register({
     });
   },
 
-  getEntry : function(url){
+  getEntry : function (url) {
     return request(this.POST_URL, {
       queryString : {
         op     : 'edit',
@@ -1462,7 +1462,7 @@ Models.register({
         bkmk   : url
       },
       responseType: 'document'
-    }).addCallback(function(res) {
+    }).addCallback(function (res) {
       var doc = res.response;
       var form = formContents(doc);
       return {
@@ -1474,13 +1474,13 @@ Models.register({
     });
   },
 
-  getUserTags : function() {
+  getUserTags : function () {
     return request('https://www.google.com/bookmarks/mark', {
       queryString : {
         op : 'add'
       },
       responseType: 'document'
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       var doc = res.response;
       return doc.querySelectorAll('a[href^="/bookmarks/lookup?q=label:"]:not([href^="/bookmarks/lookup?q=label:%5Enone"])').reduce(function (memo, label) {
         memo.push({
@@ -1493,12 +1493,12 @@ Models.register({
   },
 
 
-  getSuggestions : function(url){
+  getSuggestions : function (url) {
     var that = this;
     return new DeferredHash({
       tags  : this.getUserTags(),
       entry : this.getEntry(url)
-    }).addCallback(function(ress){
+    }).addCallback(function (ress) {
       if (!ress['tags'][0] || !ress['entry'][0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
@@ -1523,13 +1523,13 @@ Models.register({
   ICON: 'https://calendar.google.com/googlecalendar/images/favicon.ico',
   LINK: 'https://www.google.com/calendar/',
 
-  check: function(ps) {
+  check: function (ps) {
     return /regular|link/.test(ps.type) && !ps.file;
   },
 
-  getAuthCookie: function() {
+  getAuthCookie: function () {
     var that = this;
-    return getCookies('www.google.com', 'secid').addCallback(function(cookies) {
+    return getCookies('www.google.com', 'secid').addCallback(function (cookies) {
       if (cookies.length) {
         return cookies[cookies.length-1].value;
       } else {
@@ -1538,7 +1538,7 @@ Models.register({
     });
   },
 
-  post: function(ps) {
+  post: function (ps) {
     if (ps.item && (ps.itemUrl || ps.description)) {
       return this.addSchedule(
           ps.item, joinText([ps.itemUrl, ps.body, ps.description], '\n'), ps.date);
@@ -1547,15 +1547,15 @@ Models.register({
     }
   },
 
-  addSimpleSchedule: function(description){
-    return this.getAuthCookie().addCallback(function(cookie) {
+  addSimpleSchedule: function (description) {
+    return this.getAuthCookie().addCallback(function (cookie) {
       var endpoint = 'http://www.google.com/calendar/m';
       return request(endpoint, {
         queryString : {
           hl : 'en'
         },
         responseType: 'document'
-      }).addCallback(function(res) {
+      }).addCallback(function (res) {
         // form.secidはクッキー内のsecidとは異なる
         var doc = res.response;
         var form = formContents(doc);
@@ -1571,11 +1571,11 @@ Models.register({
     });
   },
 
-  addSchedule: function(title, description, from, to) {
+  addSchedule: function (title, description, from, to) {
     var that = this;
     from = from || new Date();
     to = to || new Date(from.getTime() + (86400 * 1000));
-    return this.getAuthCookie().addCallback(function(cookie) {
+    return this.getAuthCookie().addCallback(function (cookie) {
       return request('http://www.google.com/calendar/event', {
           queryString : {
             action  : 'CREATE',
@@ -1593,7 +1593,7 @@ Models.register({
     });
   },
 
-  createDateString: function(date) {
+  createDateString: function (date) {
     var y = date.getFullYear().toString();
     var m = (date.getMonth() + 1).toString();
     if (m.length === 1) {
@@ -1611,41 +1611,41 @@ Models.register({
   name     : 'ChromeBookmark',
   ICON     : skin + 'chromium.ico',
   LINK     : 'chrome://bookmarks/',
-  check : function(ps){
+  check : function (ps) {
     return ps.type === 'link';
   },
-  post : function(ps){
-    return this.getExFolder().addCallback(function(ex){
+  post : function (ps) {
+    return this.getExFolder().addCallback(function (ex) {
       var ret = new Deferred();
       chrome.bookmarks.create({
         parentId: ex.id,
         title   : ps.item,
         url     : ps.itemUrl
-      }, function(){
+      }, function () {
         ret.callback();
       });
       return ret;
     });
   },
-  getExFolder: function(){
+  getExFolder: function () {
     var ret = new Deferred();
-    chrome.bookmarks.getTree(function(tree){
+    chrome.bookmarks.getTree(function (tree) {
       var top = tree[0].children[1];
       var ex;
-      if(top.children.some(function(obj){
-        if(obj.title === 'TBRL'){
+      if (top.children.some(function (obj) {
+        if (obj.title === 'TBRL') {
           ex = obj;
           return true;
         } else {
           return false;
         }
-      })){
+      })) {
         ret.callback(ex);
       } else {
         chrome.bookmarks.create({
           parentId: top.id,
           title   : 'TBRL'
-        }, function(obj){
+        }, function (obj) {
           ret.callback(obj);
         });
       }
@@ -1661,15 +1661,15 @@ Models.register({
   LOGIN_URL: 'https://www.evernote.com/Login.action',
   LINK     : 'https://evernote.com/',
 
-  check : function(ps){
+  check : function (ps) {
     return /regular|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
-  post : function(ps){
+  post : function (ps) {
     var that = this;
     ps = update({}, ps);
     var d = succeed();
-    if(ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']){
+    if (ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']) {
       // Because responseType: 'document' recognizes encoding
       d= request(ps.itemUrl, { responseType: 'document' }).addCallback(function (res) {
         var doc = res.response;
@@ -1677,9 +1677,9 @@ Models.register({
       });
     }
 
-    return d.addCallback(function(){
+    return d.addCallback(function () {
       return that.getToken();// login checkも走る
-    }).addCallback(function(token){
+    }).addCallback(function (token) {
       return request(that.POST_URL, {
         redirectionLimit : 0,
         sendContent : update(token, {
@@ -1697,7 +1697,7 @@ Models.register({
     });
   },
 
-  getToken : function(){
+  getToken : function () {
     var that = this;
     return request(this.POST_URL, {
       sendContent: {
@@ -1705,9 +1705,9 @@ Models.register({
         quicknote : 'true'
       },
       responseType: 'document'
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       var doc = res.response;
-      if($X('id("login_form")', doc)[0]) {
+      if ($X('id("login_form")', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
 
@@ -1725,25 +1725,25 @@ Models.register({
   ICON : 'https://friendfeed.com/favicon.ico',
   LINK : 'https://friendfeed.com/',
   LOGIN_URL : 'https://friendfeed.com/account/login',
-  check : function(ps){
+  check : function (ps) {
     return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
   },
 
-  getToken : function(){
+  getToken : function () {
     var self = this;
     return request('http://friendfeed.com/share/bookmarklet/frame', { responseType: 'document' })
-    .addCallback(function(res){
+    .addCallback(function (res) {
       var doc = res.response;
-      if($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]){
+      if ($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       return $X('descendant::input[contains(concat(" ",normalize-space(@name)," ")," at ")]/@value', doc)[0];
     });
   },
 
-  post : function(ps){
+  post : function (ps) {
     var self = this;
-    return this.getToken().addCallback(function(token){
+    return this.getToken().addCallback(function (token) {
       return request('https://friendfeed.com/a/bookmarklet', {
         //denyRedirection: true,
         sendContent : {
@@ -1766,11 +1766,11 @@ Models.register({
   LOGIN_URL : 'https://twitter.com/login',
   SHORTEN_SERVICE : 'bit.ly',
 
-  check : function(ps) {
+  check : function (ps) {
     return /regular|photo|quote|link|conversation|video/.test(ps.type);
   },
 
-  createStatus : function(ps) {
+  createStatus : function (ps) {
     var self     = this;
     var template = TBRL.Config['entry']['twitter_template'];
     var status   = '';
@@ -1797,7 +1797,7 @@ Models.register({
     return (TBRL.Config['post']['always_shorten_url']
       ? shortenUrls(status, Models[self.SHORTEN_SERVICE])
       : succeed(status)
-    ).addCallback(function(status) {
+    ).addCallback(function (status) {
       var len = self.getActualLength(status);
       if (len > maxlen) {
         throw 'too many characters to post (' + (len - maxlen) + ' over)';
@@ -1806,11 +1806,11 @@ Models.register({
     });
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
-    return this.createStatus(ps).addCallback(function(status) {
+    return this.createStatus(ps).addCallback(function (status) {
       if (ps.type === 'photo') {
-        return self.download(ps).addCallback(function(file) {
+        return self.download(ps).addCallback(function (file) {
           return self.upload(ps, status, file);
         });
       }
@@ -1818,28 +1818,28 @@ Models.register({
     });
   },
 
-  update : function(status) {
+  update : function (status) {
     var self = this;
-    return this.getToken().addCallback(function(token) {
+    return this.getToken().addCallback(function (token) {
       // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
       token.status = status;
       return request(self.URL + '/status/update', update({
         sendContent : token
       }));
-    }).addCallback(function(res) {
+    }).addCallback(function (res) {
       var msg = res.responseText.extract(/notification.setMessage\("(.*?)"\)/);
       if (msg)
         throw unescapeHTML(msg).trimTag();
     });
   },
 
-  favor : function(ps) {
+  favor : function (ps) {
     return this.addFavorite(ps.favorite.id);
   },
 
-  getToken : function() {
+  getToken : function () {
     var self = this;
-    return request(this.URL + '/settings/account').addCallback(function(res) {
+    return request(this.URL + '/settings/account').addCallback(function (res) {
       var html = res.responseText;
       if (~html.indexOf('class="signin"'))
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -1851,9 +1851,9 @@ Models.register({
     });
   },
 
-  remove : function(id) {
+  remove : function (id) {
     var self = this;
-    return this.getToken().addCallback(function(ps) {
+    return this.getToken().addCallback(function (ps) {
       ps._method = 'delete';
       return request(self.URL + '/status/destroy/' + id, {
         //denyRedirection: true,
@@ -1863,9 +1863,9 @@ Models.register({
     });
   },
 
-  addFavorite : function(id) {
+  addFavorite : function (id) {
     var self = this;
-    return this.getToken().addCallback(function(ps) {
+    return this.getToken().addCallback(function (ps) {
       return request(self.URL + '/favourings/create/' + id, {
         //denyRedirection: true,
         referrer : self.URL + '/',
@@ -1874,25 +1874,25 @@ Models.register({
     });
   },
 
-  getRecipients : function() {
+  getRecipients : function () {
     var self = this;
-    return request(this.URL + '/direct_messages/recipients_list?twttr=true').addCallback(function(res) {
-      return map(function(pair){
+    return request(this.URL + '/direct_messages/recipients_list?twttr=true').addCallback(function (res) {
+      return map(function (pair) {
         return {id:pair[0], name:pair[1]};
       }, JSON.parse('(' + res.responseText + ')'));
     });
   },
 
-  download : function(ps) {
+  download : function (ps) {
     return (
       ps.file ? succeed(ps.file)
-        : download(ps.itemUrl).addCallback(function(entry) {
+        : download(ps.itemUrl).addCallback(function (entry) {
           return getFileFromEntry(entry);
         })
     );
   },
 
-  upload : function(ps, status, file) {
+  upload : function (ps, status, file) {
     var self = this;
     var UPLOAD_URL = 'https://upload.twitter.com/i/tweet/create_with_media.iframe';
     var SIZE_LIMIT = 3145728;
@@ -1904,8 +1904,8 @@ Models.register({
       throw new Error('GIF is not supported');
     }
 
-    return this.getToken().addCallback(function(token) {
-      return fileToBinaryString(file).addCallback(function(binary) {
+    return this.getToken().addCallback(function (token) {
+      return fileToBinaryString(file).addCallback(function (binary) {
         return request(UPLOAD_URL, {
           sendContent : {
             status                  : status,
@@ -1914,11 +1914,11 @@ Models.register({
             post_authenticity_token : token.authenticity_token
           },
           multipart : true
-        }).addCallback(function(res) {
+        }).addCallback(function (res) {
           var html = res.responseText;
           var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
           json = JSON.parse(json);
-        }).addErrback(function(e) {
+        }).addErrback(function (e) {
           var res  = e.message;
           var html = res.responseText;
           var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
@@ -1929,7 +1929,7 @@ Models.register({
     });
   },
 
-  getActualLength : function(status) {
+  getActualLength : function (status) {
     var ret = status.split('\n').map(function (s) {
       s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890123');
       return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789012');
@@ -1944,19 +1944,19 @@ Models.register({
   LINK : 'https://www.instapaper.com/',
   POST_URL: 'http://www.instapaper.com/edit',
   LOGIN_URL : 'https://www.instapaper.com/user/login',
-  check : function(ps){
+  check : function (ps) {
     return /quote|link/.test(ps.type);
   },
-  post : function(ps){
+  post : function (ps) {
     var url = this.POST_URL;
     var self = this;
-    return request(url, { responseType: 'document' }).addCallback(function(res){
+    return request(url, { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
-      if(!$X('id("userpanel")/a[contains(concat(" ",normalize-space(@href)," "), " /user/logout ")]', doc)[0]){
+      if (!$X('id("userpanel")/a[contains(concat(" ",normalize-space(@href)," "), " /user/logout ")]', doc)[0]) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       return $X('//input[@id="form_key"]/@value', doc)[0];
-    }).addCallback(function(token){
+    }).addCallback(function (token) {
       return request(url, {
         //denyRedirection: true,
         sendContent: {
@@ -1975,19 +1975,19 @@ Models.register({
   ICON : 'https://getpocket.com/favicon.ico',
   LINK : 'https://getpocket.com/',
   LOGIN_URL : 'https://getpocket.com/l',
-  check : function(ps){
+  check : function (ps) {
     return /quote|link/.test(ps.type);
   },
-  post : function(ps){
+  post : function (ps) {
     var that = this;
-    return this.checkLogin().addCallback(function(){
+    return this.checkLogin().addCallback(function () {
       return request(that.LINK + 'edit', {
         responseType : 'document',
         queryString : {
           tags  : ps.tags ? ps.tags.join(',') : '',
           url   : ps.itemUrl
         }
-      }).addCallback(function(res){
+      }).addCallback(function (res) {
         var doc = res.response;
         if (doc.body.classList.contains('page-login')) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -1995,9 +1995,9 @@ Models.register({
       });
     });
   },
-  checkLogin : function(){
+  checkLogin : function () {
     var that = this;
-    return getCookies('.getpocket.com', 'sess_user_id').addCallback(function(cookies){
+    return getCookies('.getpocket.com', 'sess_user_id').addCallback(function (cookies) {
       if (!cookies.length) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       }
@@ -2063,27 +2063,27 @@ Models.register({
   },
   lengthMap: {},
 
-  parse : function(ps){
+  parse : function (ps) {
     ps.appid = this.APP_ID;
     return request('http://jlp.yahooapis.jp/MAService/V1/parse', {
       charset     : 'application/xml; charset=utf-8',
       sendContent : ps
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       return res.responseXML;
     });
   },
 
-  getKanaReadings : function(str){
+  getKanaReadings : function (str) {
     return this.parse({
       sentence : str,
       response : 'reading'
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       return $X('descendant::reading/text()', res);
     });
   },
 
-  getRomaReadings : function(str){
-    return this.getKanaReadings(str).addCallback(function(rs){
+  getRomaReadings : function (str) {
+    return this.getKanaReadings(str).addCallback(function (rs) {
       return rs.join('\u0000').toRoma().split('\u0000');
     });
   },
@@ -2092,16 +2092,16 @@ Models.register({
   // tag取得専用なのでstrで返却しません
   // 同一の読み仮名に対して複数のpatternを許容する
   // 重たくなるかも? なる、なの :おまひま
-  getSparseTags : function(tags, str, delimiter){
-    if(!delimiter) delimiter = ' [';
+  getSparseTags : function (tags, str, delimiter) {
+    if (!delimiter) delimiter = ' [';
     var self = this;
-    return this.getKanaReadings(str).addCallback(function(rs){
+    return this.getKanaReadings(str).addCallback(function (rs) {
       var katakana = rs.join('').split(' [').join('\u0000').toKatakana();
       var katakanas = katakana.split('\u0000');
-      return zip(self.toSparseRomaReadings(katakana), tags).map(function(pair, index){
+      return zip(self.toSparseRomaReadings(katakana), tags).map(function (pair, index) {
         var reading = pair[0], tag = pair[1];
         // 再計算flagがたっているか. 分岐考慮型計算は時間食うのでできるだけしない.
-        if(~reading.indexOf('\u0001')){
+        if (~reading.indexOf('\u0001')) {
           var res = {
             readings: self.duplicateRomaReadings(katakanas[index]),
             value: tag
@@ -2117,25 +2117,25 @@ Models.register({
     });
   },
 
-  duplicateRomaReadings:function(s){
+  duplicateRomaReadings:function (s) {
     // 分岐件数依存で一定数(この場合20)以上になるようであれば打ち切る(Tombloo標準の優先文字を使う)
     // 分岐件数が「ジェジェジェジェジェジェジェジェジェジェジェ」などになると天文学的になるのに対する対応
     // abbreviation scorerが後になるほど評価対象として低いので, 結果に影響が出ない
     var stack = [];
     var count = 1;
-    for(var i = 0, roma, kana, table = this.katakana ; i < s.length ; i += kana.length){
+    for (var i = 0, roma, kana, table = this.katakana ; i < s.length ; i += kana.length) {
       kana = s.substring(i, i+2);
       roma = table[kana];
 
-      if(!roma){
+      if (!roma) {
         kana = s.substring(i, i+1);
         roma = table[kana] || kana;
       }
 
       var len = this.lengthMap[kana];
-      if(len){
+      if (len) {
         var r = count * len;
-        if(r > 20){
+        if (r > 20) {
           stack.push(roma[0]);
         } else {
           count=r;
@@ -2145,50 +2145,50 @@ Models.register({
         stack.push(roma);
       }
     }
-    return this.stackWalker(stack).map(function(l){ return l.join('') });
+    return this.stackWalker(stack).map(function (l) { return l.join('') });
   },
 
-  stackWalker: function(stack){
+  stackWalker: function (stack) {
     var res = [];
     var last_num = stack.length;
-    function walker(current, current_num){
+    function walker(current, current_num) {
       var next = current_num + 1;
       var elements = stack[current_num];
       var returnee = res[current_num];
-      if(Array.isArray(elements)){
-        for(var i = 0, len = elements.length; i < len; ++i){
+      if (Array.isArray(elements)) {
+        for (var i = 0, len = elements.length; i < len; ++i) {
           var element = elements[i];
           var d = $A(current);
           d.push(element);
           returnee.push(d);
-          if(next !== last_num)
+          if (next !== last_num)
             walker(d, next)
         }
       } else {
         // 一つしかないときはcloneする必要がない
         current.push(elements);
         returnee.push(current);
-        if(next !== last_num)
+        if (next !== last_num)
           walker(current, next)
       }
     }
-    for(var i = 0; i < last_num; ++i) res[i] = [];
+    for (var i = 0; i < last_num; ++i) res[i] = [];
     walker([], 0);
     return res[last_num-1];
   },
 
-  toSparseRomaReadings: function(s){
+  toSparseRomaReadings: function (s) {
     var res = [];
-    for(var i = 0, roma, kana, table = this.katakana, len = s.length; i < len; i += kana.length){
+    for (var i = 0, roma, kana, table = this.katakana, len = s.length; i < len; i += kana.length) {
       kana = s.substring(i, i+2);
       roma = table[kana];
 
-      if(!roma){
+      if (!roma) {
         kana = s.substring(i, i+1);
         roma = table[kana] || kana;
       }
 
-      if(kana in this.lengthMap){
+      if (kana in this.lengthMap) {
         roma = '\u0001';// contains flag
       }
 
@@ -2198,9 +2198,9 @@ Models.register({
   }
 
 });
-items(Models.Yahoo.katakana).forEach(function(pair){
+items(Models.Yahoo.katakana).forEach(function (pair) {
   var val = pair[1];
-  if(Array.isArray(val))
+  if (Array.isArray(val))
     Models.Yahoo.lengthMap[pair[0]] = val.length;
 });
 
@@ -2210,19 +2210,19 @@ Models.register({
   LINK : 'http://bookmarks.yahoo.co.jp/',
   LOGIN_URL : 'https://login.yahoo.co.jp/config/login?.src=bmk2',
 
-  check : function(ps){
+  check : function (ps) {
     return /photo|quote|link|conversation|video/.test(ps.type) && !ps.file;
   },
 
-  post : function(ps){
+  post : function (ps) {
     var self = this;
-    return request('http://bookmarks.yahoo.co.jp/action/post').addCallback(function(res){
-      if(res.responseText.indexOf('login_form')!=-1)
+    return request('http://bookmarks.yahoo.co.jp/action/post').addCallback(function (res) {
+      if (res.responseText.indexOf('login_form')!=-1)
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
       var doc = createHTML(res.responseText);
       return formContents($X('id("addbookmark")/descendant::div[contains(concat(" ",normalize-space(@class)," ")," bd ")]', doc)[0]);
-    }).addCallback(function(fs){
+    }).addCallback(function (fs) {
       return request('http://bookmarks.yahoo.co.jp/action/post/done', {
         //denyRedirection: true,
         sendContent  : {
@@ -2244,21 +2244,21 @@ Models.register({
    * @param {String} url 関連情報を取得する対象のページURL。
    * @return {Object}
    */
-  getSuggestions : function(url){
+  getSuggestions : function (url) {
     var self = this;
     return request('http://bookmarks.yahoo.co.jp/bookmarklet/showpopup', {
       queryString : {
         u : url
       }
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       var doc = createHTML(res.responseText);
-      if(!$X('id("bmtsave")', doc)[0])
+      if (!$X('id("bmtsave")', doc)[0])
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
 
-      function getTags(part){
+      function getTags(part) {
         try{
           return JSON.parse(unescapeHTML(res.responseText.extract(RegExp('^' + part + ' ?= ?(.+);$', 'm'), 1))) || [];
-        }catch(e){
+        }catch(e) {
           return [];
         }
       }
@@ -2266,7 +2266,7 @@ Models.register({
       return {
         duplicated : !!$X('//input[@name="docid"]', doc)[0],
         popular : getTags('rectags'),
-        tags : getTags('yourtags').map(function(tag){
+        tags : getTags('yourtags').map(function (tag) {
           return {
             name      : tag,
             frequency : -1
@@ -2283,20 +2283,20 @@ Models.register({
   LINK : 'https://gist.github.com/',
   LOGIN_URL : 'https://gist.github.com/login',
   URL  : 'https://gist.github.com/',
-  check: function(ps){
+  check: function (ps) {
     return /regular|quote/.test(ps.type);
   },
-  post : function(ps){
+  post : function (ps) {
     var self = this;
-    return request(this.URL, { responseType: 'document' }).addCallback(function(res){
+    return request(this.URL, { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
       var token = doc.querySelector('input[name="authenticity_token"]');
-      if(!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," header-logged-in ")]', doc)[0] && token)){
+      if (!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," header-logged-in ")]', doc)[0] && token)) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
       var form = formContents($X('descendant::form[@action="/gists"]', doc)[0]);
       var content;
-      switch(ps.type){
+      switch (ps.type) {
         case 'regular':
           content = ps.description;
           break;
@@ -2326,13 +2326,13 @@ Models.register({
 
   SHORTEN_SERVICE : 'bit.ly',
 
-  check : function(ps){
+  check : function (ps) {
     return (/(regular|photo|quote|link|video)/).test(ps.type) && !ps.file;
   },
 
-  getAuthCookie: function() {
+  getAuthCookie: function () {
     var that = this;
-    return getCookies('.naver.jp', 'NJID_AUT').addCallback(function(cookies) {
+    return getCookies('.naver.jp', 'NJID_AUT').addCallback(function (cookies) {
       if (cookies.length) {
         return cookies[cookies.length-1].value;
       } else {
@@ -2341,9 +2341,9 @@ Models.register({
     });
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
-    return this.getAuthCookie().addCallback(function(ok) {
+    return this.getAuthCookie().addCallback(function (ok) {
       var status = joinText([
           ps.description,
           ps.type === 'photo' ? ps.page : '',
@@ -2354,11 +2354,11 @@ Models.register({
     });
   },
 
-  update : function(status, ps) {
+  update : function (status, ps) {
     var self = this;
     return maybeDeferred(
       (status.length < 300 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
-    ).addCallback(function(status) {
+    ).addCallback(function (status) {
       var typeCode = 'T';
       var media = {};
       if (ps.type === 'photo') {
@@ -2398,19 +2398,19 @@ Models.register({
   LINK: 'https://www.diigo.com/',
   UPLOAD_URL: "http://www.diigo.com/item/save/image", // based on http://www.diigo.com/item/new/image?t=basic
 
-  check: function(ps) {
+  check: function (ps) {
     return /photo|quote|link|conversation|video/.test(ps.type);
   },
 
-  post: function(ps) {
-    if(ps.file) {
+  post: function (ps) {
+    if (ps.file) {
       return this.uploadImage(ps);
     } else {
       return this.addBookmark(ps.itemUrl, ps.item, ps.tags, joinText([ps.body, ps.description],' '),ps.private);
     }
   },
 
-  uploadImage: function(ps) {
+  uploadImage: function (ps) {
     return request(this.UPLOAD_URL, {
       sendContent: {
         file1       : ps.file,
@@ -2424,8 +2424,8 @@ Models.register({
     });
   },
 
-  addBookmark: function(url, title, tags, description, priv) {
-    return request('http://www.diigo.com/item/new/bookmark', { responseType: 'document' }).addCallback(function(res){
+  addBookmark: function (url, title, tags, description, priv) {
+    return request('http://www.diigo.com/item/new/bookmark', { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
       var element = doc.getElementById('newBookmarkForm');
       if (!element) {
@@ -2449,7 +2449,7 @@ Models.register({
 Models.register({
   name : 'Kawa',
 
-  getRomaReadings : function(text){
+  getRomaReadings : function (text) {
     return request('http://www.kawa.net/works/ajax/romanize/romanize.cgi', {
       queryString : {
         // mecab-utf8
@@ -2458,9 +2458,9 @@ Models.register({
         mode : 'japanese',
         q : text
       }
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       /*
-      return map(function(s){
+      return map(function (s) {
         return ''+s.@title || ''+s;
       }, createXML(res.responseText).li.span);
       */
@@ -2473,8 +2473,8 @@ Models.register({
   ICON : 'http://is.gd/favicon.ico',
   URL  : 'http://is.gd/',
 
-  shorten : function(url){
-    if(/\/\/is\.gd\//.test(url))
+  shorten : function (url) {
+    if (/\/\/is\.gd\//.test(url))
       return succeed(url);
 
     return request(this.URL + '/api.php', {
@@ -2482,15 +2482,15 @@ Models.register({
       queryString : {
         longurl : url
       }
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       return res.responseText;
     });
   },
 
-  expand : function(url){
+  expand : function (url) {
     return request(url, {
       //denyRedirection : true
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       return res.channel.URI.spec;
     });
   }
@@ -2504,29 +2504,29 @@ Models.register({
   USER    : 'to',
   VERSION : '3.0.0',
 
-  shorten : function(url){
+  shorten : function (url) {
     var self = this;
-    if(/\/\/(?:bit\.ly|j\.mp)/.test(url))
+    if (/\/\/(?:bit\.ly|j\.mp)/.test(url))
       return succeed(url);
 
     return this.callMethod('shorten', {
       longUrl : url
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       return res.url;
     });
   },
 
-  expand : function(url){
+  expand : function (url) {
     var hash = url.split('/').pop();
     return this.callMethod('expand', {
       hash : hash,
       shortUrl : url
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       return res['expand'][0].long_url;
     });
   },
 
-  callMethod : function(method, ps){
+  callMethod : function (method, ps) {
     var self = this;
     return request(this.URL + '/' + method, {
       queryString : update({
@@ -2534,9 +2534,9 @@ Models.register({
         apiKey  : this.API_KEY,
         format  : 'json'
       }, ps)
-    }).addCallback(function(res){
+    }).addCallback(function (res) {
       res = JSON.parse(res.responseText);
-      if(res.status_code !== 200){
+      if (res.status_code !== 200) {
         var error = new Error([res.status_code, res.status_txt].join(': '))
         error.detail = res;
         throw error;
@@ -2563,13 +2563,13 @@ Models.register({
 
   GLOBALS_REGEX : /<script\b[^>]*>(?:\/\/\s*<!\[CDATA\[)?\s*\bvar\s+GLOBALS\s*=\s*([[]+(?:(?:(?![\]]\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;)[\s\S])*)*[\]])\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;/i,
 
-  check: function(ps) {
+  check: function (ps) {
     return /regular|photo|quote|link|video/.test(ps.type);
   },
 
-  getAuthCookie: function() {
+  getAuthCookie: function () {
     var self = this;
-    return getCookies('.google.com', 'SSID').addCallback(function(cookies) {
+    return getCookies('.google.com', 'SSID').addCallback(function (cookies) {
       if (cookies.length) {
         return cookies[cookies.length-1].value;
       } else {
@@ -2578,9 +2578,9 @@ Models.register({
     });
   },
 
-  getGmailAt : function() {
+  getGmailAt : function () {
     var self = this;
-    return getCookies('mail.google.com', 'GMAIL_AT').addCallback(function(cookies) {
+    return getCookies('mail.google.com', 'GMAIL_AT').addCallback(function (cookies) {
       if (cookies.length) {
         return cookies[cookies.length-1].value;
       } else {
@@ -2589,23 +2589,23 @@ Models.register({
     });
   },
 
-  getGLOBALS : function() {
+  getGLOBALS : function () {
     var self = this;
-    return request(self.HOME_URL).addCallback(function(res) {
+    return request(self.HOME_URL).addCallback(function (res) {
       var GLOBALS = res.responseText.match(self.GLOBALS_REGEX)[1];
-      return Sandbox.evalJSON(GLOBALS).addCallback(function(json) {
+      return Sandbox.evalJSON(GLOBALS).addCallback(function (json) {
         return json;
       });
     });
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
     ps = update({}, ps);
-    return self.getAuthCookie().addCallback(function(cookie) {
-      return self.getGLOBALS().addCallback(function(GLOBALS) {
+    return self.getAuthCookie().addCallback(function (cookie) {
+      return self.getGLOBALS().addCallback(function (GLOBALS) {
         if (ps.type === 'photo') {
-          return self.download(ps).addCallback(function(file) {
+          return self.download(ps).addCallback(function (file) {
             ps.file = file;
             return self._post(GLOBALS, ps);
           });
@@ -2616,31 +2616,31 @@ Models.register({
     });
   },
 
-  now : Date.now || function() {
+  now : Date.now || function () {
     return +new Date;
   },
 
   SEQUENCE1 : 0,
 
-  getRid : function(GLOBALS) {
+  getRid : function (GLOBALS) {
     this.SEQUENCE1 += 2;
     return "mail:sd." + GLOBALS[28] + "." + this.SEQUENCE1 + ".0";
   },
 
-  getJsid : function() {
+  getJsid : function () {
     return Math.floor(2147483648 * Math.random()).toString(36)
       + Math.abs(Math.floor(2147483648 * Math.random()) ^ 1).toString(36)
   },
 
   SEQUENCE2 : 1,
 
-  getCmid : function() {
+  getCmid : function () {
     return this.SEQUENCE2++;
   },
 
   SEQUENCE3 : 0,
 
-  getReqid : function() {
+  getReqid : function () {
     var now = new Date;
     this.seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     return this.seconds + (this.SEQUENCE3++) * 1E5;
@@ -2648,26 +2648,26 @@ Models.register({
 
   SEQUENCE4 : 0,
 
-  getFileid : function() {
+  getFileid : function () {
     return "f_" + this.now().toString(36) + this.SEQUENCE4++;
   },
 
-  download : function(ps) {
+  download : function (ps) {
     var self = this;
     return (
       ps.file
         ? succeed(ps.file)
         : download(ps.itemUrl, getFileExtension(ps.itemUrl))
-          .addCallback(function(entry) {
+          .addCallback(function (entry) {
             return getFileFromEntry(entry);
           })
-          .addErrback(function(e) {
+          .addErrback(function (e) {
             throw new Error('Could not get an image file.');
           })
     );
   },
 
-  createContents : function(ps) {
+  createContents : function (ps) {
     var description = '';
     if (ps.description) {
       description += '<p>'
@@ -2685,12 +2685,12 @@ Models.register({
     return description;
   },
 
-  createRecipients : function(GLOBALS) {
+  createRecipients : function (GLOBALS) {
     var addr = GLOBALS[10].split('@');
     return '<' + addr[0] + '+taberareloo@' + addr[1] + '>, ';
   },
 
-  _post : function(GLOBALS, ps) {
+  _post : function (GLOBALS, ps) {
     var self = this;
 
     var content = self.createContents(ps);
@@ -2712,7 +2712,7 @@ Models.register({
       adc     : ''
     };
 
-    return self.getGmailAt().addCallback(function(at) {
+    return self.getGmailAt().addCallback(function (at) {
       var qs = {
         ui     : 2,
         ik     : GLOBALS[9],
@@ -2751,17 +2751,17 @@ var WebHook = {
 
   POST_URL  : null,
 
-  check : function(ps) {
+  check : function (ps) {
     return true;
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
     ps = update({}, ps);
     if (ps.type === 'photo') {
-      return self._download(ps).addCallback(function(file) {
+      return self._download(ps).addCallback(function (file) {
         ps.file = file;
-        return fileToBinaryString(file).addCallback(function(binary) {
+        return fileToBinaryString(file).addCallback(function (binary) {
           ps.file = window.btoa(binary);
           return self._post(ps);
         })
@@ -2771,7 +2771,7 @@ var WebHook = {
     }
   },
 
-  _post : function(ps) {
+  _post : function (ps) {
     var self = this;
 
     var sendContent = {
@@ -2790,13 +2790,13 @@ var WebHook = {
     });
   },
 
-  _download : function(ps) {
+  _download : function (ps) {
     var self = this;
     return (
       ps.file
         ? succeed(ps.file)
         : download(ps.itemUrl, getFileExtension(ps.itemUrl))
-          .addCallback(function(entry) {
+          .addCallback(function (entry) {
           return getFileFromEntry(entry);
         })
     );
@@ -2818,7 +2818,7 @@ Models.register({
 
   timer : null,
 
-  initialize : function() {
+  initialize : function () {
     var self = this;
 
     if (this.timer) {
@@ -2827,7 +2827,7 @@ Models.register({
     }
 
     var enable = false;
-    ['photo'].forEach(function(type) {
+    ['photo'].forEach(function (type) {
       var config = Models.getConfig({ type: type }, self);
       if ((config === 'default') || (config === 'enabled')) {
         enable = true;
@@ -2843,28 +2843,28 @@ Models.register({
     }
     catch (e) {}
 
-    this.timer = setTimeout(function() {
+    this.timer = setTimeout(function () {
       self.initialize();
     }, 60000);
   },
 
-  check : function(ps) {
+  check : function (ps) {
     return (/photo/).test(ps.type);
   },
 
   boards : null,
 
-  getBoards : function() {
+  getBoards : function () {
     return this.boards;
   },
 
-  _getBoards : function(check_login) {
+  _getBoards : function (check_login) {
     var self = this;
-    return request(this.BOOKMARK_URL, { responseType: 'document' }).addCallback(function(res) {
+    return request(this.BOOKMARK_URL, { responseType: 'document' }).addCallback(function (res) {
       var doc = res.response;
       var boards = [];
       // for old UI
-      $X('//div[@class="BoardList"]//ul/li', doc).forEach(function(li) {
+      $X('//div[@class="BoardList"]//ul/li', doc).forEach(function (li) {
         boards.push({
           id   : $X('./@data', li)[0],
           name : $X('./span/text()', li)[0].trim()
@@ -2872,7 +2872,7 @@ Models.register({
         self.is_new_api = false;
       });
       // for new UI
-      $X('//div[@class="boardPickerInner"]//ul/li[@class="boardPickerItem"]', doc).forEach(function(li) {
+      $X('//div[@class="boardPickerInner"]//ul/li[@class="boardPickerItem"]', doc).forEach(function (li) {
         boards.push({
           id   : $X('./@data-id', li)[0],
           name : $X('./text()', li).join("\n").trim()
@@ -2886,7 +2886,7 @@ Models.register({
         }
         return false;
       }
-      $X('//div[@class="boardPickerListItems"]/ul/li/div[@class="boardListItem"]', doc).forEach(function(li) {
+      $X('//div[@class="boardPickerListItems"]/ul/li/div[@class="boardListItem"]', doc).forEach(function (li) {
         var id = $X('./@data-id', li)[0];
         if (!inBoards(id)) {
           boards.push({
@@ -2903,9 +2903,9 @@ Models.register({
     });
   },
 
-  getCSRFToken : function() {
+  getCSRFToken : function () {
     var self = this;
-    return getCookies('.pinterest.com', 'csrftoken').addCallback(function(cookies) {
+    return getCookies('.pinterest.com', 'csrftoken').addCallback(function (cookies) {
       if (cookies.length) {
         return cookies[cookies.length-1].value;
       } else {
@@ -2914,13 +2914,13 @@ Models.register({
     });
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
     return (ps.pinboard
       ? succeed([{id : ps.pinboard}])
       : self._getBoards(true))
-    .addCallback(function(boards) {
-      return self.getCSRFToken().addCallback(function(csrftoken) {
+    .addCallback(function (boards) {
+      return self.getCSRFToken().addCallback(function (csrftoken) {
         return self.is_new_api
           ? self._post_2(ps, boards[0].id, csrftoken)
           : self._post(ps, boards[0].id, csrftoken);
@@ -2928,7 +2928,7 @@ Models.register({
     });
   },
 
-  _post : function(ps, board_id, csrftoken) {
+  _post : function (ps, board_id, csrftoken) {
     var self = this;
 
     var caption = self._make_caption(ps);
@@ -2953,7 +2953,7 @@ Models.register({
 
     return request(self.UPLOAD_URL, {
       sendContent : sendContent
-    }).addCallback(function(res) {
+    }).addCallback(function (res) {
       var json = JSON.parse(res.responseText);
       if (json && json.status && (json.status === 'fail')) {
         throw new Error(json.message);
@@ -2961,7 +2961,7 @@ Models.register({
     });
   },
 
-  _post_2 : function(ps, board_id, csrftoken) {
+  _post_2 : function (ps, board_id, csrftoken) {
     var self = this;
 
     var data = {
@@ -2981,7 +2981,7 @@ Models.register({
     return (ps.file
       ? self._upload(ps.file, data, csrftoken)
       : succeed(data)
-    ).addCallback(function(data) {
+    ).addCallback(function (data) {
       return request(self.POST_URL_2, {
         sendContent : {
           data : JSON.stringify(data)
@@ -2991,7 +2991,7 @@ Models.register({
           'X-NEW-APP'        : 1,
           'X-Requested-With' : 'XMLHttpRequest'
         }
-      }).addCallback(function(res) {
+      }).addCallback(function (res) {
         var json = JSON.parse(res.responseText);
         if (json && json.error) {
           throw new Error('Could not post an image');
@@ -3000,7 +3000,7 @@ Models.register({
     });
   },
 
-  _upload : function(file, data, csrftoken) {
+  _upload : function (file, data, csrftoken) {
     var self = this;
     return request(self.UPLOAD_URL_2 + '?' + queryString({
         img : file.name
@@ -3014,7 +3014,7 @@ Models.register({
         'X-File-Name'      : file.name,
         'X-Requested-With' : 'XMLHttpRequest'
       }
-    }).addCallback(function(res) {
+    }).addCallback(function (res) {
       var json = JSON.parse(res.responseText);
       if (json && !json.success) {
         throw new Error('Could not upload an image');
@@ -3026,7 +3026,7 @@ Models.register({
     });
   },
 
-  _make_caption : function(ps) {
+  _make_caption : function (ps) {
     var caption = '';
     if (ps.description || ps.body) {
       caption = joinText([
@@ -3060,28 +3060,28 @@ Models.register({
 
   POST_URL  : 'http://gyazo.com/upload.cgi',
 
-  check : function(ps) {
+  check : function (ps) {
     return (/photo/).test(ps.type);
   },
 
-  post : function(ps) {
+  post : function (ps) {
     ps = update({}, ps);
-    return this.upload(ps).addCallback(function(url) {
+    return this.upload(ps).addCallback(function (url) {
       if (url) {
         window.open(url, '');
       }
     });
   },
 
-  upload : function(ps) {
+  upload : function (ps) {
     var self = this;
-    return this._download(ps).addCallback(function(file) {
+    return this._download(ps).addCallback(function (file) {
       return request(self.POST_URL, {
         sendContent : {
           id        : window.localStorage.gyazo_id || '',
           imagedata : file
         }
-      }).addCallback(function(res) {
+      }).addCallback(function (res) {
         var gyazo_id = res.getResponseHeader('X-Gyazo-Id');
         if (gyazo_id) {
           window.localStorage.gyazo_id = gyazo_id;
@@ -3091,18 +3091,18 @@ Models.register({
     });
   },
 
-  _download : function(ps) {
+  _download : function (ps) {
     var self = this;
     return (
-      ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function(entry) {
+      ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function (entry) {
         return getFileFromEntry(entry);
       })
     );
   },
 
-  base64ToFileEntry : function(base64, type, ext) {
-    return createFileEntryFromBlob(base64ToBlob(base64, type), ext).addCallback(function(entry) {
-      return getFileFromEntry(entry).addCallback(function(file) {
+  base64ToFileEntry : function (base64, type, ext) {
+    return createFileEntryFromBlob(base64ToBlob(base64, type), ext).addCallback(function (entry) {
+      return getFileFromEntry(entry).addCallback(function (file) {
         return file;
       });
     });
@@ -3115,11 +3115,11 @@ Models.register({
   LINK      : 'https://mixi.jp/',
   URL       : 'http://mixi.jp/',
 
-  check : function(ps) {
+  check : function (ps) {
     return /link/.test(ps.type);
   },
 
-  post : function(ps) {
+  post : function (ps) {
     var self = this;
     var checkKey = '5e4317cedfc5858733a2740d1f59ab4088e370a7';
     return request(
@@ -3127,7 +3127,7 @@ Models.register({
         k : checkKey,
         u : ps.pageUrl
       })
-    ).addCallback(function(res) {
+    ).addCallback(function (res) {
       if (res.responseText.indexOf('share_form') < 0) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       }
@@ -3162,16 +3162,16 @@ Models.register({
   }
 });
 
-function shortenUrls(text, model){
+function shortenUrls(text, model) {
   var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
-  if(!reUrl.test(text))
+  if (!reUrl.test(text))
     return maybeDeferred(text);
 
   var urls = text.match(reUrl);
-  return gatherResults(urls.map(function(url){
+  return gatherResults(urls.map(function (url) {
     return model.shorten(url);
-  })).addCallback(function(ress){
-    zip(urls, ress).forEach(function(pair){
+  })).addCallback(function (ress) {
+    zip(urls, ress).forEach(function (pair) {
       var url = pair[0], res = pair[1];
       text = text.replace(url, res);
     });
@@ -3182,22 +3182,22 @@ function shortenUrls(text, model){
 
 Models.copyTo(this);
 
-Models.check = function(ps) {
-  return this.values.filter(function(m) {
+Models.check = function (ps) {
+  return this.values.filter(function (m) {
     return (ps.favorite && ps.favorite.name === (m.typeName || m.name)) || (m.check && m.check(ps));
   });
 };
 
-Models.getDefaults = function(ps) {
+Models.getDefaults = function (ps) {
   var config = TBRL.Config['services'];
-  return this.check(ps).filter(function(m) {
+  return this.check(ps).filter(function (m) {
     return Models.getPostConfig(config, m.name, ps, m) === 'default';
   });
 };
 
-Models.getEnables = function(ps) {
+Models.getEnables = function (ps) {
   var config = TBRL.Config['services'];
-  return this.check(ps).filter(function(m) {
+  return this.check(ps).filter(function (m) {
     m.config = (m.config || {});
 
     var val = m.config[ps.type] = Models.getPostConfig(config, m.name, ps, m);
@@ -3205,7 +3205,7 @@ Models.getEnables = function(ps) {
   });
 };
 
-Models.getConfig = function(ps, poster) {
+Models.getConfig = function (ps, poster) {
   var c  = Models.getPostConfig(TBRL.Config['services'], poster.name, ps, poster);
   if (c === 'default') {
     return 'default';
@@ -3216,31 +3216,31 @@ Models.getConfig = function(ps, poster) {
   }
 };
 
-Models.getConfigObject = function(config, name) {
+Models.getConfigObject = function (config, name) {
   return config[name] || {};
 };
 
-Models.getPostConfig = function(config, name, ps, model) {
+Models.getPostConfig = function (config, name, ps, model) {
   var c = Models.getConfigObject(config, name);
   return (ps.favorite && ps.favorite.name === (model.typeName || name))? c.favorite : c[ps.type];
 };
 
 Models.multipleTumblelogs = [];
-Models.getMultiTumblelogs = function(throwError) {
+Models.getMultiTumblelogs = function (throwError) {
   Models.removeMultiTumblelogs();
-  return Tumblr.getTumblelogs().addCallback(function(blogs) {
-    return blogs.map(function(blog) {
+  return Tumblr.getTumblelogs().addCallback(function (blogs) {
+    return blogs.map(function (blog) {
       var model = update({}, Tumblr);
       model.name = 'Tumblr - ' + blog.name;
       model.typeName = 'Tumblr';
-      addBefore(model, 'appendTags', function(form, ps){
+      addBefore(model, 'appendTags', function (form, ps) {
         form.channel_id = blog.id;
       });
       Models.register(model, 'Tumblr', true);
       Models.multipleTumblelogs.push(model);
       return model;
     });
-  }).addErrback(function(e) {
+  }).addErrback(function (e) {
     if (throwError && !(Tumblr.form_key && Tumblr.channel_id)) {
       throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
     }
@@ -3250,8 +3250,8 @@ Models.getMultiTumblelogs = function(throwError) {
   });
 };
 
-Models.removeMultiTumblelogs = function() {
-  Models.multipleTumblelogs.forEach(function(model) {
+Models.removeMultiTumblelogs = function () {
+  Models.multipleTumblelogs.forEach(function (model) {
     Models.remove(model);
   });
   Models.multipleTumblelogs = [];
@@ -3259,10 +3259,10 @@ Models.removeMultiTumblelogs = function() {
 
 // HatenaBlog
 Models.hatenaBlogs = [];
-Models.getHatenaBlogs = function() {
+Models.getHatenaBlogs = function () {
   Models.removeHatenaBlogs();
-  return Models.HatenaBlog.getBlogs().addCallback(function(blogs) {
-    return blogs.map(function(blog) {
+  return Models.HatenaBlog.getBlogs().addCallback(function (blogs) {
+    return blogs.map(function (blog) {
       // blog is {url, title, admin_url, icon_url}
       var model = update({}, Models.HatenaBlog);
       model.check = model._check;
@@ -3275,13 +3275,13 @@ Models.getHatenaBlogs = function() {
       Models.hatenaBlogs.push(model);
       return model;
     });
-  }).addErrback(function(e) {
+  }).addErrback(function (e) {
     alert('HatenaBlog: ' +
       (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
   });
 };
-Models.removeHatenaBlogs = function() {
-  Models.hatenaBlogs.forEach(function(model) {
+Models.removeHatenaBlogs = function () {
+  Models.hatenaBlogs.forEach(function (model) {
     Models.remove(model);
   });
   Models.hatenaBlogs = [];
@@ -3289,15 +3289,15 @@ Models.removeHatenaBlogs = function() {
 
 // WebHook
 Models.WebHooks = [];
-Models.addWebHooks = function() {
+Models.addWebHooks = function () {
   Models.removeWebHooks();
   var webhook = update({}, WebHook);
   webhook.POST_URL = TBRL.Config['post']['webhook_url'];
   Models.register(webhook);
   Models.WebHooks.push(webhook);
 };
-Models.removeWebHooks = function() {
-  Models.WebHooks.forEach(function(model) {
+Models.removeWebHooks = function () {
+  Models.WebHooks.forEach(function (model) {
     Models.remove(model);
   });
   Models.WebHooks = [];
