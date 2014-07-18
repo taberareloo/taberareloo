@@ -2899,7 +2899,8 @@
         if (check_login && !boards.length) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
-        return self.boards = boards;
+        self.boards = boards;
+        return boards;
       });
     },
 
@@ -2907,7 +2908,7 @@
       var self = this;
       return getCookies('.pinterest.com', 'csrftoken').addCallback(function (cookies) {
         if (cookies.length) {
-          return cookies[cookies.length-1].value;
+          return cookies[cookies.length - 1].value;
         } else {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
@@ -2916,14 +2917,10 @@
 
     post : function (ps) {
       var self = this;
-      return (ps.pinboard
-        ? succeed([{id : ps.pinboard}])
-        : self._getBoards(true))
-      .addCallback(function (boards) {
+      return (ps.pinboard ? succeed([{id : ps.pinboard}]) : self._getBoards(true)).addCallback(function (boards) {
         return self.getCSRFToken().addCallback(function (csrftoken) {
-          return self.is_new_api
-            ? self._post_2(ps, boards[0].id, csrftoken)
-            : self._post(ps, boards[0].id, csrftoken);
+          return self.is_new_api ?
+            self._post_2(ps, boards[0].id, csrftoken) : self._post(ps, boards[0].id, csrftoken);
         });
       });
     },
@@ -2978,10 +2975,7 @@
         }
       };
 
-      return (ps.file
-        ? self._upload(ps.file, data, csrftoken)
-        : succeed(data)
-      ).addCallback(function (data) {
+      return (ps.file ? self._upload(ps.file, data, csrftoken) : succeed(data)).addCallback(function (data) {
         return request(self.POST_URL_2, {
           sendContent : {
             data : JSON.stringify(data)
@@ -3002,10 +2996,7 @@
 
     _upload : function (file, data, csrftoken) {
       var self = this;
-      return request(self.UPLOAD_URL_2 + '?' + queryString({
-          img : file.name
-        }),
-        {
+      return request(self.UPLOAD_URL_2 + '?' + queryString({ img : file.name }), {
         sendContent : {
           img : file
         },
@@ -3032,7 +3023,7 @@
         caption = joinText([
           ps.description,
           (ps.body) ? '“' + ps.body + '”' : ''
-        ], "\n\n", true);
+        ], '\n\n', true);
       } else {
         caption = ps.item || ps.page;
       }
@@ -3045,7 +3036,7 @@
         caption = joinText([
           caption,
           '(via ' + ps.pageUrl + ' )'
-        ], "\n\n", true);
+        ], '\n\n', true);
       }
 
       return caption;
@@ -3115,18 +3106,16 @@
     URL       : 'http://mixi.jp/',
 
     check : function (ps) {
-      return /link/.test(ps.type);
+      return (/link/).test(ps.type);
     },
 
     post : function (ps) {
       var self = this;
       var checkKey = '5e4317cedfc5858733a2740d1f59ab4088e370a7';
-      return request(
-        self.URL + 'share.pl?' + queryString({
-          k : checkKey,
-          u : ps.pageUrl
-        })
-      ).addCallback(function (res) {
+      return request(self.URL + 'share.pl?' + queryString({
+        k : checkKey,
+        u : ps.pageUrl
+      })).addCallback(function (res) {
         if (res.responseText.indexOf('share_form') < 0) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
@@ -3163,8 +3152,9 @@
 
   function shortenUrls(text, model) {
     var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
-    if (!reUrl.test(text))
+    if (!reUrl.test(text)) {
       return maybeDeferred(text);
+    }
 
     var urls = text.match(reUrl);
     return gatherResults(urls.map(function (url) {
@@ -3221,7 +3211,7 @@
 
   Models.getPostConfig = function (config, name, ps, model) {
     var c = Models.getConfigObject(config, name);
-    return (ps.favorite && ps.favorite.name === (model.typeName || name))? c.favorite : c[ps.type];
+    return (ps.favorite && ps.favorite.name === (model.typeName || name)) ? c.favorite : c[ps.type];
   };
 
   Models.multipleTumblelogs = [];
@@ -3244,7 +3234,7 @@
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
       }
 
-      alert('Multiple Tumblelog'+ ': ' +
+      alert('Multiple Tumblelog' + ': ' +
         (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
     });
   };
