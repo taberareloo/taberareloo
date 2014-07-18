@@ -1,7 +1,6 @@
 // -*- coding: utf-8 -*-
 /*jshint loopfunc:true*/
-/*global operator:true, methodcaller:true, MochiKit:true*/
-/*global zip:true, isArrayLike:true*/
+/*global MochiKit:true*/
 /*global TBRL:true, chrome:true, url:true*/
 (function (exports) {
   'use strict';
@@ -52,6 +51,10 @@
   }
 
   exports.createXML = createXML;
+
+  function ObjectToString(obj) {
+    return Object.prototype.toString.call(obj);
+  }
 
   // http://gist.github.com/184276
   // a little modified
@@ -144,8 +147,8 @@
     if (!delm) {
       delm = ',';
     }
-    txts = [].concat(txts).filter(operator.truth).flatten();
-    return (trimTag ? txts.map(methodcaller('trimTag')) : txts).join(delm);
+    txts = [].concat(txts).filter(function (elm) { return !!elm; }).flatten();
+    return (trimTag ? txts.map(function (txt) { return txt.trimTag(); }) : txts).join(delm);
   }
 
   exports.joinText = joinText;
@@ -421,6 +424,24 @@
 
   exports.update = update;
 
+  function arrayZip() {
+    var args = $A(arguments);
+    var results = [];
+    for (var i = 0, iz = args[0].length; i < iz; ++i) {
+      var tuple = [];
+      for (var j = 0, jz = args.length; j < jz; ++j) {
+        if (i >= args[j].length) {
+          return results;
+        }
+        tuple.push(args[j][i]);
+      }
+      results.push(tuple);
+    }
+    return results;
+  }
+
+  exports.arrayZip = arrayZip;
+
   function formContents(elm, nomultiple) {
     if (typeof(elm) === 'string') {
       elm = createHTML(elm);
@@ -428,7 +449,7 @@
     if (elm.nodeType === Node.DOCUMENT_NODE) {
       elm = elm.body;
     }
-    return zip.apply(null, MochiKit.DOM.formContents(elm)).reduce(function (ret, pair) {
+    return arrayZip.apply(null, MochiKit.DOM.formContents(elm)).reduce(function (ret, pair) {
       var name = pair[0];
       var val = pair[1];
       if (ret[name]) {
@@ -548,7 +569,7 @@
       ret.appendChild(document.createTextNode(childs));
       break;
     case 'object':
-      if (isArrayLike(childs)) {
+      if (Array.isArray(childs) || ObjectToString(childs) === '[object Arguments]') {
         for (var i = 0, len = childs.length; i < len; i++) {
           var child = childs[i];
           if (typeof child === 'string') {

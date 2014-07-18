@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 /*global CommandQueue:true, defer:true, promiseAllHash:true*/
-/*global TBRL:true, update:true, addBefore:true, zip:true*/
+/*global TBRL:true, update:true, addBefore:true*/
 /*global request:true, createHTML:true, chrome:true, queryString:true, getFileFromEntry:true */
 /*global base64ToBlob:true, createFileEntryFromBlob:true, download:true*/
 /*global joinText:true, getCookies:true, $X:true, getFileExtension:true, getFlavor:true*/
@@ -2124,7 +2124,7 @@
       return this.getKanaReadings(str).then(function (rs) {
         var katakana = rs.join('').split(' [').join('\u0000').toKatakana();
         var katakanas = katakana.split('\u0000');
-        return zip(self.toSparseRomaReadings(katakana), tags).map(function (pair, index) {
+        return arrayZip(self.toSparseRomaReadings(katakana), tags).map(function (pair, index) {
           var reading = pair[0], tag = pair[1];
           // 再計算flagがたっているか. 分岐考慮型計算は時間食うのでできるだけしない.
           if (~reading.indexOf('\u0001')) {
@@ -3183,7 +3183,7 @@
     return Promise.all(urls.map(function (url) {
       return model.shorten(url);
     })).then(function (ress) {
-      zip(urls, ress).forEach(function (pair) {
+      arrayZip(urls, ress).forEach(function (pair) {
         var url = pair[0], res = pair[1];
         text = text.replace(url, res);
       });
