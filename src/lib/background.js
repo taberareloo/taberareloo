@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
-/*global chrome:true, callLater:true, getFileFromEntry:true, Models:true*/
-/*global succeed:true, fail:true, DeferredHash:true, queryString:true*/
+/*global chrome:true, getFileFromEntry:true, Models:true*/
+/*global queryString:true, delay:true, errorInformedPromiseAllHash:true*/
 /*global createFileEntryFromBlob:true, base64ToBlob:true, getURLFromFile:true, Notification:true*/
-/*global download:true, Tumblr:true, Patches:true, Deferred:true, request:true*/
+/*global download:true, Tumblr:true, Patches:true, request:true*/
 (function (exports) {
   'use strict';
 
@@ -27,7 +27,7 @@
     chrome.runtime.sendMessage(CHROME_KEYCONFIG, action, function () {
       REGISTER.CHROME_KEYCONFIG = true;
     });
-    callLater(10, function () {
+    delay(10).then(function () {
       // ダメ押しのもう一回
       if (!REGISTER.CHROME_GESTURES) {
         chrome.runtime.sendMessage(CHROME_GESTURES, action, function () {
@@ -51,7 +51,7 @@
         return content;
       });
     } else {
-      return succeed(content);
+      return Promise.resolve(content);
     }
   }
 
@@ -118,19 +118,19 @@
         posters = [].concat(posters);
         posters.forEach(function (p) {
           ds[p.name] = (TBRL.Config.post.notification_on_posting ?
-            TBRL.Notification.notify({title: p.name, message: 'Posting...'}) : succeed(null)
+            TBRL.Notification.notify({title: p.name, message: 'Posting...'}) : Promise.resolve(null)
           ).then(function (notification) {
-            var deferred;
+            var promise;
 
             models[p.name] = p;
             try {
-              deferred = (ps.favorite && new RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ? p.favor(ps) : p.post(ps);
+              promise = (ps.favorite && new RegExp('^' + ps.favorite.name + '(\\s|$)').test(p.name)) ? p.favor(ps) : p.post(ps);
             } catch (e) {
-              deferred = fail(e);
+              promise = Promise.reject(e);
             }
 
             if (notification) {
-              deferred.then(
+              promise.then(
                 function (res) {
                   TBRL.Notification.notify({
                     title: p.name,
@@ -161,10 +161,12 @@
               );
             }
 
-            return deferred;
+            return promise;
           });
         });
-        return new DeferredHash(ds).then(function (ress) {
+
+        // Posting core routine.
+        return errorInformedPromiseAllHash(ds).then(function (ress) {
           var errs = [], urls = [];
           for (var name in ress) {
             var success = ress[name][0], res = ress[name][1];
@@ -179,7 +181,7 @@
           }
 
           if (TBRL.Config.post.notification_on_posting) {
-            callLater(0.5, function () {
+            delay(0.5).then(function () {
               notifications.forEach(function (notification) {
                 try {
                   notification.close();
@@ -305,39 +307,39 @@
         var onclose = opt.onclose || null;
 
         if (chrome.notifications) {
-          var deferred = new Deferred();
-          chrome.notifications.create(opt.id || '', {
-            type     : opt.image ? 'image' : 'basic',
-            title    : title,
-            message  : message,
-            iconUrl  : icon,
-            imageUrl : opt.image || null
-          }, function (id) {
-            var notification = {
-              tag   : id,
-              close : function () {
-                chrome.notifications.clear(id, function (wasCleared) {
-                  delete TBRL.Notification.contents[id];
-                });
+          return new Promise(function (resolve) {
+            chrome.notifications.create(opt.id || '', {
+              type     : opt.image ? 'image' : 'basic',
+              title    : title,
+              message  : message,
+              iconUrl  : icon,
+              imageUrl : opt.image || null
+            }, function (id) {
+              var notification = {
+                tag   : id,
+                close : function () {
+                  chrome.notifications.clear(id, function (wasCleared) {
+                    delete TBRL.Notification.contents[id];
+                  });
+                }
+              };
+              if (timeout !== null) {
+                setTimeout(function () {
+                  chrome.notifications.clear(id, function (wasCleared) {
+                    delete TBRL.Notification.contents[id];
+                  });
+                }, timeout);
               }
-            };
-            if (timeout !== null) {
-              setTimeout(function () {
-                chrome.notifications.clear(id, function (wasCleared) {
-                  delete TBRL.Notification.contents[id];
-                });
-              }, timeout);
-            }
-            if (onclick) {
-              notification.onclick = onclick;
-            }
-            if (onclose) {
-              notification.onclose = onclose;
-            }
-            TBRL.Notification.contents[id] = notification;
-            deferred.callback(notification);
+              if (onclick) {
+                notification.onclick = onclick;
+              }
+              if (onclose) {
+                notification.onclose = onclose;
+              }
+              TBRL.Notification.contents[id] = notification;
+              resolve(notification);
+            });
           });
-          return deferred;
         }
 
         try {
@@ -359,9 +361,9 @@
           if (onclose) {
             notification.onclose = onclose;
           }
-          return succeed(notification);
+          return Promise.resolve(notification);
         } catch (e) {
-          return succeed(null);
+          return Promise.resolve(null);
         }
       }
     },
@@ -459,7 +461,7 @@
 
   var onRequestsHandlers = {
     capture: function (req, sender, func) {
-      callLater(0.5, function () {
+      delay(0.5).then(function () {
         chrome.tabs.captureVisibleTab(sender.tab.windowId, { format : 'png' }, function (data) {
           func(data);
         });
@@ -582,7 +584,7 @@
    * URLのリダイレクト先を取得する
    *
    * @param {String} url
-   * @return {Deferred} リダイレクト先のURLが返される リダイレイクトしない場合はもとのURL
+   * @return {Promise} リダイレクト先のURLが返される リダイレイクトしない場合はもとのURL
    */
   exports.getFinalUrl = (function () {
     if (!chrome.webRequest) {
@@ -604,35 +606,32 @@
 
     // 暇そうなときにキャッシュ削除
     // 10 minutes
-    callLater(60 * 10, function () {
+    delay(60 * 10).then(function () {
       if (threads === 0) {
         redirects = {};
       }
     });
 
     return function getFinalUrl(url) {
-      var ret = new Deferred();
-
-      // キャッシュにあればすぐに返す
-      if (redirects[url]) {
-        callLater(0, function () {
-          ret.callback(redirects[url]);
-        });
-        return ret;
-      }
-
-      // URLにリクエスト送って調べる
-      function handler() {
-        threads--;
+      return new Promise(function (resolve) {
+        // キャッシュにあればすぐに返す
         if (redirects[url]) {
-          ret.callback(redirects[url]);
-        } else {
-          ret.callback(url);
+          resolve(redirects[url]);
+          return;
         }
-      }
-      threads++;
-      request(url, { method: 'HEAD' }).then(handler, handler);
-      return ret;
+
+        // URLにリクエスト送って調べる
+        function handler() {
+          threads--;
+          if (redirects[url]) {
+            resolve(redirects[url]);
+          } else {
+            resolve(url);
+          }
+        }
+        threads++;
+        request(url, { method: 'HEAD' }).then(handler, handler);
+      });
     };
   })();
 
@@ -647,21 +646,22 @@
     },
 
     evalJSON : function (str) {
-      var ret = new Deferred();
-      var seq = this.sequence++;
-      var messageHandler = function (res) {
-        if (res.data.seq === seq) {
-          window.removeEventListener('message', messageHandler);
-          ret.callback(res.data.json);
-        }
-      };
-      window.addEventListener('message', messageHandler, false);
-      this.sandbox.contentWindow.postMessage({
-        action : 'evalJSON',
-        seq    : seq,
-        value  : str
-      }, '*');
-      return ret;
+      var that = this;
+      return new Promise(function (resolve) {
+        var seq = that.sequence++;
+        var messageHandler = function (res) {
+          if (res.data.seq === seq) {
+            window.removeEventListener('message', messageHandler);
+            resolve(res.data.json);
+          }
+        };
+        window.addEventListener('message', messageHandler, false);
+        that.sandbox.contentWindow.postMessage({
+          action : 'evalJSON',
+          seq    : seq,
+          value  : str
+        }, '*');
+      });
     }
   };
   Sandbox.initailize();

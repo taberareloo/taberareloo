@@ -1,13 +1,13 @@
 // -*- coding: utf-8 -*-
-/*global CommandQueue:true*/
-/*global TBRL:true, update:true, addBefore:true, zip:true, gatherResults:true, maybeDeferred:true*/
+/*global CommandQueue:true, defer:true, promiseAllHash:true*/
+/*global TBRL:true, update:true, addBefore:true, zip:true*/
 /*global request:true, createHTML:true, chrome:true, queryString:true, getFileFromEntry:true */
-/*global base64ToBlob:true, createFileEntryFromBlob:true, download:true, succeed:true*/
+/*global base64ToBlob:true, createFileEntryFromBlob:true, download:true*/
 /*global joinText:true, getCookies:true, $X:true, getFileExtension:true, getFlavor:true*/
 /*global fileToBinaryString:true, Sandbox:true, formContents:true, unescapeHTML:true*/
 /*global items:true, $A:true, map:true, templateExtract:true, convertToHTMLString:true*/
-/*global Deferred:true, DeferredHash:true, methodcaller:true, escape:true, SparkMD5:true*/
-/*global escapeHTML:true, getURLFromFile:true, fail:true, fileToDataURL:true, isJSON:true*/
+/*global methodcaller:true, escape:true, SparkMD5:true*/
+/*global escapeHTML:true, getURLFromFile:true, fileToDataURL:true, isJSON:true*/
 /*global Repository:true, cutBase64Header:true, fileToPNGDataURL:true, getFinalUrl:true*/
 (function (exports) {
   'use strict';
@@ -29,7 +29,7 @@
      * ポストを削除する。
      *
      * @param {Number || String} id ポストID。
-     * @return {Deferred}
+     * @return {Promise}
      */
     remove : function (id) {
       return this.getToken().then(function (token) {
@@ -49,7 +49,7 @@
      * reblog情報を取り除く。
      *
      * @param {Array} form reblogフォーム。
-     * @return {Deferred}
+     * @return {Promise}
      */
     trimReblogInfo : function (form) {
       if (!TBRL.Config['entry']['trim_reblog_info']) {
@@ -116,7 +116,7 @@
      * 新規エントリーをポストする。
      *
      * @param {Object} ps
-     * @return {Deferred}
+     * @return {Promise}
      */
     post : function (ps) {
       var self = this;
@@ -186,7 +186,7 @@
      * reblogおよび新規エントリーのどちらでも利用できる。
      *
      * @param {Object} url フォームURL。
-     * @return {Deferred}
+     * @return {Promise}
      */
     getForm : function (url) {
       var form = {
@@ -210,7 +210,7 @@
       var that = this;
 
       if (form.form_key && form.channel_id) {
-        return succeed(form);
+        return Promise.resolve(form);
       }
 
       if (TBRL.Config.post.multi_tumblelogs) {
@@ -239,7 +239,7 @@
      * フォームへタグとプライベートを追加する。
      *
      * @param {Object} url フォームURL。
-     * @return {Deferred}
+     * @return {Promise}
      */
     appendTags : function (form, ps) {
       form['post[state]'] = (ps.private) ? 'private' : '0';
@@ -278,7 +278,7 @@
      * Tombloo.Service.extractors.ReBlogの各抽出メソッドを使いreblog情報を抽出できる。
      *
      * @param {Object} ps
-     * @return {Deferred}
+     * @return {Promise}
      */
     favor : function (ps) {
       // メモをreblogフォームの適切なフィールドの末尾に追加する
@@ -313,11 +313,11 @@
      * 新規エントリーとreblogのエラー処理をまとめる。
      *
      * @param {Function} fn
-     * @return {Deferred}
+     * @return {Promise}
      */
     postForm : function (fn) {
       var self = this;
-      return succeed().then(fn).then(function (res) {
+      return defer().then(fn).then(function (res) {
         if (self.retry) {
           self.retry = false;
         }
@@ -358,7 +358,7 @@
      * ポストや削除に使われるトークン(form_key)を取得する。
      * 結果はキャッシュされ、再ログインまで再取得は行われない。
      *
-     * @return {Deferred} トークン(form_key)が返される。
+     * @return {Promise} トークン(form_key)が返される。
      */
     getToken : function () {
       var self = this;
@@ -401,7 +401,7 @@
 
   Tumblr.Regular = {
     convertToForm : function (ps) {
-      return succeed({
+      return Promise.resolve({
         'post[type]' : ps.type,
         'post[one]'  : ps.item,
         'post[two]'  : joinText([getFlavor(ps, 'html'), ps.description], '\n\n')
@@ -412,7 +412,7 @@
   Tumblr.Photo = {
     convertToForm : function (ps) {
       // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
-      return (ps.itemUrl ? getFinalUrl(ps.itemUrl) : succeed(null)).then(function (finalUrl) {
+      return (ps.itemUrl ? getFinalUrl(ps.itemUrl) : Promise.resolve(null)).then(function (finalUrl) {
         var form = {
           'post[type]'  : ps.type,
           'post[two]'   : joinText([
@@ -433,7 +433,7 @@
 
   Tumblr.Video = {
     convertToForm : function (ps) {
-      return succeed({
+      return Promise.resolve({
         'post[type]' : ps.type,
         'post[one]'  : getFlavor(ps, 'html') || ps.itemUrl,
         'post[two]'  : joinText([
@@ -450,7 +450,7 @@
       if (ps.pageUrl) {
         thumb = TBRL.Config['entry']['thumbnail_template'].replace(new RegExp('{url}', 'g'), ps.pageUrl);
       }
-      return succeed({
+      return Promise.resolve({
         'post[type]'  : ps.type,
         'post[one]'   : ps.item,
         'post[two]'   : ps.itemUrl,
@@ -461,7 +461,7 @@
 
   Tumblr.Conversation = {
     convertToForm : function (ps) {
-      return succeed({
+      return Promise.resolve({
         'post[type]' : ps.type,
         'post[one]'  : ps.item,
         'post[two]'  : joinText([getFlavor(ps, 'html'), ps.description], '\n\n')
@@ -471,7 +471,7 @@
 
   Tumblr.Quote = {
     convertToForm : function (ps) {
-      return succeed({
+      return Promise.resolve({
         'post[type]' : ps.type,
         'post[one]'  : getFlavor(ps, 'html'),
         'post[two]'  : joinText([(ps.item? ps.item.link(ps.pageUrl) : ''), ps.description], '\n\n')
@@ -489,7 +489,7 @@
       if (ps.itemUrl) {
         res['post[three]'] = ps.itemUrl;
       }
-      return succeed(res);
+      return Promise.resolve(res);
     }
   };
 
@@ -640,20 +640,20 @@
     },
 
     download : function (url) {
-      var deferred = new Deferred();
-      chrome.downloads.download({url : url}, function (id) {
-        if (id) {
-          return deferred.callback();
-        } else {
-          return deferred.errback(chrome.runtime.lastError.message);
-        }
+      return new Promise(function (resolve, reject) {
+        chrome.downloads.download({url : url}, function (id) {
+          if (id) {
+            return resolve();
+          } else {
+            return reject(chrome.runtime.lastError.message);
+          }
+        });
       });
-      return deferred;
     },
 
     getDataURL : function (ps) {
       if (!ps.file) {
-        succeed(ps.itemUrl);
+        Promise.resolve(ps.itemUrl);
       }
       return fileToDataURL(ps.file).then(function (url) { return url; });
     },
@@ -663,7 +663,7 @@
       post : function (ps, url) {
         var that = this;
         if (!/^(?:http|data)/.test(url)) {
-          return fail('ps.itemUrl is not URL');
+          return Promise.reject('ps.itemUrl is not URL');
         }
 
         // Now, latest version of Chromium, background and chrome url pages cannot download images.
@@ -744,7 +744,7 @@
             ok(tabs[0]);
           }
         });
-        return succeed();
+        return Promise.resolve();
       }
     }
   });
@@ -756,7 +756,7 @@
 
     getToken : function () {
       if (this.data) {
-        return succeed(this.data);
+        return Promise.resolve(this.data);
       } else {
         var that = this;
         return request(this.JSON).then(function (res) {
@@ -801,7 +801,7 @@
 
     post : function (ps) {
       var that = this;
-      return (ps.file ? succeed(ps.file) : download(ps.itemUrl).then(function (entry) {
+      return (ps.file ? Promise.resolve(ps.file) : download(ps.itemUrl).then(function (entry) {
         return getFileFromEntry(entry);
       })).then(function (file) {
         return fileToPNGDataURL(file).then(function (container) {
@@ -901,19 +901,18 @@
     getSuggestions : function (url) {
       var that = this;
       return this.getToken().then(function (set) {
-        return new DeferredHash({
+        return promiseAllHash({
           tags: that.getUserTags(set['name']),
           data: that.getURLData(url)
-        });
-      }).then(function (resses) {
-        if (!resses['tags'][0] || !resses['data'][0]) {
+        }).catch(function () {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-        }
-        var data = resses['data'][1];
+        });
+      }).then(function (table) {
+        var data = table['data'];
         return {
           duplicated : !!data['bookmarked_data'],
           recommended : data['recommend_tags'],
-          tags : resses['tags'][1]
+          tags : table['tags']
         };
       });
     },
@@ -922,7 +921,7 @@
       var that = this;
       var tags = that.tags;
       if (tags) {
-        return succeed(tags);
+        return Promise.resolve(tags);
       } else {
         return request('http://b.hatena.ne.jp/' + user + '/tags.json').then(function (res) {
           try{
@@ -997,7 +996,7 @@
     getApiKey : function () {
       var model = Models.HatenaBlog;
       if (model.token) {
-        return succeed(model.token);
+        return Promise.resolve(model.token);
       } else {
         return Hatena.getToken().then(function () {
           return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).then(function (res) {
@@ -1144,7 +1143,7 @@
 
     post : function (ps) {
       var that = this;
-      return succeed().then(function () {
+      return Promise.resolve().then(function () {
         return that.getCurrentUser().then(function () {
           return request('https://pinboard.in/add', {
             queryString : {
@@ -1202,7 +1201,7 @@
       var ds = {
         tags        : this.getUserTags(),
         recommended : this.getRecommendedTags(url),
-        suggestions : succeed().then(function () {
+        suggestions : Promise.resolve().then(function () {
           return that.getCurrentUser().then(function () {
             return request('https://pinboard.in/add', {
               queryString : {
@@ -1228,11 +1227,10 @@
         })
       };
 
-      return new DeferredHash(ds).then(function (ress) {
-        var res = ress.suggestions[1];
-        res.recommended = ress.recommended[1];
-        res.tags = ress.tags[1];
-
+      return promiseAllHash(ds).then(function (table) {
+        var res = table.suggestions;
+        res.recommended = table.recommended;
+        res.tags = table.tags;
         return res;
       });
     }
@@ -1253,7 +1251,7 @@
     getUserTags : function (user) {
       return this.getCurrentUser(user).then(function (user) {
         // 同期でエラーが起きないようにする
-        return succeed().then(function () {
+        return Promise.resolve().then(function () {
           return request('http://feeds.delicious.com/v2/json/tags/' + user);
         }).then(function (res) {
           var tags = JSON.parse(res.responseText);
@@ -1286,13 +1284,12 @@
         tags : this.getUserTags(),
         suggestions : this.getRecommendedTags(url)
       };
-      return new DeferredHash(ds).then(function (ress) {
-        if (!ress['tags'][0] || !ress['suggestions'][0]) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-        }
-        var res = ress.suggestions[1];
-        res.tags = ress.tags[1];
+      return promiseAllHash(ds).then(function (table) {
+        var res = table.suggestions;
+        res.tags = table.tags;
         return res;
+      }, function () {
+          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       });
     },
 
@@ -1318,10 +1315,10 @@
 
     getCurrentUser : function (defaultUser) {
       if (defaultUser) {
-        return succeed(defaultUser);
+        return Promise.resolve(defaultUser);
       }
       if (this.currentUser) {
-        return succeed(this.currentUser);
+        return Promise.resolve(this.currentUser);
       }
       var that = this;
       return this.getInfo().then(function (info) {
@@ -1520,15 +1517,12 @@
 
     getSuggestions : function (url) {
       var that = this;
-      return new DeferredHash({
+      return promiseAllHash({
         tags  : this.getUserTags(),
         entry : this.getEntry(url)
-      }).then(function (ress) {
-        if (!ress['tags'][0] || !ress['entry'][0]) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
-        }
-        var entry = ress.entry[1];
-        var tags = ress.tags[1];
+      }).then(function (table) {
+        var entry = table.entry;
+        var tags = table.tags;
         return {
           form        : entry.saved? entry : null,
           tags        : tags,
@@ -1539,6 +1533,8 @@
             bkmk : url
           })
         };
+      }, function () {
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
       });
     }
   });
@@ -1641,41 +1637,39 @@
     },
     post : function (ps) {
       return this.getExFolder().then(function (ex) {
-        var ret = new Deferred();
-        chrome.bookmarks.create({
-          parentId: ex.id,
-          title   : ps.item,
-          url     : ps.itemUrl
-        }, function () {
-          ret.callback();
+        return new Promise(function (resolve) {
+          chrome.bookmarks.create({
+            parentId: ex.id,
+            title   : ps.item,
+            url     : ps.itemUrl
+          }, resolve);
         });
-        return ret;
       });
     },
     getExFolder: function () {
-      var ret = new Deferred();
-      chrome.bookmarks.getTree(function (tree) {
-        var top = tree[0].children[1];
-        var ex;
-        if (top.children.some(function (obj) {
-          if (obj.title === 'TBRL') {
-            ex = obj;
-            return true;
+      return new Promise(function (resolve) {
+        chrome.bookmarks.getTree(function (tree) {
+          var top = tree[0].children[1];
+          var ex;
+          if (top.children.some(function (obj) {
+            if (obj.title === 'TBRL') {
+              ex = obj;
+              return true;
+            } else {
+              return false;
+            }
+          })) {
+            resolve(ex);
           } else {
-            return false;
+            chrome.bookmarks.create({
+              parentId: top.id,
+              title   : 'TBRL'
+            }, function (obj) {
+              resolve(obj);
+            });
           }
-        })) {
-          ret.callback(ex);
-        } else {
-          chrome.bookmarks.create({
-            parentId: top.id,
-            title   : 'TBRL'
-          }, function (obj) {
-            ret.callback(obj);
-          });
-        }
+        });
       });
-      return ret;
     }
   });
 
@@ -1693,7 +1687,7 @@
     post : function (ps) {
       var that = this;
       ps = update({}, ps);
-      var d = succeed();
+      var d = Promise.resolve();
       if (ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']) {
         // Because responseType: 'document' recognizes encoding
         d= request(ps.itemUrl, { responseType: 'document' }).then(function (res) {
@@ -1819,7 +1813,7 @@
         });
       }
       return (TBRL.Config['post']['always_shorten_url'] ?
-          shortenUrls(status, Models[self.SHORTEN_SERVICE]) : succeed(status)).then(function (status) {
+          shortenUrls(status, Models[self.SHORTEN_SERVICE]) : Promise.resolve(status)).then(function (status) {
         var len = self.getActualLength(status);
         if (len > maxlen) {
           throw 'too many characters to post (' + (len - maxlen) + ' over)';
@@ -1908,7 +1902,7 @@
 
     download : function (ps) {
       return (
-        ps.file ? succeed(ps.file)
+        ps.file ? Promise.resolve(ps.file)
           : download(ps.itemUrl).then(function (entry) {
             return getFileFromEntry(entry);
           })
@@ -2388,7 +2382,7 @@
 
     update : function (status, ps) {
       var self = this;
-      return maybeDeferred(
+      return Promise.resolve(
         (status.length < 300 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
       ).then(function (status) {
         var typeCode = 'T';
@@ -2507,7 +2501,7 @@
 
     shorten : function (url) {
       if (/\/\/is\.gd\//.test(url)) {
-        return succeed(url);
+        return Promise.resolve(url);
       }
 
       return request(this.URL + '/api.php', {
@@ -2539,7 +2533,7 @@
 
     shorten : function (url) {
       if (/\/\/(?:bit\.ly|j\.mp)/.test(url)) {
-        return succeed(url);
+        return Promise.resolve(url);
       }
 
       return this.callMethod('shorten', {
@@ -2681,7 +2675,7 @@
 
     download : function (ps) {
       if (ps.file) {
-        return succeed(ps.file);
+        return Promise.resolve(ps.file);
       }
       return download(ps.itemUrl, getFileExtension(ps.itemUrl))
         .then(function (entry) {
@@ -2816,7 +2810,7 @@
 
     _download : function (ps) {
       if (ps.file) {
-        return succeed(ps.file);
+        return Promise.resolve(ps.file);
       }
       return download(ps.itemUrl, getFileExtension(ps.itemUrl)).then(function (entry) {
         return getFileFromEntry(entry);
@@ -2940,7 +2934,7 @@
 
     post : function (ps) {
       var self = this;
-      return (ps.pinboard ? succeed([{id : ps.pinboard}]) : self._getBoards(true)).then(function (boards) {
+      return (ps.pinboard ? Promise.resolve([{id : ps.pinboard}]) : self._getBoards(true)).then(function (boards) {
         return self.getCSRFToken().then(function (csrftoken) {
           return self.is_new_api ?
             self._post_2(ps, boards[0].id, csrftoken) : self._post(ps, boards[0].id, csrftoken);
@@ -2998,7 +2992,7 @@
         }
       };
 
-      return (ps.file ? self._upload(ps.file, data, csrftoken) : succeed(data)).then(function (data) {
+      return (ps.file ? self._upload(ps.file, data, csrftoken) : Promise.resolve(data)).then(function (data) {
         return request(self.POST_URL_2, {
           sendContent : {
             data : JSON.stringify(data)
@@ -3107,7 +3101,7 @@
 
     _download : function (ps) {
       return (
-        ps.file ? succeed(ps.file) : download(ps.itemUrl).then(function (entry) {
+        ps.file ? Promise.resolve(ps.file) : download(ps.itemUrl).then(function (entry) {
           return getFileFromEntry(entry);
         })
       );
@@ -3176,11 +3170,11 @@
   function shortenUrls(text, model) {
     var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
     if (!reUrl.test(text)) {
-      return maybeDeferred(text);
+      return Promise.resolve(text);
     }
 
     var urls = text.match(reUrl);
-    return gatherResults(urls.map(function (url) {
+    return Promise.all(urls.map(function (url) {
       return model.shorten(url);
     })).then(function (ress) {
       zip(urls, ress).forEach(function (pair) {

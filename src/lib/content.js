@@ -2,10 +2,9 @@
 // content script space
 /*jshint scripturl:true*/
 /*global chrome:true, UserScripts:true, Extractors:true*/
-/*global callLater:true, $N:true, $X:true, succeed:true, $D:true, tagName:true*/
+/*global defer:true, $N:true, $X:true, $D:true, tagName:true*/
 /*global keyString:true, createFlavoredString:true, update:true, url:true*/
-/*global maybeDeferred:true, checkHttps:true, Deferred:true, $A:true, connect:true*/
-/*global DeferredList:true*/
+/*global checkHttps:true, $A:true, connect:true*/
 (function (exports) {
   'use strict';
 
@@ -141,7 +140,7 @@
     },
     general: function () {
       // fix stack overflow => reset stack
-      callLater(0, function () {
+      return defer().then(function () {
         if (TBRL.field_shown) {
           TBRL.field_delete();
         } else {
@@ -194,10 +193,9 @@
         var ctx = TBRL.ctx;
         TBRL.field_delete();
         return TBRL.share(ctx, ext, true);
-      } else {
-        TBRL.field_delete();
-        return succeed();
       }
+      TBRL.field_delete();
+      return defer();
     },
     field_delete: function () {
       if (TBRL.field_shown) {
@@ -278,7 +276,7 @@
     },
     extract: function (ctx, ext) {
       this.cleanUpContext(ctx);
-      return maybeDeferred(ext.extract(ctx)).then(function (ps) {
+      return Promise.resolve(ext.extract(ctx)).then(function (ps) {
         if (!ps.body && ctx.selection) {
           ps.body = ctx.selection.raw;
           ps.flavors = {
@@ -301,13 +299,9 @@
       });
     },
     getConfig : function () {
-      var d = new Deferred();
-      chrome.runtime.sendMessage(TBRL.id, {
-        request: 'config'
-      }, function (res) {
-        d.callback(res);
+      return new Promise(function (resolve) {
+        chrome.runtime.sendMessage(TBRL.id, { request: 'config' }, resolve);
       });
-      return d;
     },
     eval: function () {
       var args = $A(arguments);
@@ -319,14 +313,12 @@
     },
 
     DOMContentLoaded: (function () {
-      if (document.contentType === 'application/pdf') {
-        return succeed({});
-      }
-      var ret = new Deferred();
-      connect(document, 'onDOMContentLoaded', null, function () {
-        ret.callback({});
+      return new Promise(function (resolve) {
+        if (document.contentType === 'application/pdf') {
+          return resolve({});
+        }
+        connect(document, 'onDOMContentLoaded', null, resolve);
       });
-      return ret;
     }()),
 
     isBackground: function () {
@@ -337,40 +329,37 @@
     }
   };
 
-  new DeferredList([
+  Promise.all([
     TBRL.getConfig(),
     TBRL.DOMContentLoaded
   ]).then(function (resses) {
-    TBRL.init(resses[0][1]);
+    TBRL.init(resses[0]);
   });
 
   function downloadFile(url, opt) {
-    var ret = new Deferred();
-    chrome.runtime.sendMessage(TBRL.id, {
-      request: 'download',
-      content: {
-        url: url,
-        opt: opt
-      }
-    }, function (res) {
-      if (res.success) {
-        ret.callback(res.content);
-      } else {
-        ret.errback(res.content);
-      }
+    return new Promise(function(resolve, reject) {
+      chrome.runtime.sendMessage(TBRL.id, {
+        request: 'download',
+        content: {
+          url: url,
+          opt: opt
+        }
+      }, function (res) {
+        if (res.success) {
+          return resolve(res.content);
+        }
+        return reject(res.content);
+      });
     });
-    return ret;
   }
 
   function base64ToFileEntry(data) {
-    var ret = new Deferred();
-    chrome.runtime.sendMessage(TBRL.id, {
-      request: 'base64ToFileEntry',
-      content: data
-    }, function (res) {
-      ret.callback(res);
+    return new Promise(function (resolve) {
+      chrome.runtime.sendMessage(TBRL.id, {
+        request: 'base64ToFileEntry',
+        content: data
+      }, resolve);
     });
-    return ret;
   }
 
   function getTitle() {
@@ -386,21 +375,20 @@
     }
     var title = title_getter();
     if (title) {
-      return succeed(title);
-    } else {
-      var d = new Deferred();
-      connect(document, 'onDOMContentLoaded', null, function () {
-        d.callback(title_getter());
-      });
-      return d;
+      return Promise.resolve(title);
     }
+    return new Promise(function (resolve) {
+      connect(document, 'onDOMContentLoaded', null, function () {
+        resolve(title_getter());
+      });
+    });
   }
 
   var onRequestHandlers = {
     popup: function (req, sender, func) {
-      var content = req.content, d;
+      var content = req.content, ret;
 
-      (content.title ? succeed(content.title):getTitle()).then(function (title) {
+      (content.title ? Promise.resolve(content.title) : getTitle()).then(function (title) {
         var sel = createFlavoredString(window.getSelection());
         var ctx = update({
           document : document,
@@ -411,11 +399,11 @@
         }, window.location);
         TBRL.cleanUpContext(ctx);
         if (Extractors.Quote.check(ctx)) {
-          d = Extractors.Quote.extract(ctx);
+          ret = Extractors.Quote.extract(ctx);
         } else {
-          d = Extractors.Link.extract(ctx);
+          ret = Extractors.Link.extract(ctx);
         }
-        maybeDeferred(d).then(function (ps) {
+        Promise.resolve(ret).then(function (ps) {
           func(checkHttps(update({
             page    : title,
             pageUrl : content.url

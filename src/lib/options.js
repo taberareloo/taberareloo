@@ -1,7 +1,6 @@
 /*global chrome:true, connect:true, $:true, $A:true, $T:true, $DF:true*/
 /*global $N:true, disconnect:true, keyString:true, $D:true, update:true*/
-/*global CustomEvent:true, zip:true, MouseEvent:true, Deferred:true*/
-/*global DeferredHash:true*/
+/*global CustomEvent:true, zip:true, MouseEvent:true, promiseAllHash:true*/
 (function (exports) {
   'use strict';
 
@@ -951,33 +950,31 @@
         zip.createReader(new zip.BlobReader(backup_file.files[0]), function (zipReader) {
           zipReader.getEntries(function (entries) {
             entries.forEach(function (entry) {
-              var deferred = new Deferred();
-
-              if (entry.filename === 'taberareloo-settings.json') {
-                entry.getData(new zip.TextWriter(), function (data) {
-                  var json = JSON.parse(data);
-                  for (var key in json) {
-                    var value = json[key];
-                    if (typeof value !== 'string') {
-                      value = JSON.stringify(value);
+              files[entry.filename] = new Promise(function (resolve) {
+                if (entry.filename === 'taberareloo-settings.json') {
+                  entry.getData(new zip.TextWriter(), function (data) {
+                    var json = JSON.parse(data);
+                    for (var key in json) {
+                      var value = json[key];
+                      if (typeof value !== 'string') {
+                        value = JSON.stringify(value);
+                      }
+                      background.localStorage.setItem(key, value);
                     }
-                    background.localStorage.setItem(key, value);
-                  }
-                  deferred.callback();
-                });
-              } else {
-                entry.getData(new zip.BlobWriter('application/javascript'), function (blob) {
-                  blob.name = entry.filename;
-                  background.Patches.install(blob, true).then(function () {
-                    deferred.callback();
+                    resolve();
                   });
-                });
-              }
-
-              files[entry.filename] = deferred;
+                } else {
+                  entry.getData(new zip.BlobWriter('application/javascript'), function (blob) {
+                    blob.name = entry.filename;
+                    background.Patches.install(blob, true).then(function () {
+                      resolve();
+                    });
+                  });
+                }
+              });
             });
 
-            new DeferredHash(files).then(function () {
+            promiseAllHash(files).tnen(function () {
               alert(chrome.i18n.getMessage('message_restored'));
               chrome.runtime.reload();
             });
@@ -1005,7 +1002,7 @@
       background.Patches.values.forEach(function (patch) {
         patches[patch.fileEntry.name] = background.Patches.uninstall(patch, true);
       });
-      return new DeferredHash(patches);
+      return promiseAllHash(patches);
     }
 
     var button_reset = $('button_reset');

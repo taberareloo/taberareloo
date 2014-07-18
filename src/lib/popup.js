@@ -1,10 +1,10 @@
 // -*- coding: utf-8 -*-
 /*jshint shadow:true*/
-/*global chrome:true, Deferred:true, connect:true, queryHash:true, $:true*/
-/*global $T:true, keyString:true, $DF:true, $N:true, callLater:true*/
-/*global KEY_ACCEL:true, $D:true, wait:true, methodcaller:true, values:true*/
-/*global stop:true, compare:true, itemgetter:true, succeed:true, items:true*/
-/*global $A:true, CustomEvent:true*/
+/*global chrome:true, connect:true, queryHash:true, $:true*/
+/*global $T:true, keyString:true, $DF:true, $N:true*/
+/*global KEY_ACCEL:true, $D:true, methodcaller:true, values:true*/
+/*global stop:true, compare:true, itemgetter:true, items:true*/
+/*global $A:true, CustomEvent:true, delay:true, defer:true*/
 (function (exports) {
   'use strict';
 
@@ -20,42 +20,42 @@
   });
 
   function getPs(query) {
-    var d = new Deferred();
-    if (query.quick) {
-      // if quick post form, not call getCurrent
-      var id = query.id;
-      var data = background.TBRL.Popup.data[id];
-      var tab = data.tab;
-      parentWindowId = tab.windowId;
-      var ps = data.ps;
-      delete background.TBRL.Popup.data[id];
-      setTimeout(function () { d.callback(ps); }, 0);
-    } else {
-      chrome.tabs.query({
-        active: true,
-        currentWindow: true
-      }, function (tabs) {
-        var tab = tabs[0];
-        if (background.TBRL.Service.isEnableSite(tab.url)) {
-          if (background.TBRL.Popup.contents[tab.url]) {
-            d.callback(background.TBRL.Popup.contents[tab.url]);
+    return new Promise(function (resolve, reject) {
+      if (query.quick) {
+        // if quick post form, not call getCurrent
+        var id = query.id;
+        var data = background.TBRL.Popup.data[id];
+        var tab = data.tab;
+        parentWindowId = tab.windowId;
+        var ps = data.ps;
+        delete background.TBRL.Popup.data[id];
+        setTimeout(function () { resolve(ps); }, 0);
+      } else {
+        chrome.tabs.query({
+          active: true,
+          currentWindow: true
+        }, function (tabs) {
+          var tab = tabs[0];
+          if (background.TBRL.Service.isEnableSite(tab.url)) {
+            if (background.TBRL.Popup.contents[tab.url]) {
+              resolve(background.TBRL.Popup.contents[tab.url]);
+            } else {
+              chrome.tabs.sendMessage(tab.id, {
+                request: 'popup',
+                content: {
+                  title: tab.title,
+                  url  : tab.url
+                }
+              }, function (ps) {
+                resolve(ps);
+              });
+            }
           } else {
-            chrome.tabs.sendMessage(tab.id, {
-              request: 'popup',
-              content: {
-                title: tab.title,
-                url  : tab.url
-              }
-            }, function (ps) {
-              d.callback(ps);
-            });
+            window.close();
           }
-        } else {
-          window.close();
-        }
-      });
-    }
-    return d;
+        });
+      }
+    });
   }
 
   connect(window, 'onDOMContentLoaded', window, function () {
@@ -168,7 +168,7 @@
       this.tags.focus();
       // resize timing depends on type.
       // in photo type case, resize timing is when image is loaded
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     quote: function () {
       var ps = this.ps;
@@ -179,7 +179,7 @@
       this.savers.description = this.desc = new Desc(ps, true);
       this.toggles = [this.title, this.link, this.tags, this.desc];
       this.body.focus();
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     photo: function () {
       var ps = this.ps;
@@ -188,6 +188,7 @@
       this.savers.tags = this.tags  = new Tags(ps, true);
       this.savers.description = this.desc = new Desc(ps, true);
       this.toggles = [this.title, this.tags, this.desc];
+      return defer();
     },
     regular: function () {
       var ps = this.ps;
@@ -196,7 +197,7 @@
       this.savers.description = this.desc = new Desc(ps);
       this.toggles = [this.title, this.tags];
       this.desc.focus();
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     video: function () {
       var ps = this.ps;
@@ -205,7 +206,7 @@
       this.savers.tags = this.tags  = new Tags(ps, true);
       this.savers.description = this.desc = new Desc(ps, true);
       this.toggles = [this.title, this.tags, this.link, this.desc];
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     conversation: function () {
       var ps = this.ps;
@@ -214,7 +215,7 @@
       this.savers.tags = this.tags  = new Tags(ps, true);
       this.savers.description = this.desc = new Desc(ps, true);
       this.toggles = [this.title, this.tags, this.link, this.desc];
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     audio: function () {
       var ps = this.ps;
@@ -223,7 +224,7 @@
       this.savers.tags = this.tags  = new Tags(ps, true);
       this.savers.description = this.desc = new Desc(ps, true);
       this.toggles = [this.title, this.tags, this.link, this.desc];
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     save: function () {
       Object.keys(this.savers).forEach(function (key) {
@@ -278,7 +279,7 @@
       this.toggles.forEach(function (unit) {
         unit.toggle();
       });
-      callLater(0.1, Form.resize);
+      return delay(0.1).then(Form.resize);
     },
     close: function () {
       if (!this.posted && isPopup && !this.canceled) {
@@ -341,7 +342,7 @@
 
   Form.resize = function () {
     if (isPopup) {
-      return;
+      return defer();
     }
     if (!Form.nowResizing) {
       Form.nowResizing = true;
@@ -360,9 +361,9 @@
           Form.nowResizing = false;
         }
       });
-    } else {
-      callLater(0.5, Form.resize);
+      return defer();
     }
+    return delay(0.5).then(Form.resize);
   };
 
   function Notify() {
@@ -378,7 +379,7 @@
         this.msg.appendChild($T(message + '\n'));
       }
       this.msg.classList.add('shown');
-      callLater(0.5, Form.resize);
+      return delay(0.5).then(Form.resize);
     },
     clear: function NotifyClear() {
       var msg = $('message');
@@ -501,7 +502,7 @@
       var w = ps.originalWidth || width;
       var h = ps.originalHeight || height;
       self.size.appendChild($T(w + ' × ' + h));
-      wait(0.3).then(function () {
+      delay(0.3).then(function () {
         Form.resize();
       });
     });
@@ -881,7 +882,7 @@
     });
 
     connect(tags, 'onblur', this, function () {
-      callLater(0.2, function () {
+      return delay(0.2).then(function () {
         that.popup.hidePopup();
       });
     });
@@ -1225,14 +1226,12 @@
       if (source.includesFullwidth()) {
         return background.Models.Yahoo.getSparseTags(tags, source, ' [');
       } else {
-        return succeed().then(function () {
-          return tags.map(function (tag) {
-            return {
-              reading : tag,
-              value   : tag
-            };
-          });
-        });
+        return Promise.resolve(tags.map(function (tag) {
+          return {
+            reading : tag,
+            value   : tag
+          };
+        }));
       }
     },
 
@@ -1321,7 +1320,7 @@
       sg.style.display = 'block';
       background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = true;
       this.suggestionIcon.classList.add('extended');
-      return callLater(0, Form.resize);
+      return defer().then(Form.resize);
     },
 
     closeSuggestions: function () {
@@ -1329,7 +1328,7 @@
       sg.style.display = 'none';
       background.TBRL.Popup.suggestionShownDefault = this.suggestionShown = false;
       this.suggestionIcon.classList.remove('extended');
-      return callLater(0, Form.resize);
+      return defer().then(Form.resize);
     }
   };
 

@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
 /*jshint loopfunc:true*/
-/*global operator:true, methodcaller:true, MochiKit:true, succeed:true*/
-/*global zip:true, isArrayLike:true, keys:true, DeferredList:true, values:true*/
-/*global TBRL:true, Deferred:true, chrome:true, url:true*/
+/*global operator:true, methodcaller:true, MochiKit:true*/
+/*global zip:true, isArrayLike:true*/
+/*global TBRL:true, chrome:true, url:true*/
 (function (exports) {
   'use strict';
 
@@ -421,14 +421,6 @@
 
   exports.update = update;
 
-  function maybeDeferred(d) {
-    return typeof(d) === 'function' ?
-      MochiKit.Async.maybeDeferred(d) :
-      (d == null || !d.then) ? succeed(d) : d;
-  }
-
-  exports.maybeDeferred = maybeDeferred;
-
   function formContents(elm, nomultiple) {
     if (typeof(elm) === 'string') {
       elm = createHTML(elm);
@@ -600,19 +592,6 @@
 
   exports.createURI = createURI;
 
-  function DeferredHash(ds) {
-    var props = keys(ds);
-    return new DeferredList(values(ds)).then(function (results) {
-      var res = {};
-      for (var i = 0, len = results.length; i < len; i++) {
-        res[props[i]] = results[i];
-      }
-      return res;
-    });
-  }
-
-  exports.DeferredHash = DeferredHash;
-
   // (c) id:nanto_vi
   // http://nanto.asablo.jp/blog/2010/02/05/4858761
   function convertToHTMLString(source, safe, hatena) {
@@ -757,46 +736,36 @@
     if (!ext) {
       ext = 'blob';
     }
-    var d = new Deferred();
-    var req = window.requestFileSystem || window.webkitRequestFileSystem;
-    req(window.TEMPORARY, 1024 * 1024, function (fs) {
-      fs.root.getDirectory('tmp', {
-        create: true
-      }, function (dir) {
-        dir.getFile(Math.random().toString(36).slice(2) + '.' + ext, {
+    return new Promise(function (resolve, reject) {
+      var req = window.requestFileSystem || window.webkitRequestFileSystem;
+      req(window.TEMPORARY, 1024 * 1024, function (fs) {
+        fs.root.getDirectory('tmp', {
           create: true
-        }, function (file) {
-          d.callback(file);
-        }, function (e) {
-          d.errback(e);
-        });
-      }, function (e) {
-        d.errback(e);
+        }, function (dir) {
+          dir.getFile(Math.random().toString(36).slice(2) + '.' + ext, {
+            create: true
+          }, resolve, reject);
+        }, reject);
       });
     });
-    return d;
   }
 
   exports.getTempFile = getTempFile;
 
   function getWriter(file) {
-    var d = new Deferred();
-    file.createWriter(function (writer) {
-      d.callback(writer);
+    return new Promise(function (resolve) {
+      file.createWriter(function (writer) {
+        resolve(writer);
+      });
     });
-    return d;
   }
 
   exports.getWriter = getWriter;
 
   function getFileFromEntry(entry) {
-    var d = new Deferred();
-    entry.file(function (file) {
-      d.callback(file);
-    }, function onError(e) {
-      d.errback(e);
+    return new Promise(function (resolve, reject) {
+      entry.file(resolve, reject);
     });
-    return d;
   }
 
   exports.getFileFromEntry = getFileFromEntry;
@@ -831,24 +800,20 @@
   exports.downloadBlob = downloadBlob;
 
   function createFileEntryFromBlob(blob, ext) {
-    var d = new Deferred();
-    getTempFile(ext)
-    .then(function (entry) {
-      return getWriter(entry)
-      .then(function (writer) {
-        writer.onwrite = function onWrite() {
-          d.callback(entry);
-        };
-        writer.onerror = function onError(e) {
-          d.errback(e);
-        };
-        writer.write(blob);
-      })
-      .catch(function (e) {
-        d.errback(e);
+    return new Promise(function (resolve, reject) {
+      getTempFile(ext)
+      .then(function (entry) {
+        return getWriter(entry)
+        .then(function (writer) {
+          writer.onwrite = function onWrite() {
+            resolve(entry);
+          };
+          writer.onerror = reject;
+          writer.write(blob);
+        })
+        .catch(reject);
       });
     });
-    return d;
   }
 
   exports.createFileEntryFromBlob = createFileEntryFromBlob;
@@ -868,130 +833,130 @@
   exports.KEY_ACCEL = (/mac/i.test(navigator.platform)) ? 'META' : 'CTRL';
 
   function request(url, opt) {
-    var req = new XMLHttpRequest();
-    var ret = new Deferred();
-    var data;
-    var key;
+    return new Promise(function (resolve, reject) {
+      var req = new XMLHttpRequest();
+      var data;
+      var key;
 
-    opt = (opt) ? update({}, opt) : {};
-    var method = opt.method && opt.method.toUpperCase();
+      opt = (opt) ? update({}, opt) : {};
+      var method = opt.method && opt.method.toUpperCase();
 
-    if (opt.queryString) {
-      var qs = queryString(opt.queryString, true);
-      url += qs;
-    }
-
-    // construct FormData (if required)
-    var multipart = opt.multipart || false;
-    if (opt.sendContent && opt.mode && (opt.mode === 'raw')) {
-      // no modify, use sendContent directly
-      data = opt.sendContent;
-      if (!method) {
-        method = 'POST';
+      if (opt.queryString) {
+        var qs = queryString(opt.queryString, true);
+        url += qs;
       }
-    } else if (opt.sendContent && (!method || method === 'POST')) {
-      var sendContent = opt.sendContent;
-      if (!method) {
-        method = 'POST';
-      }
-      for (key in sendContent) {
-        if (sendContent[key] instanceof window.File) {
-          multipart = true;
-          break;
+
+      // construct FormData (if required)
+      var multipart = opt.multipart || false;
+      if (opt.sendContent && opt.mode && (opt.mode === 'raw')) {
+        // no modify, use sendContent directly
+        data = opt.sendContent;
+        if (!method) {
+          method = 'POST';
         }
-      }
-      if (multipart) {
-        // using FormData is not unstable in Yahoo Model.
-        // so, use it in multipart pattern only
-        data = new FormData();
+      } else if (opt.sendContent && (!method || method === 'POST')) {
+        var sendContent = opt.sendContent;
+        if (!method) {
+          method = 'POST';
+        }
         for (key in sendContent) {
-          var value = sendContent[key];
-          if (value === null || value === undefined) {
-            continue;
+          if (sendContent[key] instanceof window.File) {
+            multipart = true;
+            break;
           }
-          data.append(key, value);
         }
+        if (multipart) {
+          // using FormData is not unstable in Yahoo Model.
+          // so, use it in multipart pattern only
+          data = new FormData();
+          for (key in sendContent) {
+            var value = sendContent[key];
+            if (value === null || value === undefined) {
+              continue;
+            }
+            data.append(key, value);
+          }
+        } else {
+          data = queryString(sendContent, false);
+        }
+      }
+
+      // construct method
+      if (!method) {
+        method = 'GET';
+      }
+
+      // open XHR
+      if ('username' in opt) {
+        req.open(method, url, true, opt.username, opt.password);
       } else {
-        data = queryString(sendContent, false);
+        req.open(method, url, true);
       }
-    }
 
-    // construct method
-    if (!method) {
-      method = 'GET';
-    }
-
-    // open XHR
-    if ('username' in opt) {
-      req.open(method, url, true, opt.username, opt.password);
-    } else {
-      req.open(method, url, true);
-    }
-
-    // construct responseType
-    if (opt.responseType) {
-      req.responseType = opt.responseType;
-    }
-
-    // construct charset
-    if (opt.charset) {
-      req.overrideMimeType(opt.charset);
-    }
-
-    // construct headers
-    var setHeader = true;
-    if (opt.headers) {
-      if (opt.headers['Content-Type']) {
-        setHeader = false;
+      // construct responseType
+      if (opt.responseType) {
+        req.responseType = opt.responseType;
       }
-      Object.keys(opt.headers).forEach(function (key) {
-        req.setRequestHeader(key, opt.headers[key]);
-      });
-    }
 
-    if (setHeader && opt.sendContent && !multipart) {
-      req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    }
+      // construct charset
+      if (opt.charset) {
+        req.overrideMimeType(opt.charset);
+      }
 
-    var position = -1;
-    var error = false;
-
-    req.onprogress = function (e) {
-      position = e.position;
-    };
-
-    req.onreadystatechange = function () {
-      if (req.readyState === 4) {
-        var length = 0;
-        try {
-          length = parseInt(req.getResponseHeader('Content-Length'), 10);
-        } catch (err) {
-          console.log('ERROR', err);
+      // construct headers
+      var setHeader = true;
+      if (opt.headers) {
+        if (opt.headers['Content-Type']) {
+          setHeader = false;
         }
-        // 最終時のlengthと比較
-        if (position !== length) {
-          if (opt.denyRedirection) {
-            ret.errback(req);
-            error = true;
+        Object.keys(opt.headers).forEach(function (key) {
+          req.setRequestHeader(key, opt.headers[key]);
+        });
+      }
+
+      if (setHeader && opt.sendContent && !multipart) {
+        req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      }
+
+      var position = -1;
+      var error = false;
+
+      req.onprogress = function (e) {
+        position = e.position;
+      };
+
+      req.onreadystatechange = function () {
+        if (req.readyState === 4) {
+          var length = 0;
+          try {
+            length = parseInt(req.getResponseHeader('Content-Length'), 10);
+          } catch (err) {
+            console.log('ERROR', err);
+          }
+          // 最終時のlengthと比較
+          if (position !== length) {
+            if (opt.denyRedirection) {
+              reject(req);
+              error = true;
+            }
+          }
+          if (!error) {
+            if (req.status >= 200 && req.status < 300) {
+              resolve(req);
+            } else {
+              req.message = chrome.i18n.getMessage('error_http' + req.status);
+              reject(req);
+            }
           }
         }
-        if (!error) {
-          if (req.status >= 200 && req.status < 300) {
-            ret.callback(req);
-          } else {
-            req.message = chrome.i18n.getMessage('error_http' + req.status);
-            ret.errback(req);
-          }
-        }
-      }
-    };
+      };
 
-    if (data) {
-      req.send(data);
-    } else {
-      req.send();
-    }
-    return ret;
+      if (data) {
+        req.send(data);
+      } else {
+        req.send();
+      }
+    });
   }
 
   exports.request = request;
@@ -1094,25 +1059,25 @@
 
   // canvas request
   function canvasRequest(url) {
-    var canvas = document.createElement('canvas'),
-        ret = new Deferred(),
-        img = document.createElement('img');
-    img.addEventListener('load', function img_load() {
-      img.removeEventListener('load', img_load, false);
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      ret.callback({
-        contentType: 'image/png',
-        base64: true,
-        height: img.naturalHeight,
-        width: img.naturalWidth,
-        binary: canvas.toDataURL('image/png', '')
-      });
-    }, false);
-    img.src = url;
-    return ret;
+    return new Promise(function (resolve) {
+      var canvas = document.createElement('canvas'),
+          img = document.createElement('img');
+      img.addEventListener('load', function img_load() {
+        img.removeEventListener('load', img_load, false);
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve({
+          contentType: 'image/png',
+          base64: true,
+          height: img.naturalHeight,
+          width: img.naturalWidth,
+          binary: canvas.toDataURL('image/png', '')
+        });
+      }, false);
+      img.src = url;
+    });
   }
 
   exports.canvasRequest = canvasRequest;
@@ -1124,31 +1089,27 @@
   exports.fileToPNGDataURL = fileToPNGDataURL;
 
   function fileToDataURL(file) {
-    var ret = new Deferred();
-    var reader = new FileReader();
-    reader.onload = function (ev) {
-      ret.callback(ev.target.result);
-    };
-    reader.onerror = function (ev) {
-      ret.errback(ev);
-    };
-    reader.readAsDataURL(file);
-    return ret;
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        resolve(ev.target.result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   exports.fileToDataURL = fileToDataURL;
 
   function fileToBinaryString(file) {
-    var ret = new Deferred();
-    var reader = new FileReader();
-    reader.onload = function (ev) {
-      ret.callback(ev.target.result);
-    };
-    reader.onerror = function (e) {
-      ret.errback(e);
-    };
-    reader.readAsBinaryString(file);
-    return ret;
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        resolve(ev.target.result);
+      };
+      reader.onerror = reject;
+      reader.readAsBinaryString(file);
+    });
   }
 
   exports.fileToBinaryString = fileToBinaryString;
@@ -1172,14 +1133,12 @@
   exports.base64ToBlob = base64ToBlob;
 
   function getCookies(domain, name) {
-    var ret = new Deferred();
-    chrome.cookies.getAll({
-      domain: domain,
-      name: name
-    }, function (cookie) {
-      ret.callback(cookie);
+    return new Promise(function (resolve) {
+      chrome.cookies.getAll({
+        domain: domain,
+        name: name
+      }, resolve);
     });
-    return ret;
   }
 
   exports.getCookies = getCookies;
@@ -1224,7 +1183,7 @@
 
   function delay(time) {
     return new Promise(function (resolve) {
-      setTimeout(resolve, time);
+      setTimeout(resolve, time * 1000);
     });
   }
 
@@ -1235,5 +1194,61 @@
   }
 
   exports.defer = defer;
+
+  function promiseAllHash(ds) {
+    var props = Object.keys(ds);
+    return Promise.all(props.map(function (key) {
+      return ds[key];
+    })).then(function (results) {
+      return results.reduce(function (table, item, index) {
+        table[props[index]] = item;
+        return table;
+      }, {});
+    });
+  }
+
+  exports.promiseAllHash = promiseAllHash;
+
+  function errorInformedPromiseAll(list) {
+    return new Promise(function (resolve, reject) {
+      var counter = list.length,
+          results = [],
+          callback = reject;
+
+      list.forEach(function (promise, index) {
+        function resolved(res) {
+          callback = resolve;
+          results[index] = [true, res];
+          if (!--counter) {
+            callback(results);
+          }
+        }
+        function rejected(res) {
+          results[index] = [false, res];
+          if (!--counter) {
+            callback(results);
+          }
+        }
+        promise.then(resolved, rejected);
+      });
+    });
+  }
+
+  exports.errorInformedPromiseAll = errorInformedPromiseAll;
+
+  function errorInformedPromiseAllHash(hash) {
+    var props = Object.keys(hash);
+    var values = props.map(function (key) { return hash[key]; });
+    return errorInformedPromiseAll(values).then(function (results) {
+      var res = {};
+      for (var i = 0, len = results.length; i < len; i++) {
+        res[props[i]] = results[i];
+      }
+      return res;
+    });
+  }
+
+  exports.errorInformedPromiseAllHash = errorInformedPromiseAllHash;
+
 }(this));
 /* vim: set sw=2 ts=2 et tw=80 : */

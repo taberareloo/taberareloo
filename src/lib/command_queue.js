@@ -1,11 +1,11 @@
 // -*- coding: utf-8 -*-
-/*global Deferred:true, maybeDeferred:true*/
 (function (exports) {
   'use strict';
 
-  function Command(callback, df) {
+  function Command(callback, resolve, reject) {
     this.callback = callback;
-    this.df = df;
+    this.resolve = resolve;
+    this.reject = reject;
   }
 
   function CommandQueue(interval) {
@@ -15,10 +15,11 @@
   }
 
   CommandQueue.prototype.push = function (callback) {
-    var df = new Deferred();
-    this._commands.push(new Command(callback, df));
-    this._run();
-    return df;
+    var that = this;
+    return new Promise(function (resolve, reject) {
+      that._commands.push(new Command(callback, resolve, reject));
+      that._run();
+    });
   };
 
   CommandQueue.prototype._run = function () {
@@ -33,18 +34,10 @@
     }
 
     function run() {
-      var command, deferred;
+      var command;
 
       command = that._commands.shift();
-      deferred = command.df;
-      maybeDeferred(command.callback()).then(
-        function (result) {
-          deferred.callback(result);
-        },
-        function (err) {
-          deferred.errback(err);
-        }
-      ).then(next, next);
+      Promise.resolve(command.callback()).then(command.resolve, command.reject).then(next, next);
     }
 
     if (that._runId != null) {

@@ -3,7 +3,7 @@
 /*global Repository:true, TBRL:true, chrome:true*/
 /*global Keybind:true, get_active_feed:true, get_active_item:true*/
 /*global $X:true, createFlavoredString:true, update:true, Extractors:true*/
-/*global $N:true, Deferred:true, keyString:true, stop:true, Tumblr:true*/
+/*global $N:true, keyString:true, stop:true, Tumblr:true*/
 /*global MouseEvent:true*/
 (function (exports) {
   'use strict';
@@ -292,58 +292,59 @@
         document.removeEventListener('keydown', this.wrap, false);
       },
       getStatus: function () {
-        var ret = new Deferred();
-        var ev_name = 'LDRize.status.Taberareloo' + (++this.count);
-        document.addEventListener(ev_name, function callee(e) {
-          document.removeEventListener(ev_name, callee, false);
-          var data = JSON.parse(e.data);
-          ret.callback(data);
-        }, false);
-        var message = JSON.stringify({ type: ev_name });
-        var ev = document.createEvent('MessageEvent');
-        ev.initMessageEvent('LDRize.getStatus', true, false, message, location.protocol + '//' + location.host, '', window);
-        document.dispatchEvent(ev);
-        return ret;
+        return new Promise(function (resolve) {
+          var ev_name = 'LDRize.status.Taberareloo' + (++this.count);
+          document.addEventListener(ev_name, function callee(e) {
+            document.removeEventListener(ev_name, callee, false);
+            var data = JSON.parse(e.data);
+            resolve(data);
+          }, false);
+          var message = JSON.stringify({ type: ev_name });
+          var ev = document.createEvent('MessageEvent');
+          ev.initMessageEvent('LDRize.getStatus', true, false, message, location.protocol + '//' + location.host, '', window);
+          document.dispatchEvent(ev);
+        });
       },
       reblogPins : function (len, manually) {
-        var ret = new Deferred();
         var self = this;
-        var ev_name = 'LDRize.strokePins.Taberareloo' + (++this.count);
-        var returned = 0;
-        document.addEventListener(ev_name, function callee(e) {
-          var target = e.target;
+        return new Promise(function (resolve) {
+          var ev_name = 'LDRize.strokePins.Taberareloo' + (++self.count);
+          var returned = 0;
+          document.addEventListener(ev_name, function callee(e) {
+            var target = e.target;
 
-          setTimeout(function () {
-            self.notify(target, true);
-            self.reblog(target, manually);
-          }, returned * 1000);
-
-          if (++returned === len) {
-            document.removeEventListener(ev_name, callee, false);
             setTimeout(function () {
-              self.FlashMessage.showFlashMessageWindow('ReBlog ' + len + ' items', 600);
-              ret.callback();
-            }, 0);
-          }
-        }, false);
-        var message = JSON.stringify({type: ev_name });
-        var ev = document.createEvent('MessageEvent');
-        ev.initMessageEvent('LDRize.strokePins', true, false, message, location.protocol + '//' + location.host, '', window);
-        document.dispatchEvent(ev);
-        return ret;
+              self.notify(target, true);
+              self.reblog(target, manually);
+            }, returned * 1000);
+
+            if (++returned === len) {
+              document.removeEventListener(ev_name, callee, false);
+              setTimeout(function () {
+                self.FlashMessage.showFlashMessageWindow('ReBlog ' + len + ' items', 600);
+                resolve();
+              }, 0);
+            }
+          }, false);
+          var message = JSON.stringify({type: ev_name });
+          var ev = document.createEvent('MessageEvent');
+          ev.initMessageEvent('LDRize.strokePins', true, false, message, location.protocol + '//' + location.host, '', window);
+          document.dispatchEvent(ev);
+        });
       },
       clearPins: function () {
-        var ret = new Deferred();
-        var ev_name = 'LDRize.clearPins.Taberareloo' + (++this.count);
-        document.addEventListener(ev_name, function callee() {
-          document.removeEventListener(ev_name, callee, false);
-          ret.callback();
-        }, false);
-        var message = JSON.stringify({ type: ev_name });
-        var ev = document.createEvent('MessageEvent');
-        ev.initMessageEvent('LDRize.clearPins', true, false, message, location.protocol + '//' + location.host, '', window);
-        document.dispatchEvent(ev);
-        return ret;
+        var that = this;
+        return new Promise(function (resolve) {
+          var ev_name = 'LDRize.clearPins.Taberareloo' + (++that.count);
+          document.addEventListener(ev_name, function callee() {
+            document.removeEventListener(ev_name, callee, false);
+            resolve();
+          }, false);
+          var message = JSON.stringify({ type: ev_name });
+          var ev = document.createEvent('MessageEvent');
+          ev.initMessageEvent('LDRize.clearPins', true, false, message, location.protocol + '//' + location.host, '', window);
+          document.dispatchEvent(ev);
+        });
       },
       fire  : function (ev) {
         var self = this;

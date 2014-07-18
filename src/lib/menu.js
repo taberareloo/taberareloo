@@ -1,4 +1,4 @@
-/*global MochiKit:true, Repository:true, callLater:true, chrome:true, Patches:true*/
+/*global MochiKit:true, Repository:true, chrome:true, Patches:true, delay:true*/
 (function (exports) {
   'use strict';
 
@@ -33,7 +33,7 @@
         this.top_menu = topMenuProperties;
       }
       if (this.creating || !this.top_menu) {
-        callLater(0.5, Menus.create);
+        delay(0.5).then(Menus.create);
         return;
       }
       this.creating = true;

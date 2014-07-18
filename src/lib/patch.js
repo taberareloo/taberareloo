@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
-/*global MochiKit:true, Repository:true, Deferred:true, succeed:true, chrome:true*/
-/*global TBRL:true, request:true, semver:true, DeferredHash:true, DeferredList:true*/
-/*global $A:true*/
+/*global MochiKit:true, Repository:true, chrome:true*/
+/*global TBRL:true, request:true, semver:true*/
+/*global $A:true, promiseAllHash:true*/
 (function (exports) {
   'use strict';
 
@@ -10,24 +10,20 @@
 
     initailize: function () {
       var self = this;
-      var deferred = new Deferred();
-      var rfs = window.requestFileSystem || window.webkitRequestFileSystem;
-      rfs(window.PERSISTENT, 1024 * 1024, function (fs) {
-          fs.root.getDirectory('taberareloo', { create : true },
-            function (dirEntry) {
-              self.dirEntry = dirEntry;
-              deferred.callback();
-            },
-            function (e) {
-              deferred.errback(e);
-            }
-          );
-        },
-        function (e) {
-          deferred.errback(e);
-        }
-      );
-      return deferred;
+      return new Promise(function (resolve, reject) {
+        var rfs = window.requestFileSystem || window.webkitRequestFileSystem;
+        rfs(window.PERSISTENT, 1024 * 1024, function (fs) {
+            fs.root.getDirectory('taberareloo', { create : true },
+              function (dirEntry) {
+                self.dirEntry = dirEntry;
+                resolve();
+              },
+              reject
+            );
+          },
+          reject
+        );
+      });
     },
 
     getPreferences : function (key) {
@@ -83,7 +79,7 @@
     },
 
     install : function (file, no_alert) {
-      var self = this;
+      var that = this;
 
       function save(fileName, file, url) {
         switch (file.type) {
@@ -93,52 +89,44 @@
         case 'application/x-javascript':
           break;
         default:
-          return succeed();
+          return Promise.resolve();
         }
 
         if (!file.size) {
-          return succeed();
+          return Promise.resolve();
         }
 
-        var deferred = new Deferred();
-
-        self.getMetadata(file).then(function (metadata) {
-          if (metadata) {
-            self.dirEntry.getFile(fileName, { create: true },
-              function (fileEntry) {
-                fileEntry.createWriter(
-                  function (fileWriter) {
-                    fileWriter.onwriteend = function () {
-                      this.onwriteend = null;
-                      this.truncate(this.position);
-                      self.loadAndRegister(fileEntry, metadata, url).then(function (patch) {
-                        console.log('Patch: Installed: ' + fileEntry.fullPath);
-                        if (!no_alert) {
-                          alert(chrome.i18n.getMessage('message_installed', fileName));
-                        }
-                        deferred.callback(patch);
-                      });
-                    };
-                    fileWriter.onerror = function (e) {
-                      deferred.errback(e);
-                    };
-                    fileWriter.write(file);
-                  },
-                  function (e) {
-                    deferred.errback(e);
-                  }
-                );
-              },
-              function (e) {
-                deferred.errback(e);
-              }
-            );
-          } else {
-            deferred.errback();
-          }
+        return new Promise(function (resolve, reject) {
+          that.getMetadata(file).then(function (metadata) {
+            if (metadata) {
+              that.dirEntry.getFile(fileName, { create: true },
+                function (fileEntry) {
+                  fileEntry.createWriter(
+                    function (fileWriter) {
+                      fileWriter.onwriteend = function () {
+                        this.onwriteend = null;
+                        this.truncate(this.position);
+                        that.loadAndRegister(fileEntry, metadata, url).then(function (patch) {
+                          console.log('Patch: Installed: ' + fileEntry.fullPath);
+                          if (!no_alert) {
+                            alert(chrome.i18n.getMessage('message_installed', fileName));
+                          }
+                          resolve(patch);
+                        });
+                      };
+                      fileWriter.onerror = reject;
+                      fileWriter.write(file);
+                    },
+                    reject
+                  );
+                },
+                reject
+              );
+            } else {
+              resolve();
+            }
+          });
         });
-
-        return deferred;
       }
 
       if (typeof file === 'string') {
@@ -160,30 +148,24 @@
 
     uninstall : function (patch, no_alert) {
       var self = this;
-      var deferred = new Deferred();
-
-      self.dirEntry.getFile(patch.name, {},
-        function (fileEntry) {
-          fileEntry.remove(
-            function () {
-              self.unregister(patch);
-              console.log('Patch: Uninstalled: ' + fileEntry.fullPath);
-              if (!no_alert) {
-                alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
-              }
-              deferred.callback();
-            },
-            function (e) {
-              deferred.errback(e);
-            }
-          );
-        },
-        function (e) {
-          deferred.errback(e);
-        }
-      );
-
-      return deferred;
+      return new Promise(function (resolve, reject) {
+        self.dirEntry.getFile(patch.name, {},
+          function (fileEntry) {
+            fileEntry.remove(
+              function () {
+                self.unregister(patch);
+                console.log('Patch: Uninstalled: ' + fileEntry.fullPath);
+                if (!no_alert) {
+                  alert(chrome.i18n.getMessage('message_uninstalled', fileEntry.name));
+                }
+                resolve();
+              },
+              reject
+            );
+          },
+          reject
+        );
+      });
     },
 
     loadAndRegister : function (fileEntry, metadata, url) {
@@ -193,7 +175,7 @@
       var disabled   = preference.disabled || false;
 
       return (
-        metadata ? succeed(metadata) : this.getMetadata(fileEntry)
+        metadata ? Promise.resolve(metadata) : this.getMetadata(fileEntry)
       ).then(function (metadata) {
         if (metadata) {
           var script = null;
@@ -206,22 +188,20 @@
               (metadata.include.indexOf('background') !== -1)
             )
           ) {
-            var deferred = new Deferred();
-            var patch = self[fileName] || {};
-            if (patch.dom) {
-              patch.dom.parentNode.removeChild(patch.dom);
-            }
-            script = document.createElement('script');
-            script.src = fileEntry.toURL();
-            script.onload = function () {
-              console.log('Load patch: ' + fileEntry.fullPath);
-              deferred.callback(self._register(fileEntry, metadata, url, script));
-            };
-            script.onerror = function () {
-              deferred.errback();
-            };
-            document.body.appendChild(script);
-            return deferred;
+            return new Promise(function (resolve, reject) {
+              var patch = self[fileName] || {};
+              if (patch.dom) {
+                patch.dom.parentNode.removeChild(patch.dom);
+              }
+              script = document.createElement('script');
+              script.src = fileEntry.toURL();
+              script.onload = function () {
+                console.log('Load patch: ' + fileEntry.fullPath);
+                resolve(self._register(fileEntry, metadata, url, script));
+              };
+              script.onerror = reject;
+              document.body.appendChild(script);
+            });
           } else {
             return self._register(fileEntry, metadata, url, script);
           }
@@ -233,46 +213,45 @@
 
     load : function () {
       var self = this;
-      var deferred = new Deferred();
+      return new Promise(function (resolve, reject) {
+        var _load = function (fileEntries) {
+          var ds = {};
+          fileEntries.sort(function (a, b) {
+            if (a.name === b.name) {
+              return 0;
+            }
+            return (a.name < b.name) ? -1 : 1;
+          });
+          fileEntries.forEach(function (fileEntry) {
+            console.log('Loading: ' + fileEntry.fullPath);
+            ds[fileEntry.name] = self.loadAndRegister(fileEntry);
+          });
+          return promiseAllHash(ds).then(function () {
+            var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
+            if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
+              self.checkUpdates();
+            }
+          });
+        };
 
-      var _load = function (fileEntries) {
-        var ds = {};
-        fileEntries.sort(function (a, b) {
-          if (a.name === b.name) {
-            return 0;
-          }
-          return (a.name < b.name) ? -1 : 1;
-        });
-        fileEntries.forEach(function (fileEntry) {
-          console.log('Loading: ' + fileEntry.fullPath);
-          ds[fileEntry.name] = self.loadAndRegister(fileEntry);
-        });
-        return new DeferredHash(ds).then(function () {
-          var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
-          if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
-            self.checkUpdates();
-          }
-        });
-      };
-
-      var dirReader = this.dirEntry.createReader();
-      var fileEntries = [];
-      var readEntries = function () {
-        dirReader.readEntries(function (entries) {
-          if (!entries.length) {
-            _load(fileEntries).then(function () {
-              deferred.callback();
-            });
-          } else {
-            fileEntries = fileEntries.concat($A(entries));
-            readEntries();
-          }
-        }, function (e) {
-          deferred.errback(e);
-        });
-      };
-      readEntries();
-      return deferred;
+        var dirReader = self.dirEntry.createReader();
+        var fileEntries = [];
+        var readEntries = function () {
+          dirReader.readEntries(function (entries) {
+            if (!entries.length) {
+              _load(fileEntries).then(function () {
+                resolve();
+              });
+            } else {
+              fileEntries = fileEntries.concat($A(entries));
+              readEntries();
+            }
+          }, function (e) {
+            reject(e);
+          });
+        };
+        readEntries();
+      });
     },
 
     removeAll : function () {
@@ -283,35 +262,27 @@
     },
 
     readFromFile : function (file) {
-      var deferred = new Deferred();
-
-      var reader = new FileReader();
-      reader.onloadend = function (evt) {
-        if (evt.target.readyState === FileReader.DONE) {
-          deferred.callback(evt.target.result);
-        }
-      };
-      reader.readAsText(file);
-
-      return deferred;
+      return new Promise(function (resolve) {
+        var reader = new FileReader();
+        reader.onloadend = function (evt) {
+          if (evt.target.readyState === FileReader.DONE) {
+            resolve(evt.target.result);
+          }
+        };
+        reader.readAsText(file);
+      });
     },
 
     readFromFileEntry : function (fileEntry) {
       var self = this;
-      var deferred = new Deferred();
-
-      fileEntry.file(
-        function (file) {
-          self.readFromFile(file).then(function (script) {
-            deferred.callback(script);
-          });
-        },
-        function (e) {
-          deferred.errback(e);
-        }
-      );
-
-      return deferred;
+      return new Promise(function (resolve, reject) {
+        fileEntry.file(
+          function (file) {
+            self.readFromFile(file).then(resolve, reject);
+          },
+          reject
+        );
+      });
     },
 
     getMetadata : function (fileEntry) {
@@ -342,7 +313,7 @@
     loadInTab : function (tab) {
       console.groupCollapsed('Patches: Load in ' + tab.url);
       var self = this;
-      var deferredList = [];
+      var promiseList = [];
       this.values.forEach(function (patch) {
         var pattern = null;
         if (patch.metadata.match && Array.isArray(patch.metadata.match)) {
@@ -358,28 +329,28 @@
           (patch.metadata.include.indexOf('content') !== -1) &&
           pattern && pattern.test(tab.url)
         ) {
-          var deferred = new Deferred();
-          self.readFromFileEntry(patch.fileEntry).then(function (script) {
-            chrome.tabs.executeScript(tab.id, {
-              code : script
-            }, function (result) {
-              if (typeof result !== 'undefined') {
-                console.log(patch.fileEntry.fullPath);
-              }
-              deferred.callback();
+          promiseList.push(new Promise(function (resolve) {
+            self.readFromFileEntry(patch.fileEntry).then(function (script) {
+              chrome.tabs.executeScript(tab.id, {
+                code : script
+              }, function (result) {
+                if (typeof result !== 'undefined') {
+                  console.log(patch.fileEntry.fullPath);
+                }
+                resolve();
+              });
             });
-          });
-          deferredList.push(deferred);
+          }));
         }
       });
-      return new DeferredList(deferredList).then(function () {
+      return Promise.all(promiseList).then(function () {
         console.groupEnd();
       });
     },
 
     loadInPopup : function (doc) {
       console.groupCollapsed('Patches: Load in popup');
-      var deferredList = [];
+      var promiseList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
         if (
@@ -387,28 +358,26 @@
           patch.metadata.include && Array.isArray(patch.metadata.include) &&
           (patch.metadata.include.indexOf('popup') !== -1)
         ) {
-          var deferred = new Deferred();
-          var script = doc.createElement('script');
-          script.src = patch.fileEntry.toURL();
-          script.onload = function () {
-            console.log(patch.fileEntry.fullPath);
-            deferred.callback();
-          };
-          script.onerror = function () {
-            deferred.errback();
-          };
-          (doc.body || doc.documentElement).appendChild(script);
-          deferredList.push(deferred);
+          promiseList.push(new Promise(function (resolve, reject) {
+            var script = doc.createElement('script');
+            script.src = patch.fileEntry.toURL();
+            script.onload = function () {
+              console.log(patch.fileEntry.fullPath);
+              resolve();
+            };
+            script.onerror = reject;
+            (doc.body || doc.documentElement).appendChild(script);
+          }));
         }
       });
-      return new DeferredList(deferredList).then(function () {
+      return Promise.all(promiseList).then(function () {
         console.groupEnd();
       });
     },
 
     loadInOptions : function (doc) {
       console.groupCollapsed('Patches: Load in options');
-      var deferredList = [];
+      var promiseList = [];
       this.values.forEach(function (patch) {
         var preference = Patches.getPreferences(patch.name) || {};
         if (
@@ -416,21 +385,19 @@
           patch.metadata.include && Array.isArray(patch.metadata.include) &&
           (patch.metadata.include.indexOf('options') !== -1)
         ) {
-          var deferred = new Deferred();
-          var script = doc.createElement('script');
-          script.src = patch.fileEntry.toURL();
-          script.onload = function () {
-            console.log(patch.fileEntry.fullPath);
-            deferred.callback();
-          };
-          script.onerror = function () {
-            deferred.errback();
-          };
-          (doc.body || doc.documentElement).appendChild(script);
-          deferredList.push(deferred);
+          promiseList.push(new Promise(function (resolve, reject) {
+            var script = doc.createElement('script');
+            script.src = patch.fileEntry.toURL();
+            script.onload = function () {
+              console.log(patch.fileEntry.fullPath);
+              resolve();
+            };
+            script.onerror = reject;
+            (doc.body || doc.documentElement).appendChild(script);
+          }));
         }
       });
-      return new DeferredList(deferredList).then(function () {
+      return Promise.all(promiseList).then(function () {
         console.groupEnd();
       });
     },
