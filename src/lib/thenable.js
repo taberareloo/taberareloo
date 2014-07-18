@@ -32,5 +32,9 @@
     }
     return this.addCallback(resolved);
   };
+
+  MochiKit.Async.Deferred.prototype.catch = function (rejected) {
+    return this.addErrback(rejected);
+  };
 }());
 /* vim: set sw=2 ts=2 et tw=80 : */
