@@ -27,9 +27,6 @@
   "label_shortcutkey": {
     "message": "Shortcutkey - $1 Quick Post"
   },
-  "label_shortcutkey_general": {
-    "message": "Shortcutkey - Quick Post (General Use)"
-  },
   "label_clear": {
     "message": "clear"
   },

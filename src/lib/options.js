@@ -129,8 +129,6 @@
     this.link_quick_short = new Shortcutkey('shortcutkey_linkquickpost', true);
     // shortcutkey quick link post
     this.quote_quick_short = new Shortcutkey('shortcutkey_quotequickpost', true);
-    // quick post
-    this.quick_short = new Shortcutkey('shortcutkey_quickpost', true);
 
     connect($('save'), 'onclick', this, this.save);
 
@@ -155,10 +153,8 @@
 
       $('label_shortcutkey_linkquickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Link')));
       $('label_shortcutkey_quotequickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey', 'Quote')));
-      $('label_shortcutkey_quickpost').appendChild($T(chrome.i18n.getMessage('label_shortcutkey_general')));
 
-      $('shortcutkey_quickpost_clear').value =
-        $('shortcutkey_linkquickpost_clear').value =
+      $('shortcutkey_linkquickpost_clear').value =
         $('shortcutkey_quotequickpost_clear').value =
         $('shortcutkey_ldr_plus_taberareloo_clear').value =
         $('shortcutkey_dashboard_plus_taberareloo_clear').value =
@@ -205,14 +201,14 @@
       $('save').value = chrome.i18n.getMessage('label_save');
     },
     save : function () {
+      alert('ok');
       var lk = this.link_quick_short.body();
       var qk = this.quote_quick_short.body();
-      var k = this.quick_short.body();
       var tcheck = this.tumble_check.body();
       var enable_hatenablog = this.enableHatenaBlog_check.body();
       var enable_webhook = this.enable_webhook_check.body();
       var webhook_url = this.webhook_url_input.body();
-      if (!Shortcutkey.isConflict(lk, qk, k)) {
+      if (!Shortcutkey.isConflict(lk, qk)) {
         background.TBRL.configSet({
           'services' : this.services.body(),
           'post'     : {
@@ -239,7 +235,6 @@
             'tumblr_default_quote'  : this.tumblr_default_quote.body(),
             'shortcutkey_linkquickpost': lk,
             'shortcutkey_quotequickpost' : qk,
-            'shortcutkey_quickpost' : k,
             'always_shorten_url' : this.shorten_check.body(),
             'multi_tumblelogs'   : tcheck,
             'post_with_queue'    : this.queue_check.body(),

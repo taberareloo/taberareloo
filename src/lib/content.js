@@ -2,99 +2,25 @@
 // content script space
 /*jshint scripturl:true*/
 /*global chrome:true, UserScripts:true, Extractors:true*/
-/*global defer:true, $N:true, $X:true, $D:true, tagName:true*/
+/*global $N:true, $X:true, tagName:true*/
 /*global keyString:true, createFlavoredString:true, update:true, url:true*/
 /*global checkHttps:true, $A:true, connect:true*/
 (function (exports) {
   'use strict';
 
   var TBRL = {
-    target : { x: 0, y: 0 },
     clickTarget: { x: 0, y: 0 },
     config : null,
-    styles : {
-      'div': [
-        'display: block;',
-        'position: fixed;',
-        'background-color: rgba(0, 0, 0, 0.8);',
-        'z-index: 10000;',
-        'top: 0px;',
-        'left: 0px;',
-        'width: 100%;',
-        'height: 100%;'
-      ].join(''),
-      'ol' : [
-        'display: block;',
-        'margin: 1__qem 0 1em 0;',
-        '-webkit-padding-start: 40px;',
-        'z-index: 100000;',
-        'padding: 20px;',
-        'top: 10px;',
-        'left: 10px;',
-        'background-color: white;',
-        'list-style-type: none;',
-        'border-radius: 4px;',
-        'border: solid 1px silver;',
-        'opacity: 0.6;',
-        'position: fixed;'
-      ].join(''),
-      'li' : [
-        'display: block;',
-        'width: 100%;',
-        'margin: 0px;',
-        'padding: 0px;',
-        'border: none;',
-        'z-index: 1000000;',
-        'text-align: left;'
-      ].join(''),
-      'button'  : [
-        '-webkit-appearance: button;',
-        'margin: 0__qem;',
-        'font: -webkit-small-control;',
-        'color: initial;',
-        'letter-spacing: normal;',
-        'word-spacing: normal;',
-        'line-height: normal;',
-        'text-transform: none;',
-        'text-indent: 0;',
-        'text-shadow: none;',
-        'height: 30px;',
-        'padding: 5px;',
-        'margin: 5px 0px;',
-        'width: 100%;',
-        'min-width: 70px;',
-        'text-align: left;',
-        'border: solid 1px silver;',
-        'border-radius: 3px;',
-        'display: block;',
-        'background-image: linear-gradient(rgb(204, 204, 204), rgb(102, 102, 102));',
-        'cursor: pointer;'
-      ].join(''),
-      'img' : [
-        'margin-right: 10px;',
-        'width: 16px;',
-        'height: 16px;'
-      ].join(''),
-      'span': [
-        'margin-right: 10px;',
-        'color: white;',
-        'font-family: arial, sans-serif;',
-        'font-style: normal;',
-        'font-size: 11pt;'
-      ].join('')
-    },
     id     : chrome.runtime.id,
     ldr_plus_taberareloo : false,
     init : function (config) {
       var userscripts;
 
       TBRL.config = config;
-      document.addEventListener('mousemove', TBRL.mousehandler, false);
       document.addEventListener('mousedown', TBRL.clickhandler, false);
       document.addEventListener('unload', TBRL.unload, false);
       window.addEventListener('Taberareloo.link', TBRL.link, false);
       window.addEventListener('Taberareloo.quote', TBRL.quote, false);
-      window.addEventListener('Taberareloo.general', TBRL.general, false);
 
       if (!TBRL.config.post.keyconfig) {
         document.addEventListener('keydown', TBRL.keyhandler, false);
@@ -112,15 +38,9 @@
         document.removeEventListener('keydown', TBRL.keyhandler, false);
       }
 
-      document.removeEventListener('mousemove', TBRL.mousehandler, false);
       document.removeEventListener('mousedown', TBRL.clickhandler, false);
       window.removeEventListener('Taberareloo.link', TBRL.link, false);
       window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
-      window.removeEventListener('Taberareloo.general', TBRL.general, false);
-
-      if (TBRL.field_shown) {
-        TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
-      }
 
       TBRL.userscripts.forEach(function (script) {
         script.unload();
@@ -138,74 +58,6 @@
       var ext = (Extractors.Quote.check(ctx)) ? Extractors.Quote : Extractors.Text;
       return TBRL.share(ctx, ext, true);
     },
-    general: function () {
-      // fix stack overflow => reset stack
-      return defer().then(function () {
-        if (TBRL.field_shown) {
-          TBRL.field_delete();
-        } else {
-          if (!TBRL.field) {
-            TBRL.field = $N('div', {
-              id: 'taberareloo_background',
-              style: TBRL.styles.div
-            });
-            TBRL.ol = $N('ol', {
-              id: 'taberareloo_list',
-              style: TBRL.styles.ol
-            });
-            TBRL.field.appendChild(TBRL.ol);
-          }
-          TBRL.field_shown = true;
-          TBRL.field.addEventListener('click', TBRL.field_clicked, true);
-
-          var ctx = TBRL.createContext();
-          var exts = Extractors.check(ctx);
-          TBRL.ctx  = ctx;
-          TBRL.exts = exts;
-          TBRL.buttons = exts.map(function (ext) {
-            var button = $N('button', {
-              'type' : 'button',
-              'class': 'taberareloo_button',
-              'style': TBRL.styles.button
-            }, [$N('img', {
-              src: ext.ICON,
-              'style': TBRL.styles.img
-            }), $N('span', {
-              'style': TBRL.styles.span
-            }, ext.name)]);
-            var li = $N('li', {
-              'class': 'taberareloo_item',
-              'style': TBRL.styles.li
-            }, button);
-            TBRL.ol.appendChild(li);
-            return button;
-          });
-          (document.body || document.documentElement).appendChild(TBRL.field);
-          TBRL.buttons[0].focus();
-        }
-      });
-    },
-    field_clicked: function (ev) {
-      var button = $X('./ancestor-or-self::button[@class="taberareloo_button"]', ev.target)[0];
-      if (button) {
-        var index = TBRL.buttons.indexOf(button);
-        var ext = TBRL.exts[index];
-        var ctx = TBRL.ctx;
-        TBRL.field_delete();
-        return TBRL.share(ctx, ext, true);
-      }
-      TBRL.field_delete();
-      return defer();
-    },
-    field_delete: function () {
-      if (TBRL.field_shown) {
-        TBRL.buttons = null;
-        $D(TBRL.ol);
-        TBRL.field.parentNode.removeChild(TBRL.field);
-        TBRL.field_shown = false;
-        TBRL.field.removeEventListener('click', TBRL.field_clicked, false);
-      }
-    },
     keyhandler: function (ev) {
       var t = ev.target;
       if (t.nodeType === 1) {
@@ -219,14 +71,11 @@
           var key = keyString(ev);
           var link_quick_post = TBRL.config.post.shortcutkey_linkquickpost;
           var quote_quick_post = TBRL.config.post.shortcutkey_quotequickpost;
-          var quick_post = TBRL.config.post.shortcutkey_quickpost;
 
           if (link_quick_post && key === link_quick_post) {
             TBRL.link();
           } else if (quote_quick_post && key === quote_quick_post) {
             TBRL.quote();
-          } else if (quick_post && key === quick_post) {
-            TBRL.general();
           }
         } catch (e) {
           window.alert(e);
@@ -240,7 +89,7 @@
         window: window,
         title: document.title || location.href.replace(new RegExp('(?:^http://)?(' + location.hostname + ')(?:/$)?'), '$1'),
         selection: (sel.raw) ? sel : null,
-        target: target || TBRL.getTarget() || document.documentElement
+        target: target || document.documentElement
       }, window.location);
       if (ctx.target) {
         ctx.link    = $X('./ancestor-or-self::a[@href]', ctx.target)[0];
@@ -249,17 +98,9 @@
       }
       return ctx;
     },
-    mousehandler: function (ev) {
-      // 監視
-      TBRL.target.x = ev.clientX;
-      TBRL.target.y = ev.clientY;
-    },
     clickhandler: function (ev) {
       TBRL.clickTarget.x = ev.clientX;
       TBRL.clickTarget.y = ev.clientY;
-    },
-    getTarget : function () {
-      return document.elementFromPoint(TBRL.target.x, TBRL.target.y);
     },
     getContextMenuTarget: function () {
       return document.elementFromPoint(TBRL.clickTarget.x, TBRL.clickTarget.y);
@@ -395,7 +236,7 @@
           window : window,
           title : title,
           selection : (sel.raw) ? sel : null,
-          target : TBRL.getTarget() || document
+          target : document.documentElement
         }, window.location);
         TBRL.cleanUpContext(ctx);
         if (Extractors.Quote.check(ctx)) {

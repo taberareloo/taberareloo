@@ -27,9 +27,6 @@
   "label_shortcutkey": {
     "message": "ショートカット - $1クイックポスト"
   },
-  "label_shortcutkey_general": {
-    "message": "ショートカット - クイックポスト"
-  },
   "label_clear": {
     "message": "クリア"
   },
