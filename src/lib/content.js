@@ -551,6 +551,47 @@
         contextMenu: true
       }, TBRL.createContext(TBRL.getContextMenuTarget()));
       TBRL.share(ctx, Extractors.Text, true);
+    },
+    contextMenuPrimary: function (req, sender, func) {
+      var content = req.content;
+      var ctx = {};
+      var query = null;
+      switch (content.mediaType) {
+        case 'video':
+          ctx.onVideo = true;
+          ctx.target = $N('video', {
+            src: content.srcUrl
+          });
+          query = 'video[src="'+content.srcUrl+'"]';
+          break;
+        case 'audio':
+          ctx.onVideo = true;
+          ctx.target = $N('audio', {
+            src: content.srcUrl
+          });
+          query = 'audio[src="'+content.srcUrl+'"]';
+          break;
+        case 'image':
+          ctx.onImage = true;
+          ctx.target = $N('img', {
+            src: content.srcUrl
+          });
+          query = 'img[src="'+content.srcUrl+'"]';
+          break;
+        default:
+          if (content.linkUrl) {
+            // case link
+            ctx.onLink = true;
+            ctx.link = ctx.target = $N('a', {
+              href: content.linkUrl
+            });
+            ctx.title = content.linkUrl;
+            query = 'a[href="'+content.linkUrl+'"]';
+          }
+          break;
+      }
+      update(ctx, TBRL.createContext((query && document.querySelector(query)) || TBRL.getContextMenuTarget()));
+      TBRL.share(ctx, Extractors.check(ctx)[0], false);
     }
   };
 
@@ -567,6 +608,88 @@
     request: 'loadPatchesInContent',
     visibility: document.webkitVisibilityState
   }, function () {});
+
+  // Construct context-sensitive context menu.
+  TBRL.setRequestHandler('contextMenusNoPopup', function (req, sender, func) {
+    var content = req.content;
+    var ctx = {};
+    var query = null;
+    switch (content.mediaType) {
+      case 'video':
+        ctx.onVideo = true;
+        ctx.target = $N('video', {
+          src: content.srcUrl
+        });
+        query = 'video[src="'+content.srcUrl+'"]';
+        break;
+      case 'audio':
+        ctx.onVideo = true;
+        ctx.target = $N('audio', {
+          src: content.srcUrl
+        });
+        query = 'audio[src="'+content.srcUrl+'"]';
+        break;
+      case 'image':
+        ctx.onImage = true;
+        ctx.target = $N('img', {
+          src: content.srcUrl
+        });
+        query = 'img[src="'+content.srcUrl+'"]';
+        break;
+      default:
+        if (content.linkUrl) {
+          // case link
+          ctx.onLink = true;
+          ctx.link = ctx.target = $N('a', {
+            href: content.linkUrl
+          });
+          ctx.title = content.linkUrl;
+          query = 'a[href="'+content.linkUrl+'"]';
+        }
+        break;
+    }
+    update(ctx, TBRL.createContext((query && document.querySelector(query)) || TBRL.getContextMenuTarget()));
+    TBRL.share(ctx, Extractors.check(ctx)[0], false);
+  });
+
+  function updateContextMenu(event) {
+    var ctx = {};
+    switch (event.target.nodeName) {
+    case 'IMG':
+      ctx.onImage = true;
+      ctx.target  = event.target;
+      break;
+    case 'A':
+      ctx.onLink = true;
+      ctx.link   = event.target;
+      ctx.title  = event.target.title || event.target.text.trim() || event.target.href;
+      break;
+    }
+    update(ctx, TBRL.createContext(event.target));
+
+    var extractors = Extractors.check(ctx).map(function (extractor) { return extractor.name; });
+
+    chrome.runtime.sendMessage(TBRL.id, {
+      request   : 'updateContextMenu',
+      extractors : extractors
+    }, function(res) {});
+  }
+
+  window.addEventListener('contextmenu', function(event) {
+    updateContextMenu(event);
+  }, true);
+
+  window.addEventListener('contextmenu', function(event) {
+    busyWait(50);
+  }, false);
+
+  function busyWait(waitMilliSeconds) {
+    var now = Date.now();
+    var end = now + waitMilliSeconds;
+    while (now < end) {
+      now = Date.now();
+    }
+  }
 
   exports.TBRL = TBRL;
   exports.downloadFile = downloadFile;

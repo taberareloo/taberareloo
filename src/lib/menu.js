@@ -1,4 +1,5 @@
 /*global MochiKit:true, Repository:true, chrome:true, Patches:true, delay:true*/
+/*global TBRL:true*/
 (function (exports) {
   'use strict';
 
@@ -194,6 +195,33 @@
           }
         });
       }
+    });
+
+    // Construct context-sensitive context menu
+    var name = 'Taberareloo - Taberareloo';
+    Menus._register({
+      title    : name,
+      contexts : ['all'],
+      onclick: function(info, tab) {
+        chrome.tabs.sendMessage(tab.id, {
+          request: 'contextMenusNoPopup',
+          content: info
+        });
+      }
+    }, null, 'Taberareloo');
+    Menus._register({
+      type     : 'separator',
+      contexts : ['all']
+    }, null, 'Taberareloo');
+
+    TBRL.setRequestHandler('updateContextMenu', function (req, sender, func) {
+      chrome.contextMenus.update(Menus[name].id, {
+        title : 'Taberareloo - ' + req.extractors[0]
+      }, function () {});
+
+      chrome.contextMenus.update(Menus['Taberareloo'].id, {
+        title : req.extractors[0]
+      }, function () {});
     });
   })();
 
