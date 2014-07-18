@@ -4,7 +4,7 @@
 /*global chrome:true, UserScripts:true, Extractors:true*/
 /*global $N:true, $X:true, tagName:true*/
 /*global keyString:true, createFlavoredString:true, update:true, url:true*/
-/*global checkHttps:true, $A:true, connect:true*/
+/*global checkHttps:true, $A:true*/
 (function (exports) {
   'use strict';
 
@@ -158,7 +158,7 @@
         if (document.contentType === 'application/pdf') {
           return resolve({});
         }
-        connect(document, 'onDOMContentLoaded', null, resolve);
+        document.addEventListener('DOMContentLoaded', resolve, false);
       });
     }()),
 
@@ -219,9 +219,9 @@
       return Promise.resolve(title);
     }
     return new Promise(function (resolve) {
-      connect(document, 'onDOMContentLoaded', null, function () {
+      document.addEventListener('DOMContentLoaded', function () {
         resolve(title_getter());
-      });
+      }, false);
     });
   }
 
