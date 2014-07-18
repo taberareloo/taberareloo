@@ -2400,18 +2400,17 @@
     name: 'Diigo',
     ICON: 'https://www.diigo.com/favicon.ico',
     LINK: 'https://www.diigo.com/',
-    UPLOAD_URL: "http://www.diigo.com/item/save/image", // based on http://www.diigo.com/item/new/image?t=basic
+    UPLOAD_URL: 'http://www.diigo.com/item/save/image', // based on http://www.diigo.com/item/new/image?t=basic
 
     check: function (ps) {
-      return /photo|quote|link|conversation|video/.test(ps.type);
+      return (/photo|quote|link|conversation|video/).test(ps.type);
     },
 
     post: function (ps) {
       if (ps.file) {
         return this.uploadImage(ps);
-      } else {
-        return this.addBookmark(ps.itemUrl, ps.item, ps.tags, joinText([ps.body, ps.description],' '),ps.private);
       }
+      return this.addBookmark(ps.itemUrl, ps.item, ps.tags, joinText([ps.body, ps.description], ' '), ps.private);
     },
 
     uploadImage: function (ps) {
@@ -2421,9 +2420,9 @@
           description : joinText([
             ps.description,
             '(via ' + ps.pageUrl + ' )'
-          ], "\n", true),
+          ], '\n', true),
           tags        : (ps.tags && ps.tags.length) ? joinText(ps.tags, ',') : '',
-          private     : (!!ps.private ? "on" : "")
+          private     : (!!ps.private ? 'on' : '')
         }
       });
     },
@@ -2479,8 +2478,9 @@
     URL  : 'http://is.gd/',
 
     shorten : function (url) {
-      if (/\/\/is\.gd\//.test(url))
+      if (/\/\/is\.gd\//.test(url)) {
         return succeed(url);
+      }
 
       return request(this.URL + '/api.php', {
         //denyRedirection: true,
@@ -2510,8 +2510,9 @@
     VERSION : '3.0.0',
 
     shorten : function (url) {
-      if (/\/\/(?:bit\.ly|j\.mp)/.test(url))
+      if (/\/\/(?:bit\.ly|j\.mp)/.test(url)) {
         return succeed(url);
+      }
 
       return this.callMethod('shorten', {
         longUrl : url
@@ -2540,7 +2541,7 @@
       }).addCallback(function (res) {
         res = JSON.parse(res.responseText);
         if (res.status_code !== 200) {
-          var error = new Error([res.status_code, res.status_txt].join(': '))
+          var error = new Error([res.status_code, res.status_txt].join(': '));
           error.detail = res;
           throw error;
         }
@@ -2567,27 +2568,25 @@
     GLOBALS_REGEX : /<script\b[^>]*>(?:\/\/\s*<!\[CDATA\[)?\s*\bvar\s+GLOBALS\s*=\s*([[]+(?:(?:(?![\]]\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;)[\s\S])*)*[\]])\s*;\s*GLOBALS\[0\]\s*=\s*GM_START_TIME\s*;/i,
 
     check: function (ps) {
-      return /regular|photo|quote|link|video/.test(ps.type);
+      return (/regular|photo|quote|link|video/).test(ps.type);
     },
 
     getAuthCookie: function () {
       var self = this;
       return getCookies('.google.com', 'SSID').addCallback(function (cookies) {
         if (cookies.length) {
-          return cookies[cookies.length-1].value;
-        } else {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
+          return cookies[cookies.length - 1].value;
         }
+        throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       });
     },
 
     getGmailAt : function () {
       return getCookies('mail.google.com', 'GMAIL_AT').addCallback(function (cookies) {
         if (cookies.length) {
-          return cookies[cookies.length-1].value;
-        } else {
-          return '';
+          return cookies[cookies.length - 1].value;
         }
+        return '';
       });
     },
 
@@ -2618,20 +2617,18 @@
       });
     },
 
-    now : Date.now || function () {
-      return +new Date;
-    },
+    now : Date.now,
 
     SEQUENCE1 : 0,
 
     getRid : function (GLOBALS) {
       this.SEQUENCE1 += 2;
-      return "mail:sd." + GLOBALS[28] + "." + this.SEQUENCE1 + ".0";
+      return 'mail:sd.' + GLOBALS[28] + '.' + this.SEQUENCE1 + '.0';
     },
 
     getJsid : function () {
-      return Math.floor(2147483648 * Math.random()).toString(36)
-        + Math.abs(Math.floor(2147483648 * Math.random()) ^ 1).toString(36)
+      return Math.floor(2147483648 * Math.random()).toString(36) +
+        Math.abs(Math.floor(2147483648 * Math.random()) ^ 1).toString(36);
     },
 
     SEQUENCE2 : 1,
@@ -2643,7 +2640,7 @@
     SEQUENCE3 : 0,
 
     getReqid : function () {
-      var now = new Date;
+      var now = new Date();
       this.seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
       return this.seconds + (this.SEQUENCE3++) * 1E5;
     },
@@ -2651,28 +2648,26 @@
     SEQUENCE4 : 0,
 
     getFileid : function () {
-      return "f_" + this.now().toString(36) + this.SEQUENCE4++;
+      return 'f_' + this.now().toString(36) + this.SEQUENCE4++;
     },
 
     download : function (ps) {
-      return (
-        ps.file
-          ? succeed(ps.file)
-          : download(ps.itemUrl, getFileExtension(ps.itemUrl))
-            .addCallback(function (entry) {
-              return getFileFromEntry(entry);
-            })
-            .addErrback(function (e) {
-              throw new Error('Could not get an image file.');
-            })
-      );
+      if (ps.file) {
+        return succeed(ps.file);
+      }
+      return download(ps.itemUrl, getFileExtension(ps.itemUrl))
+        .addCallback(function (entry) {
+          return getFileFromEntry(entry);
+        })
+        .addErrback(function (e) {
+          throw new Error('Could not get an image file.');
+        });
     },
 
     createContents : function (ps) {
       var description = '';
       if (ps.description) {
-        description += '<p>'
-          + ps.description.replace(/\n/g, '<br/>\n') + '</p>\n\n';
+        description += '<p>' + ps.description.replace(/\n/g, '<br/>\n') + '</p>\n\n';
       }
       if (ps.page && ps.pageUrl) {
         description += '<a href="' + ps.pageUrl + '">' + ps.page + '</a>\n';
@@ -2765,7 +2760,7 @@
           return fileToBinaryString(file).addCallback(function (binary) {
             ps.file = window.btoa(binary);
             return self._post(ps);
-          })
+          });
         });
       } else {
         return self._post(ps);
@@ -2792,14 +2787,12 @@
     },
 
     _download : function (ps) {
-      return (
-        ps.file
-          ? succeed(ps.file)
-          : download(ps.itemUrl, getFileExtension(ps.itemUrl))
-            .addCallback(function (entry) {
-            return getFileFromEntry(entry);
-          })
-      );
+      if (ps.file) {
+        return succeed(ps.file);
+      }
+      return download(ps.itemUrl, getFileExtension(ps.itemUrl)).addCallback(function (entry) {
+        return getFileFromEntry(entry);
+      });
     }
   };
 
@@ -2875,14 +2868,16 @@
         $X('//div[@class="boardPickerInner"]//ul/li[@class="boardPickerItem"]', doc).forEach(function (li) {
           boards.push({
             id   : $X('./@data-id', li)[0],
-            name : $X('./text()', li).join("\n").trim()
+            name : $X('./text()', li).join('\n').trim()
           });
           self.is_new_api = true;
         });
         // for new bookmarklet
         function inBoards(id) {
           for (var i = 0, len = boards.length ; i < len ; i++) {
-            if (boards[i].id === id) return true;
+            if (boards[i].id === id) {
+              return true;
+            }
           }
           return false;
         }
@@ -2891,7 +2886,7 @@
           if (!inBoards(id)) {
             boards.push({
               id   : id,
-              name : $X('.//span[contains(concat(" ",@class," ")," boardName ")]/text()', li).join("\n").trim()
+              name : $X('.//span[contains(concat(" ",@class," ")," boardName ")]/text()', li).join('\n').trim()
             });
           }
           self.is_new_api = true;
