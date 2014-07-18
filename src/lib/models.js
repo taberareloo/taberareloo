@@ -1834,19 +1834,33 @@
       });
     },
 
-    update : function (status) {
+    update : function (status, media_ids) {
       var self = this;
       return this.getToken().then(function (token) {
-        // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
-        token.status = status;
-        return request(self.URL + '/status/update', update({
-          sendContent : token
-        }));
-      }).then(function (res) {
-        var msg = res.responseText.extract(/notification.setMessage\("(.*?)"\)/);
-        if (msg) {
-          throw unescapeHTML(msg).trimTag();
+        var sendContent = {
+          authenticity_token : token.authenticity_token,
+          place_id           : '',
+          status             : status,
+          tagged_users       : ''
+        };
+
+        if (media_ids) {
+          sendContent.media_ids = media_ids;
         }
+
+        // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
+        return request(self.URL + '/i/tweet/create', {
+          sendContent : sendContent
+        }).catch(function (e) {
+          var res = e.message;
+          var json = res.responseText;
+          try {
+            json = JSON.parse(json);
+            throw new Error(json.message);
+          } catch (e2) {
+            throw e2;
+          }
+        });
       });
     },
 
@@ -1910,45 +1924,37 @@
     },
 
     upload : function (ps, status, file) {
-      var UPLOAD_URL = 'https://upload.twitter.com/i/tweet/create_with_media.iframe';
-      var SIZE_LIMIT = 3145728;
-
-      if (file.size > SIZE_LIMIT) {
-        throw new Error('exceed the photo size limit (' + SIZE_LIMIT + ')');
-      }
-      else if (file.type === 'image/gif') {
-        throw new Error('GIF is not supported');
-      }
+      var self = this;
+      var UPLOAD_URL = 'https://upload.twitter.com/i/media/upload.iframe';
 
       return this.getToken().then(function (token) {
         return fileToBinaryString(file).then(function (binary) {
           return request(UPLOAD_URL, {
-            sendContent : {
-              status                  : status,
-              'media_data[]'          : window.btoa(binary),
-              iframe_callback         : 'window.top.swift_tweetbox_' + (new Date()).getTime(),
-              post_authenticity_token : token.authenticity_token
+            queryString : {
+              origin : self.URL
             },
-            multipart : true
+            sendContent : {
+              authenticity_token : token.authenticity_token,
+              iframe_callback    : '',
+              media              : window.btoa(binary),
+              upload_id          : (new Date()).getTime(),
+              origin             : self.URL
+            }
           }).then(function (res) {
             var html = res.responseText;
-            var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
+            var json = html.extract(/parent\.postMessage\(JSON\.stringify\((\{.+\})\), ".+"\);/);
             json = JSON.parse(json);
-          }).catch(function (e) {
-            var res  = e.message;
-            var html = res.responseText;
-            var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
-            json = JSON.parse(json);
-            throw new Error(json.error);
-          });
+            return self.update(status, json.media_id_string);
+         });
         });
       });
     },
 
     getActualLength : function (status) {
       var ret = status.split('\n').map(function (s) {
-        s = s.replace(/(https:\/\/(?:(?:[^ &),]|&amp;)+))/g, '12345678901234567890123');
-        return s.replace(/(http:\/\/(?:(?:[^ &),]|&amp;)+))/g, '1234567890123456789012');
+        s = s.replace(/(https:\/\/[^ ]+)/g, '12345678901234567890123');
+        s = s.replace(/(http:\/\/[^ ]+)/g, '1234567890123456789012');
+        return s;
       }).join('\n');
       return ret.length;
     }
