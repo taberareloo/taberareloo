@@ -622,17 +622,16 @@
       }
 
       // URLにリクエスト送って調べる
-      threads++;
-      request(url, {
-        method: 'HEAD'
-      }).addBoth(function () {
+      function handler() {
         threads--;
         if (redirects[url]) {
           ret.callback(redirects[url]);
         } else {
           ret.callback(url);
         }
-      });
+      }
+      threads++;
+      request(url, { method: 'HEAD' }).then(handler, handler);
       return ret;
     };
   })();

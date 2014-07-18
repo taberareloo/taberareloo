@@ -44,7 +44,7 @@
         function (err) {
           deferred.errback(err);
         }
-      ).addBoth(next);
+      ).then(next, next);
     }
 
     if (that._runId != null) {
