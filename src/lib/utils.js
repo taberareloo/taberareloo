@@ -424,7 +424,7 @@
   function maybeDeferred(d) {
     return typeof(d) === 'function' ?
       MochiKit.Async.maybeDeferred(d) :
-      (d == null || !d.addCallback) ? succeed(d) : d;
+      (d == null || !d.then) ? succeed(d) : d;
   }
 
   exports.maybeDeferred = maybeDeferred;
@@ -602,7 +602,7 @@
 
   function DeferredHash(ds) {
     var props = keys(ds);
-    return new DeferredList(values(ds)).addCallback(function (results) {
+    return new DeferredList(values(ds)).then(function (results) {
       var res = {};
       for (var i = 0, len = results.length; i < len; i++) {
         res[props[i]] = results[i];
@@ -811,7 +811,7 @@
   function download(url, ext) {
     return request(url, {
       responseType: 'blob'
-    }).addCallback(function (res) {
+    }).then(function (res) {
       var mime = res.getResponseHeader('Content-Type').replace(/;.*/, '');
       ext = getFileExtensionFromMime(mime) || ext;
       return createFileEntryFromBlob(res.response, ext);
@@ -823,7 +823,7 @@
   function downloadBlob(url) {
     return request(url, {
       responseType: 'blob'
-    }).addCallback(function (res) {
+    }).then(function (res) {
       return res.response;
     });
   }
@@ -833,9 +833,9 @@
   function createFileEntryFromBlob(blob, ext) {
     var d = new Deferred();
     getTempFile(ext)
-    .addCallback(function (entry) {
+    .then(function (entry) {
       return getWriter(entry)
-      .addCallback(function (writer) {
+      .then(function (writer) {
         writer.onwrite = function onWrite() {
           d.callback(entry);
         };
@@ -844,7 +844,7 @@
         };
         writer.write(blob);
       })
-      .addErrback(function (e) {
+      .catch(function (e) {
         d.errback(e);
       });
     });
@@ -1001,7 +1001,7 @@
       charset: 'text/plain; charset=x-user-defined',
       responseType: 'text'
     });
-    return request(url, override).addCallback(function (res) {
+    return request(url, override).then(function (res) {
       res.responseText = res.responseText.replace(
         /[\u0100-\uffff]/g, function (c) {
         return String.fromCharCode(c.charCodeAt(0) & 0xff);
@@ -1071,7 +1071,7 @@
 
   // 2回requestすることでcharset判別する.
   function encodedRequest(url, opt) {
-    return binaryRequest(url, opt).addCallback(function (res) {
+    return binaryRequest(url, opt).then(function (res) {
       var binary = res.responseText;
       var charset = null;
       var header = res.getResponseHeader('Content-Type');

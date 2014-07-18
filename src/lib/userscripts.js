@@ -352,10 +352,10 @@
           if (!('selectionStart' in ev.target && ev.target.disabled !== true)) {
             stop(ev);
             var manually = this.keys[key];
-            this.getStatus().addCallback(function (data) {
+            this.getStatus().then(function (data) {
               var pins_count = data.pins_count;
               if (pins_count > 0) {
-                return self.reblogPins(pins_count, manually).addCallback(function () {
+                return self.reblogPins(pins_count, manually).then(function () {
                   return self.clearPins();
                 });
               } else {

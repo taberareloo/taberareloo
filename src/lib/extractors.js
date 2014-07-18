@@ -284,7 +284,7 @@
             nojsoncallback : 1,
             format         : 'json',
           }, ps)
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var json = JSON.parse(res.responseText);
           if (json.stat !== 'ok') {
             throw json.message;
@@ -296,7 +296,7 @@
         return this.callMethod({
           method   : 'flickr.photos.getSizes',
           photo_id : id,
-        }).addCallback(function (res) {
+        }).then(function (res) {
           return res.sizes.size;
         });
       },
@@ -304,7 +304,7 @@
         return this.callMethod({
           method   : 'flickr.photos.getInfo',
           photo_id : id,
-        }).addCallback(function (res) {
+        }).then(function (res) {
           return res.photo;
         });
       },
@@ -313,7 +313,7 @@
         return new DeferredHash({
           'info'  : this.getInfo(id),
           'sizes' : this.getSizes(id),
-        }).addCallback(function (r) {
+        }).then(function (r) {
           if (!r.info[0]) {
             throw new Error(r.info[1].message);
           }
@@ -351,7 +351,7 @@
             originalWidth  : largestSize.width,
             originalHeight : largestSize.height,
           };
-        }).addErrback(function () {
+        }).catch(function () {
           return Extractors.Photo.extract(ctx);
         });
       },
@@ -362,7 +362,7 @@
       TUMBLR_URL : 'http://www.tumblr.com/',
       extractByLink : function (ctx, link) {
         var that = this;
-        return request(link, {responseType: 'document'}).addCallback(function (res) {
+        return request(link, {responseType: 'document'}).then(function (res) {
           var doc = res.response;
           ctx.href = link;
           ctx.title = doc.title;
@@ -379,7 +379,7 @@
             reblog_key: ctx.reblog_key,
             post_type: ctx.post_type
           })
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var response = JSON.parse(res.response);
           var post = response.post;
           var form = {
@@ -441,7 +441,7 @@
             form.valid_embed_code = '';
           }
 
-          return succeed().addCallback(function afterPhoto() {
+          return succeed().then(function afterPhoto() {
             if (!(TBRL.config.entry.not_convert_text && form['post[type]'] === 'link')) {
               return form;
             }
@@ -449,7 +449,7 @@
               queryString: {
                 id: ctx.reblog_id
               }
-            }).addCallback(function (res) {
+            }).then(function (res) {
               var xml = res.responseXML;
               if (xml.querySelector('post').getAttribute('type') === 'regular') {
                 ctx.post_type = 'text';
@@ -458,14 +458,14 @@
               return form;
             });
           });
-        }).addErrback(function (err) {
+        }).catch(function (err) {
           if (that.retry) {
             throw err;
           }
 
           that.form_key = that.channel_id = null;
 
-          return that.getCache(true).addCallback(function (info) {
+          return that.getCache(true).then(function (info) {
             that.form_key = info.form_key;
             that.channel_id = info.channel_id;
             that.retry = true;
@@ -481,7 +481,7 @@
           return succeed();
         }
 
-        return this.getCache(false).addCallback(function (info) {
+        return this.getCache(false).then(function (info) {
           that.form_key = info.form_key;
           that.channel_id = info.channel_id;
         });
@@ -506,7 +506,7 @@
               queryString: {
                 id: anchor.pathname.replace('/post/', '')
               }
-            }).addCallback(function (res) {
+            }).then(function (res) {
               var xml = res.responseXML;
               var post = xml.querySelector('post');
               ctx.reblog_id = post.getAttribute('id');
@@ -520,13 +520,13 @@
         if (!ctx.post_type) {
           ctx.post_type = false;
         }
-        return this.getFormKeyAndChannelId().addCallback(function () {
+        return this.getFormKeyAndChannelId().then(function () {
           return that.extractByEndpoint(ctx, that.TUMBLR_URL + 'reblog/' + ctx.reblog_id + '/' + ctx.reblog_key);
         });
       },
       extractByEndpoint : function (ctx, endpoint) {
         var that = this;
-        return this.getForm(ctx, endpoint).addCallback(function (form) {
+        return this.getForm(ctx, endpoint).then(function (form) {
           if (form.favorite) {
             return form;
           }
@@ -739,7 +739,7 @@
         return (ctx.onLink && ctx.link.href.match('http://lh..(google.ca|ggpht.com)/.*(png|gif|jpe?g)$'));
       },
       extract : function (ctx) {
-        return request(ctx.link.href, { responseType: 'document' }).addCallback(function (res) {
+        return request(ctx.link.href, { responseType: 'document' }).then(function (res) {
           return {
             type    : 'photo',
             item    : ctx.title,
@@ -795,7 +795,7 @@
         var itemUrl = decodeURIComponent(link.match(/imgurl=([^&]+)/)[1]);
         ctx.href = decodeURIComponent(link.match(/imgrefurl=([^&]+)/)[1]);
 
-        return request(ctx.href).addCallback(function (res) {
+        return request(ctx.href).then(function (res) {
           ctx.title =
             res.responseText.extract(/<title.*?>([\s\S]*?)<\/title>/im).replace(/[\n\r]/g, '').trim() ||
             createURI(itemUrl).fileName;
@@ -927,7 +927,7 @@
         var itemUrl = (tagName(target) === 'object') ? target.data : target.src;
         return downloadFile(itemUrl, {
           ext  : getFileExtension(itemUrl)
-        }).addCallback(function (url) {
+        }).then(function (url) {
           return {
             type: 'photo',
             item: ctx.title,
@@ -1230,15 +1230,15 @@
 
         var win = ctx.window;
 
-        return succeed().addCallback(function () {
+        return succeed().then(function () {
           switch (type) {
           case 'Region':
-            return self.selectRegion(ctx).addCallback(function (region) {
+            return self.selectRegion(ctx).then(function (region) {
               return self.capture(win, region.position, region.dimensions);
             });
 
           case 'Element':
-            return self.selectElement(ctx).addCallback(function (elm) {
+            return self.selectElement(ctx).then(function (elm) {
               var rect = elm.getBoundingClientRect();
               return self.capture(win, {
                 x: Math.round(rect.left),
@@ -1253,7 +1253,7 @@
             return self.capture(win, { x: 0, y: 0 }, getPageDimensions());
           }
           return null;
-        }).addCallback(function (file) {
+        }).then(function (file) {
           return {
             type: 'photo',
             item: ctx.title,
@@ -1288,7 +1288,7 @@
               canvas.height = size.h = dim.h;
             }
             ctx.drawImage(img, pos.x, pos.y, dim.w, dim.h, 0, 0, size.w, size.h);
-            base64ToFileEntry(canvas.toDataURL('image/png', '')).addCallback(function (url) {
+            base64ToFileEntry(canvas.toDataURL('image/png', '')).then(function (url) {
               ret.callback(url);
             });
           }, false);

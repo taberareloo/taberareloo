@@ -37,7 +37,7 @@
 
       command = that._commands.shift();
       deferred = command.df;
-      maybeDeferred(command.callback()).addCallbacks(
+      maybeDeferred(command.callback()).then(
         function (result) {
           deferred.callback(result);
         },

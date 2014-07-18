@@ -9,7 +9,7 @@
   var Config     = background.TBRL.Config;
 
   connect(document, 'onDOMContentLoaded', document, function () {
-    background.Patches.loadInOptions(document).addCallback(function () {
+    background.Patches.loadInOptions(document).then(function () {
       var options = new Options();
       document.dispatchEvent(new CustomEvent('optionsReady', {
         detail     : options,
@@ -700,7 +700,7 @@
     clicked: function () {
       var self = this;
       $D(this.field);
-      background.Models.getMultiTumblelogs(false).addCallback(function (models) {
+      background.Models.getMultiTumblelogs(false).then(function (models) {
         self.field.appendChild(models.reduce(function (df, model) {
           df.appendChild(self.createElement(model));
           return df;
@@ -739,7 +739,7 @@
     clicked : function () {
       var self = this;
       $D(this.field);
-      background.Models.getHatenaBlogs().addCallback(function (models) {
+      background.Models.getHatenaBlogs().then(function (models) {
         self.field.appendChild(models.reduce(function (df, model) {
           df.appendChild(self.createElement(model));
           return df;
@@ -773,7 +773,7 @@
     connect(button_install, 'onclick', button_install, function () {
       var patch_file = $('patch_file');
       if (patch_file.files.length && /\.tbrl\.js$/.test(patch_file.files[0].name)) {
-        background.Patches.install(patch_file.files[0]).addCallback(function (res) {
+        background.Patches.install(patch_file.files[0]).then(function (res) {
           if (res) {
             refreshTable();
             background.window.location.reload();
@@ -849,7 +849,7 @@
         }, chrome.i18n.getMessage('label_uninstall'));
         connect(button_uninstall, 'onclick', button_uninstall, function () {
           if (confirm(chrome.i18n.getMessage('confirm_delete'))) {
-            background.Patches.uninstall(patch).addCallback(function () {
+            background.Patches.uninstall(patch).then(function () {
               tr.parentNode.removeChild(tr);
               background.window.location.reload();
             });
@@ -968,7 +968,7 @@
               } else {
                 entry.getData(new zip.BlobWriter('application/javascript'), function (blob) {
                   blob.name = entry.filename;
-                  background.Patches.install(blob, true).addCallback(function () {
+                  background.Patches.install(blob, true).then(function () {
                     deferred.callback();
                   });
                 });
@@ -977,7 +977,7 @@
               files[entry.filename] = deferred;
             });
 
-            new DeferredHash(files).addCallback(function () {
+            new DeferredHash(files).then(function () {
               alert(chrome.i18n.getMessage('message_restored'));
               chrome.runtime.reload();
             });
@@ -991,7 +991,7 @@
     var button_restore = $('button_restore');
     button_restore.appendChild($T(chrome.i18n.getMessage('label_restore')));
     connect(button_restore, 'onclick', button_restore, function () {
-      reset().addCallback(function () {
+      reset().then(function () {
         restore();
       });
     });
@@ -1012,7 +1012,7 @@
     button_reset.appendChild($T(chrome.i18n.getMessage('label_reset')));
     connect(button_reset, 'onclick', button_reset, function () {
       if (confirm(chrome.i18n.getMessage('confirm_reset'))) {
-        reset().addCallback(function () {
+        reset().then(function () {
           alert(chrome.i18n.getMessage('message_reset'));
           chrome.runtime.reload();
         });

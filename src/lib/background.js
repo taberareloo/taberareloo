@@ -46,7 +46,7 @@
   function constructPsInBackground(content) {
     if (content.fileEntry) {
       var entry = GlobalFileEntryCache[content.fileEntry];
-      return getFileFromEntry(entry).addCallback(function (file) {
+      return getFileFromEntry(entry).then(function (file) {
         content.file = file;
         return content;
       });
@@ -119,7 +119,7 @@
         posters.forEach(function (p) {
           ds[p.name] = (TBRL.Config.post.notification_on_posting ?
             TBRL.Notification.notify({title: p.name, message: 'Posting...'}) : succeed(null)
-          ).addCallback(function (notification) {
+          ).then(function (notification) {
             var deferred;
 
             models[p.name] = p;
@@ -130,14 +130,14 @@
             }
 
             if (notification) {
-              deferred.addCallbacks(
+              deferred.then(
                 function (res) {
                   TBRL.Notification.notify({
                     title: p.name,
                     message: 'Posting... Done',
                     timeout: 3,
                     id: notification.tag
-                  }).addCallback(function (n) {
+                  }).then(function (n) {
                     if (n) {
                       notifications.push(n);
                     }
@@ -164,7 +164,7 @@
             return deferred;
           });
         });
-        return new DeferredHash(ds).addCallback(function (ress) {
+        return new DeferredHash(ds).then(function (ress) {
           var errs = [], urls = [];
           for (var name in ress) {
             var success = ress[name][0], res = ress[name][1];
@@ -196,7 +196,7 @@
           } else {
             delete TBRL.Popup.contents[ps.https.pageUrl[1]];
           }
-        }).addErrback(function (err) {
+        }).catch(function (err) {
           self.alertError(err, ps.pageUrl);
         });
       },
@@ -473,12 +473,12 @@
         type = m[1];
         ext  = m[2];
       }
-      createFileEntryFromBlob(base64ToBlob(req.content, type), ext).addCallback(function (entry) {
-        return getFileFromEntry(entry).addCallback(function (file) {
+      createFileEntryFromBlob(base64ToBlob(req.content, type), ext).then(function (entry) {
+        return getFileFromEntry(entry).then(function (file) {
           var key = getURLFromFile(file);
           GlobalFileEntryCache[key] = entry;
           return key;
-        }).addCallbacks(function (url) {
+        }).then(function (url) {
           func(url);
         }, function (e) {
           func(e);
@@ -486,7 +486,7 @@
       });
     },
     share: function (req, sender, func) {
-      constructPsInBackground(req.content).addCallback(function (ps) {
+      constructPsInBackground(req.content).then(function (ps) {
         if (req.show) {
           TBRL.Popup.open(sender.tab, ps);
         } else {
@@ -512,12 +512,12 @@
           opt = content.opt,
           url = content.url;
       // this is very experimental
-      return download(url, opt && opt.ext).addCallback(function (entry) {
-        return getFileFromEntry(entry).addCallback(function (file) {
+      return download(url, opt && opt.ext).then(function (entry) {
+        return getFileFromEntry(entry).then(function (file) {
           var key = getURLFromFile(file);
           GlobalFileEntryCache[key] = entry;
           return key;
-        }).addCallbacks(function (url) {
+        }).then(function (url) {
           func({
             success: true,
             content: url
@@ -552,7 +552,7 @@
           Tumblr.form_key = Tumblr.channel_id = null;
         }
 
-        Tumblr.getForm(Tumblr.TUMBLR_URL + 'new/text').addCallback(sendInfo);
+        Tumblr.getForm(Tumblr.TUMBLR_URL + 'new/text').then(sendInfo);
       }
     },
     loadPatchesInContent: function (req, sender) {

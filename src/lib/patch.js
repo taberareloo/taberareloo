@@ -102,7 +102,7 @@
 
         var deferred = new Deferred();
 
-        self.getMetadata(file).addCallback(function (metadata) {
+        self.getMetadata(file).then(function (metadata) {
           if (metadata) {
             self.dirEntry.getFile(fileName, { create: true },
               function (fileEntry) {
@@ -111,7 +111,7 @@
                     fileWriter.onwriteend = function () {
                       this.onwriteend = null;
                       this.truncate(this.position);
-                      self.loadAndRegister(fileEntry, metadata, url).addCallback(function (patch) {
+                      self.loadAndRegister(fileEntry, metadata, url).then(function (patch) {
                         console.log('Patch: Installed: ' + fileEntry.fullPath);
                         if (!no_alert) {
                           alert(chrome.i18n.getMessage('message_installed', fileName));
@@ -146,13 +146,13 @@
         var fileName = url.replace(/\\/g, '/').replace(/.*\//, '');
         return request(url + '?_=' + (new Date()).getTime(), {
           responseType: 'blob'
-        }).addCallback(function (res) {
-          return save(fileName, res.response, url).addCallback(function (patch) {
+        }).then(function (res) {
+          return save(fileName, res.response, url).then(function (patch) {
             return !!patch;
           });
         });
       } else {
-        return save(file.name, file).addCallback(function (patch) {
+        return save(file.name, file).then(function (patch) {
           return !!patch;
         });
       }
@@ -194,7 +194,7 @@
 
       return (
         metadata ? succeed(metadata) : this.getMetadata(fileEntry)
-      ).addCallback(function (metadata) {
+      ).then(function (metadata) {
         if (metadata) {
           var script = null;
           url = url || preference.origin || metadata.downloadURL;
@@ -247,7 +247,7 @@
           console.log('Loading: ' + fileEntry.fullPath);
           ds[fileEntry.name] = self.loadAndRegister(fileEntry);
         });
-        return new DeferredHash(ds).addCallback(function () {
+        return new DeferredHash(ds).then(function () {
           var patch_last_checked = parseInt(self.getLocalCookie('patch_last_checked'), 10);
           if (!patch_last_checked || (patch_last_checked < ((new Date()).getTime() - (60 * 60 * 1000)))) {
             self.checkUpdates();
@@ -260,7 +260,7 @@
       var readEntries = function () {
         dirReader.readEntries(function (entries) {
           if (!entries.length) {
-            _load(fileEntries).addCallback(function () {
+            _load(fileEntries).then(function () {
               deferred.callback();
             });
           } else {
@@ -302,7 +302,7 @@
 
       fileEntry.file(
         function (file) {
-          self.readFromFile(file).addCallback(function (script) {
+          self.readFromFile(file).then(function (script) {
             deferred.callback(script);
           });
         },
@@ -317,7 +317,7 @@
     getMetadata : function (fileEntry) {
       return ((fileEntry.file) ?
         this.readFromFileEntry(fileEntry) : this.readFromFile(fileEntry)
-      ).addCallback(function (script) {
+      ).then(function (script) {
         var in_metadata = false;
         var metadata    = '';
         script.split(/\r?\n/).forEach(function (line) {
@@ -359,7 +359,7 @@
           pattern && pattern.test(tab.url)
         ) {
           var deferred = new Deferred();
-          self.readFromFileEntry(patch.fileEntry).addCallback(function (script) {
+          self.readFromFileEntry(patch.fileEntry).then(function (script) {
             chrome.tabs.executeScript(tab.id, {
               code : script
             }, function (result) {
@@ -372,7 +372,7 @@
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList).addCallback(function () {
+      return new DeferredList(deferredList).then(function () {
         console.groupEnd();
       });
     },
@@ -401,7 +401,7 @@
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList).addCallback(function () {
+      return new DeferredList(deferredList).then(function () {
         console.groupEnd();
       });
     },
@@ -430,7 +430,7 @@
           deferredList.push(deferred);
         }
       });
-      return new DeferredList(deferredList).addCallback(function () {
+      return new DeferredList(deferredList).then(function () {
         console.groupEnd();
       });
     },
@@ -494,8 +494,8 @@
       var fileName = url.replace(/\\/g, '/').replace(/.*\//, '');
       return request(url + '?_=' + (new Date()).getTime(), {
         responseType: 'blob'
-      }).addCallback(function (res) {
-        return self.getMetadata(res.response).addCallback(function (metadata) {
+      }).then(function (res) {
+        return self.getMetadata(res.response).then(function (metadata) {
           if (!metadata || !metadata.version) {
             return false;
           }
@@ -539,9 +539,9 @@
       return c_value;
     }
   });
-  Patches.initailize().addCallback(function () {
+  Patches.initailize().then(function () {
     console.groupCollapsed('Patches: Load');
-    Patches.load().addCallback(function () {
+    Patches.load().then(function () {
       console.groupEnd();
       console.log('Patches: loaded!');
     });

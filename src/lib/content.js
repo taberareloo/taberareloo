@@ -278,7 +278,7 @@
     },
     extract: function (ctx, ext) {
       this.cleanUpContext(ctx);
-      return maybeDeferred(ext.extract(ctx)).addCallback(function (ps) {
+      return maybeDeferred(ext.extract(ctx)).then(function (ps) {
         if (!ps.body && ctx.selection) {
           ps.body = ctx.selection.raw;
           ps.flavors = {
@@ -289,7 +289,7 @@
       });
     },
     share: function (ctx, ext, show) {
-      this.extract(ctx, ext).addCallback(function (ps) {
+      this.extract(ctx, ext).then(function (ps) {
         chrome.runtime.sendMessage(TBRL.id, {
           request: 'share',
           show   : show,
@@ -340,7 +340,7 @@
   new DeferredList([
     TBRL.getConfig(),
     TBRL.DOMContentLoaded
-  ]).addCallback(function (resses) {
+  ]).then(function (resses) {
     TBRL.init(resses[0][1]);
   });
 
@@ -400,7 +400,7 @@
     popup: function (req, sender, func) {
       var content = req.content, d;
 
-      (content.title ? succeed(content.title):getTitle()).addCallback(function (title) {
+      (content.title ? succeed(content.title):getTitle()).then(function (title) {
         var sel = createFlavoredString(window.getSelection());
         var ctx = update({
           document : document,
@@ -415,7 +415,7 @@
         } else {
           d = Extractors.Link.extract(ctx);
         }
-        maybeDeferred(d).addCallback(function (ps) {
+        maybeDeferred(d).then(function (ps) {
           func(checkHttps(update({
             page    : title,
             pageUrl : content.url

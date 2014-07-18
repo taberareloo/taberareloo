@@ -188,7 +188,7 @@
       contexts: ['page'],
       documentUrlPatterns: patchFileURLs,
       onclick: function (info) {
-        Patches.install(info.pageUrl).addCallback(function (res) {
+        Patches.install(info.pageUrl).then(function (res) {
           if (res) {
             window.location.reload();
           }

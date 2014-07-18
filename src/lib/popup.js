@@ -60,9 +60,9 @@
 
   connect(window, 'onDOMContentLoaded', window, function () {
     var query = queryHash(location.search);
-    getPs(query).addCallback(function (ps) {
+    getPs(query).then(function (ps) {
       isPopup = !query.quick;
-      background.Patches.loadInPopup(document).addCallback(function () {
+      background.Patches.loadInPopup(document).then(function () {
         form = new Form(ps);
         document.dispatchEvent(new CustomEvent('popupReady', {
           detail     : form,
@@ -501,7 +501,7 @@
       var w = ps.originalWidth || width;
       var h = ps.originalHeight || height;
       self.size.appendChild($T(w + ' × ' + h));
-      wait(0.3).addCallback(function () {
+      wait(0.3).then(function () {
         Form.resize();
       });
     });
@@ -909,7 +909,7 @@
       if (!model) {
         model = background.Models[Config.post.tag_provider = background.TBRL.Popup.defaultSuggester];
       }
-      model.getSuggestions(url).addCallback(function (res) {
+      model.getSuggestions(url).then(function (res) {
         that.arrangeSuggestions(res);
         that.setSuggestions(res);
         that.setTags(res.tags);
@@ -923,7 +923,7 @@
         if (that.suggestionShownDefault) {
           that.openSuggestions();
         }
-      }).addErrback(function (e) {
+      }).catch(function (e) {
         that.notify.show(Config.post.tag_provider + '\n' + e.message.indent(4));
         that.suggestionIcon.classList.remove('loading');
         that.suggestionIcon.classList.add('loaded');
@@ -1182,7 +1182,7 @@
       if ((background.TBRL.Popup.provider &&
            background.TBRL.Popup.provider !== Config.post.tag_provider) ||
           (!candidates || !candidates.length)) {
-        this.convertToCandidates(tags).addCallback(function (cands) {
+        this.convertToCandidates(tags).then(function (cands) {
           self.candidates = cands;
           background.TBRL.Popup.candidates = cands;
           background.TBRL.Popup.provider = Config.post.tag_provider;
@@ -1202,7 +1202,7 @@
         return;
       }
 
-      this.convertToCandidates(tags).addCallback(function (newCands) {
+      this.convertToCandidates(tags).then(function (newCands) {
         var memo = {};
         var cands = [];
         if (!background.TBRL.Popup.candidates) {
@@ -1225,7 +1225,7 @@
       if (source.includesFullwidth()) {
         return background.Models.Yahoo.getSparseTags(tags, source, ' [');
       } else {
-        return succeed().addCallback(function () {
+        return succeed().then(function () {
           return tags.map(function (tag) {
             return {
               reading : tag,

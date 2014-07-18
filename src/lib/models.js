@@ -32,7 +32,7 @@
      * @return {Deferred}
      */
     remove : function (id) {
-      return this.getToken().addCallback(function (token) {
+      return this.getToken().then(function (token) {
         return request(Tumblr.TUMBLR_URL + 'delete', {
           //denyRedirection: true,
           referrer    : Tumblr.TUMBLR_URL,
@@ -99,7 +99,7 @@
           headers : {
             'X-tumblr-form-key' : form.form_key
           }
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var secure_form_key = res.getResponseHeader('X-tumblr-secure-form-key');
           return request(Tumblr.TUMBLR_URL + 'svc/post/update', {
             headers     : {
@@ -127,10 +127,10 @@
       }
       var endpoint = Tumblr.TUMBLR_URL + 'new/' + ps.type;
       return this.postForm(function () {
-        return self.getForm(endpoint).addCallback(function postUpdate(form) {
+        return self.getForm(endpoint).then(function postUpdate(form) {
           var type;
           type = ps.type.capitalize();
-          return Tumblr[type].convertToForm(ps).addCallback(function (form2) {
+          return Tumblr[type].convertToForm(ps).then(function (form2) {
             // merging forms
             update(form, form2);
             self.appendTags(form, ps);
@@ -144,7 +144,7 @@
                 if (form['photo[]']) {
                   return request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
                     sendContent: form
-                  }).addCallback(function (res) {
+                  }).then(function (res) {
                     var response = JSON.parse(res.response);
 
                     if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
@@ -166,7 +166,7 @@
               }
 
               return self._post(form);
-            }()).addErrback(function (err) {
+            }()).catch(function (err) {
               if (self.retry) {
                 throw err;
               }
@@ -174,7 +174,7 @@
               Tumblr.form_key = Tumblr.channel_id = null;
               self.retry = true;
 
-              return self.getForm(endpoint).addCallback(postUpdate);
+              return self.getForm(endpoint).then(postUpdate);
             });
           });
         });
@@ -214,7 +214,7 @@
       }
 
       if (TBRL.Config.post.multi_tumblelogs) {
-        return Models.getMultiTumblelogs(true).addCallback(function () {
+        return Models.getMultiTumblelogs(true).then(function () {
           form.form_key = Tumblr.form_key;
           form.channel_id = Tumblr.channel_id;
 
@@ -222,7 +222,7 @@
         });
       }
 
-      return request(url, { responseType: 'document' }).addCallback(function (res) {
+      return request(url, { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         if ($X('id("logged_out_container")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -289,7 +289,7 @@
 
       return Tumblr[ps.type.capitalize()].convertToForm({
         description : ps.description
-      }).addCallback(function (res) {
+      }).then(function (res) {
         items(res).forEach(function (item) {
           var name = item[0], value = item[1];
           if (!value) {
@@ -317,7 +317,7 @@
      */
     postForm : function (fn) {
       var self = this;
-      return succeed().addCallback(fn).addCallback(function (res) {
+      return succeed().then(fn).then(function (res) {
         if (self.retry) {
           self.retry = false;
         }
@@ -362,7 +362,7 @@
      */
     getToken : function () {
       var self = this;
-      return request(Tumblr.TUMBLR_URL + 'new/text', { responseType: 'document' }).addCallback(function (res) {
+      return request(Tumblr.TUMBLR_URL + 'new/text', { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         if ($X('id("logged_out_container")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -374,7 +374,7 @@
 
     getTumblelogs : function () {
       var self = this;
-      return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).addCallback(function (res) {
+      return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         if ($X('id("logged_out_container")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -412,7 +412,7 @@
   Tumblr.Photo = {
     convertToForm : function (ps) {
       // Tumblrのバグで画像がリダイレクトすると投稿できないので，予めリダイレクト先を調べておく
-      return (ps.itemUrl ? getFinalUrl(ps.itemUrl) : succeed(null)).addCallback(function (finalUrl) {
+      return (ps.itemUrl ? getFinalUrl(ps.itemUrl) : succeed(null)).then(function (finalUrl) {
         var form = {
           'post[type]'  : ps.type,
           'post[two]'   : joinText([
@@ -517,7 +517,7 @@
           src         : ps.itemUrl,
           bookmarklet : 1
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         if (/login/.test(res.responseText)) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
@@ -537,7 +537,7 @@
         queryString : {
           src : id
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var doc = res.response;
         if ($X('//form[@action="' + this.URL + 'admin/login"]', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -553,7 +553,7 @@
     URL  : 'http://ffffound.com/',
 
     getToken : function () {
-      return request(this.URL + 'bookmarklet.js').addCallback(function (res) {
+      return request(this.URL + 'bookmarklet.js').then(function (res) {
         return res.responseText.match(/token ?= ?'(.*?)'/)[1];
       });
     },
@@ -564,7 +564,7 @@
 
     post : function (ps) {
       var self = this;
-      return this.getToken().addCallback(function (token) {
+      return this.getToken().then(function (token) {
         return request(self.URL + 'add_asset', {
           referrer : ps.pageUrl,
           queryString : {
@@ -573,7 +573,7 @@
             referer : ps.pageUrl,
             title   : ps.item,
           },
-        }).addCallback(function (res) {
+        }).then(function (res) {
           if (res.responseText.match('(FAILED:|ERROR:) +(.*?)</span>')) {
             throw new Error(RegExp.$2.trim());
           }
@@ -606,7 +606,7 @@
           collection_id : 'i' + id,
           inappropriate : false,
         },
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var error = res.responseText.extract(/"error":"(.*?)"/);
         if (error === 'AUTH_FAILED') {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -630,7 +630,7 @@
 
     post : function (ps) {
       var self = this;
-      return this.getDataURL(ps).addCallback(function (url) {
+      return this.getDataURL(ps).then(function (url) {
         if (chrome.downloads) {
           return self.download(url);
         } else {
@@ -655,7 +655,7 @@
       if (!ps.file) {
         succeed(ps.itemUrl);
       }
-      return fileToDataURL(ps.file).addCallback(function (url) { return url; });
+      return fileToDataURL(ps.file).then(function (url) { return url; });
     },
 
     Photo : {
@@ -759,7 +759,7 @@
         return succeed(this.data);
       } else {
         var that = this;
-        return request(this.JSON).addCallback(function (res) {
+        return request(this.JSON).then(function (res) {
           var data = JSON.parse(res.responseText);
           if (!data['login']) {
             delete that['data'];
@@ -794,17 +794,17 @@
 
     getToken : function () {
       var self = this;
-      return Hatena.getToken().addErrback(function (e) {
+      return Hatena.getToken().catch(function (e) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       });
     },
 
     post : function (ps) {
       var that = this;
-      return (ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function (entry) {
+      return (ps.file ? succeed(ps.file) : download(ps.itemUrl).then(function (entry) {
         return getFileFromEntry(entry);
-      })).addCallback(function (file) {
-        return fileToPNGDataURL(file).addCallback(function (container) {
+      })).then(function (file) {
+        return fileToPNGDataURL(file).then(function (container) {
           return that.uploadWithBase64(container);
         });
         // TODO(Constellation) extension guess
@@ -818,7 +818,7 @@
     // image1 - image5
     // fototitle1 - fototitle5 (optional)
     upload : function (ps) {
-      return this.getToken().addCallback(function (set) {
+      return this.getToken().then(function (set) {
         ps.rkm = set['rkm'];
         return request('http://f.hatena.ne.jp/' + set['name'] + '/up', {
           sendContent : update({
@@ -829,7 +829,7 @@
     },
 
     uploadWithBase64 : function (file) {
-      return this.getToken().addCallback(function (set) {
+      return this.getToken().then(function (set) {
         var name = set['name'];
         var rkm  = set['rkm'];
         return request('http://f.hatena.ne.jp/' + name + '/haiku', {
@@ -868,14 +868,14 @@
 
     getToken : function () {
       var self = this;
-      return Hatena.getToken().addErrback(function (e) {
+      return Hatena.getToken().catch(function (e) {
         delete self['tags'];
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
       });
     },
 
     addBookmark : function (url, title, tags, description) {
-      return this.getToken().addCallback(function (data) {
+      return this.getToken().then(function (data) {
         return request('http://b.hatena.ne.jp/bookmarklet.edit', {
           //denyRedirection: true,
           method: 'POST',
@@ -900,12 +900,12 @@
      */
     getSuggestions : function (url) {
       var that = this;
-      return this.getToken().addCallback(function (set) {
+      return this.getToken().then(function (set) {
         return new DeferredHash({
           tags: that.getUserTags(set['name']),
           data: that.getURLData(url)
         });
-      }).addCallback(function (resses) {
+      }).then(function (resses) {
         if (!resses['tags'][0] || !resses['data'][0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -924,7 +924,7 @@
       if (tags) {
         return succeed(tags);
       } else {
-        return request('http://b.hatena.ne.jp/' + user + '/tags.json').addCallback(function (res) {
+        return request('http://b.hatena.ne.jp/' + user + '/tags.json').then(function (res) {
           try{
             tags = JSON.parse(res.responseText)['tags'];
           } catch(e) {
@@ -947,7 +947,7 @@
         queryString : {
           url  : url
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var json = null;
         try{
           json = JSON.parse(res.responseText);
@@ -970,8 +970,8 @@
 
     getBlogs : function () {
       var self = this;
-      return Hatena.getToken().addCallback(function () {
-        return request(self.ADMIN_TOP_URL, { responseType: 'document' }).addCallback(function (res) {
+      return Hatena.getToken().then(function () {
+        return request(self.ADMIN_TOP_URL, { responseType: 'document' }).then(function (res) {
           var doc = res.response;
           var sidebarElements = $A(doc.querySelectorAll('.sidebar-index .admin-menu-blogpath'));
           var blogBoxElements = $A(doc.querySelectorAll('.main-box .myblog-box'));
@@ -989,7 +989,7 @@
     },
 
     getUserName: function () {
-      return Hatena.getToken().addCallback(function (set) {
+      return Hatena.getToken().then(function (set) {
         return set['name'];
       });
     },
@@ -999,8 +999,8 @@
       if (model.token) {
         return succeed(model.token);
       } else {
-        return Hatena.getToken().addCallback(function () {
-          return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).addCallback(function (res) {
+        return Hatena.getToken().then(function () {
+          return request(model.CONFIG_DETAIL_URL, { responseType: 'document' }).then(function (res) {
             var doc = res.response;
             var tokenElement = doc.querySelector('.api-key');
             if (!tokenElement) {
@@ -1008,7 +1008,7 @@
             }
             model.token = tokenElement.textContent;
             return model.token;
-          }).addErrback(function (e) {
+          }).catch(function (e) {
             model.token = undefined;
             throw new Error('HatenaBlog#getToken: ' +
                   (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
@@ -1067,8 +1067,8 @@
         title = ps.item;
       }
 
-      return self.getUserName().addCallback(function (userName) {
-        self.getApiKey().addCallback(function (apiKey) {
+      return self.getUserName().then(function (userName) {
+        self.getApiKey().then(function (apiKey) {
           var xml = self.generateXML({
             userName   : escapeHTML(userName),
             title      : escapeHTML(title),
@@ -1133,7 +1133,7 @@
 
     getCurrentUser : function () {
       var that = this;
-      return getCookies('pinboard.in', 'login').addCallback(function (cookies) {
+      return getCookies('pinboard.in', 'login').then(function (cookies) {
         var cookie = cookies[0];
         if (!cookie) {
           new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -1144,8 +1144,8 @@
 
     post : function (ps) {
       var that = this;
-      return succeed().addCallback(function () {
-        return that.getCurrentUser().addCallback(function () {
+      return succeed().then(function () {
+        return that.getCurrentUser().then(function () {
           return request('https://pinboard.in/add', {
             queryString : {
               title : ps.item,
@@ -1153,7 +1153,7 @@
             }
           });
         });
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var form = formContents(res.responseText, true);
         var content = {
           title       : ps.item,
@@ -1171,7 +1171,7 @@
     },
 
     getUserTags : function () {
-      return request('https://pinboard.in/user_tag_list/').addCallback(function (res) {
+      return request('https://pinboard.in/user_tag_list/').then(function (res) {
         var tags = JSON.parse(res.responseText.replace(/^var\s+usertags\s*=\s*(\[.+\]);$/, '$1'));
         return tags.map(function (tag) {
           return {
@@ -1187,7 +1187,7 @@
         queryString : {
           url : url,
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         // 空配列ではなく、空文字列が返ることがある
         return res.responseText?
           JSON.parse(res.responseText).map(function (tag) {
@@ -1202,15 +1202,15 @@
       var ds = {
         tags        : this.getUserTags(),
         recommended : this.getRecommendedTags(url),
-        suggestions : succeed().addCallback(function () {
-          return that.getCurrentUser().addCallback(function () {
+        suggestions : succeed().then(function () {
+          return that.getCurrentUser().then(function () {
             return request('https://pinboard.in/add', {
               queryString : {
                 url : url,
               }
             });
           });
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var form = formContents(res.responseText);
           return {
             editPage : 'https://pinboard.in/add?url=' + url,
@@ -1228,7 +1228,7 @@
         })
       };
 
-      return new DeferredHash(ds).addCallback(function (ress) {
+      return new DeferredHash(ds).then(function (ress) {
         var res = ress.suggestions[1];
         res.recommended = ress.recommended[1];
         res.tags = ress.tags[1];
@@ -1251,11 +1251,11 @@
      * @return {Array}
      */
     getUserTags : function (user) {
-      return this.getCurrentUser(user).addCallback(function (user) {
+      return this.getCurrentUser(user).then(function (user) {
         // 同期でエラーが起きないようにする
-        return succeed().addCallback(function () {
+        return succeed().then(function () {
           return request('http://feeds.delicious.com/v2/json/tags/' + user);
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var tags = JSON.parse(res.responseText);
           if (!tags) {
             return tags;
@@ -1286,7 +1286,7 @@
         tags : this.getUserTags(),
         suggestions : this.getRecommendedTags(url)
       };
-      return new DeferredHash(ds).addCallback(function (ress) {
+      return new DeferredHash(ds).then(function (ress) {
         if (!ress['tags'][0] || !ress['suggestions'][0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -1297,7 +1297,7 @@
     },
 
     getRecommendedTags: function (url) {
-      return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url)).addCallback(function (res) {
+      return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url)).then(function (res) {
         var result = JSON.parse(res.responseText);
         if (result.length) {
           var top_tags = result[0].top_tags;
@@ -1324,7 +1324,7 @@
         return succeed(this.currentUser);
       }
       var that = this;
-      return this.getInfo().addCallback(function (info) {
+      return this.getInfo().then(function (info) {
         if (!info.is_logged_in) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -1333,7 +1333,7 @@
     },
 
     getInfo : function () {
-      return request('http://previous.delicious.com/save/quick', {method : 'POST'}).addCallback(function (res) {
+      return request('http://previous.delicious.com/save/quick', {method : 'POST'}).then(function (res) {
         return JSON.parse(res.responseText);
       });
     },
@@ -1365,14 +1365,14 @@
 
     post : function (ps) {
       var that = this;
-      return this.getCurrentUser().addCallback(function (user) {
+      return this.getCurrentUser().then(function (user) {
         return request('http://previous.delicious.com/save', {
           queryString :  {
             url   : ps.itemUrl,
             title : ps.item
           },
           responseType: 'document'
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var doc = res.response;
           return request('http://previous.delicious.com/save', {
             sendContent : that.transformForm(update(formContents(doc, true), {
@@ -1459,7 +1459,7 @@
           output : 'popup'
         },
         responseType: 'document'
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var doc = res.response;
         if (doc.getElementById('gaia_loginform')) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -1487,7 +1487,7 @@
           bkmk   : url
         },
         responseType: 'document'
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var doc = res.response;
         var form = formContents(doc);
         return {
@@ -1505,7 +1505,7 @@
           op : 'add'
         },
         responseType: 'document'
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var doc = res.response;
         return doc.querySelectorAll('a[href^="/bookmarks/lookup?q=label:"]:not([href^="/bookmarks/lookup?q=label:%5Enone"])').reduce(function (memo, label) {
           memo.push({
@@ -1523,7 +1523,7 @@
       return new DeferredHash({
         tags  : this.getUserTags(),
         entry : this.getEntry(url)
-      }).addCallback(function (ress) {
+      }).then(function (ress) {
         if (!ress['tags'][0] || !ress['entry'][0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -1554,7 +1554,7 @@
 
     getAuthCookie: function () {
       var that = this;
-      return getCookies('www.google.com', 'secid').addCallback(function (cookies) {
+      return getCookies('www.google.com', 'secid').then(function (cookies) {
         if (cookies.length) {
           return cookies[cookies.length-1].value;
         } else {
@@ -1573,14 +1573,14 @@
     },
 
     addSimpleSchedule: function (description) {
-      return this.getAuthCookie().addCallback(function (cookie) {
+      return this.getAuthCookie().then(function (cookie) {
         var endpoint = 'http://www.google.com/calendar/m';
         return request(endpoint, {
           queryString : {
             hl : 'en'
           },
           responseType: 'document'
-        }).addCallback(function (res) {
+        }).then(function (res) {
           // form.secidはクッキー内のsecidとは異なる
           var doc = res.response;
           var form = formContents(doc);
@@ -1600,7 +1600,7 @@
       var that = this;
       from = from || new Date();
       to = to || new Date(from.getTime() + (86400 * 1000));
-      return this.getAuthCookie().addCallback(function (cookie) {
+      return this.getAuthCookie().then(function (cookie) {
         return request('http://www.google.com/calendar/event', {
             queryString : {
               action  : 'CREATE',
@@ -1640,7 +1640,7 @@
       return ps.type === 'link';
     },
     post : function (ps) {
-      return this.getExFolder().addCallback(function (ex) {
+      return this.getExFolder().then(function (ex) {
         var ret = new Deferred();
         chrome.bookmarks.create({
           parentId: ex.id,
@@ -1696,15 +1696,15 @@
       var d = succeed();
       if (ps.type==='link' && !ps.body && TBRL.Config['post']['evernote_clip_fullpage']) {
         // Because responseType: 'document' recognizes encoding
-        d= request(ps.itemUrl, { responseType: 'document' }).addCallback(function (res) {
+        d= request(ps.itemUrl, { responseType: 'document' }).then(function (res) {
           var doc = res.response;
           ps.body = convertToHTMLString(doc.documentElement, true);
         });
       }
 
-      return d.addCallback(function () {
+      return d.then(function () {
         return that.getToken();// login checkも走る
-      }).addCallback(function (token) {
+      }).then(function (token) {
         return request(that.POST_URL, {
           redirectionLimit : 0,
           sendContent : update(token, {
@@ -1730,7 +1730,7 @@
           quicknote : 'true'
         },
         responseType: 'document'
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var doc = res.response;
         if ($X('id("login_form")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -1757,7 +1757,7 @@
     getToken : function () {
       var self = this;
       return request('http://friendfeed.com/share/bookmarklet/frame', { responseType: 'document' })
-      .addCallback(function (res) {
+      .then(function (res) {
         var doc = res.response;
         if ($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -1767,7 +1767,7 @@
     },
 
     post : function (ps) {
-      return this.getToken().addCallback(function (token) {
+      return this.getToken().then(function (token) {
         return request('https://friendfeed.com/a/bookmarklet', {
           //denyRedirection: true,
           sendContent : {
@@ -1819,7 +1819,7 @@
         });
       }
       return (TBRL.Config['post']['always_shorten_url'] ?
-          shortenUrls(status, Models[self.SHORTEN_SERVICE]) : succeed(status)).addCallback(function (status) {
+          shortenUrls(status, Models[self.SHORTEN_SERVICE]) : succeed(status)).then(function (status) {
         var len = self.getActualLength(status);
         if (len > maxlen) {
           throw 'too many characters to post (' + (len - maxlen) + ' over)';
@@ -1830,9 +1830,9 @@
 
     post : function (ps) {
       var self = this;
-      return this.createStatus(ps).addCallback(function (status) {
+      return this.createStatus(ps).then(function (status) {
         if (ps.type === 'photo') {
-          return self.download(ps).addCallback(function (file) {
+          return self.download(ps).then(function (file) {
             return self.upload(ps, status, file);
           });
         }
@@ -1842,13 +1842,13 @@
 
     update : function (status) {
       var self = this;
-      return this.getToken().addCallback(function (token) {
+      return this.getToken().then(function (token) {
         // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
         token.status = status;
         return request(self.URL + '/status/update', update({
           sendContent : token
         }));
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var msg = res.responseText.extract(/notification.setMessage\("(.*?)"\)/);
         if (msg) {
           throw unescapeHTML(msg).trimTag();
@@ -1862,7 +1862,7 @@
 
     getToken : function () {
       var self = this;
-      return request(this.URL + '/settings/account').addCallback(function (res) {
+      return request(this.URL + '/settings/account').then(function (res) {
         var html = res.responseText;
         if (~html.indexOf('class="signin"')) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -1877,7 +1877,7 @@
 
     remove : function (id) {
       var self = this;
-      return this.getToken().addCallback(function (ps) {
+      return this.getToken().then(function (ps) {
         ps._method = 'delete';
         return request(self.URL + '/status/destroy/' + id, {
           //denyRedirection: true,
@@ -1889,7 +1889,7 @@
 
     addFavorite : function (id) {
       var self = this;
-      return this.getToken().addCallback(function (ps) {
+      return this.getToken().then(function (ps) {
         return request(self.URL + '/favourings/create/' + id, {
           //denyRedirection: true,
           referrer : self.URL + '/',
@@ -1899,7 +1899,7 @@
     },
 
     getRecipients : function () {
-      return request(this.URL + '/direct_messages/recipients_list?twttr=true').addCallback(function (res) {
+      return request(this.URL + '/direct_messages/recipients_list?twttr=true').then(function (res) {
         return map(function (pair) {
           return {id:pair[0], name:pair[1]};
         }, JSON.parse('(' + res.responseText + ')'));
@@ -1909,7 +1909,7 @@
     download : function (ps) {
       return (
         ps.file ? succeed(ps.file)
-          : download(ps.itemUrl).addCallback(function (entry) {
+          : download(ps.itemUrl).then(function (entry) {
             return getFileFromEntry(entry);
           })
       );
@@ -1926,8 +1926,8 @@
         throw new Error('GIF is not supported');
       }
 
-      return this.getToken().addCallback(function (token) {
-        return fileToBinaryString(file).addCallback(function (binary) {
+      return this.getToken().then(function (token) {
+        return fileToBinaryString(file).then(function (binary) {
           return request(UPLOAD_URL, {
             sendContent : {
               status                  : status,
@@ -1936,11 +1936,11 @@
               post_authenticity_token : token.authenticity_token
             },
             multipart : true
-          }).addCallback(function (res) {
+          }).then(function (res) {
             var html = res.responseText;
             var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
             json = JSON.parse(json);
-          }).addErrback(function (e) {
+          }).catch(function (e) {
             var res  = e.message;
             var html = res.responseText;
             var json = html.extract(/window.top.swift_tweetbox_\d+\((\{.+\})\);/);
@@ -1972,13 +1972,13 @@
     post : function (ps) {
       var url = this.POST_URL;
       var self = this;
-      return request(url, { responseType: 'document' }).addCallback(function (res) {
+      return request(url, { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         if (!$X('id("userpanel")/a[contains(concat(" ",normalize-space(@href)," "), " /user/logout ")]', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
         return $X('//input[@id="form_key"]/@value', doc)[0];
-      }).addCallback(function (token) {
+      }).then(function (token) {
         return request(url, {
           //denyRedirection: true,
           sendContent: {
@@ -2002,14 +2002,14 @@
     },
     post : function (ps) {
       var that = this;
-      return this.checkLogin().addCallback(function () {
+      return this.checkLogin().then(function () {
         return request(that.LINK + 'edit', {
           responseType : 'document',
           queryString : {
             tags  : ps.tags ? ps.tags.join(',') : '',
             url   : ps.itemUrl
           }
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var doc = res.response;
           if (doc.body.classList.contains('page-login')) {
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -2019,7 +2019,7 @@
     },
     checkLogin : function () {
       var that = this;
-      return getCookies('.getpocket.com', 'sess_user_id').addCallback(function (cookies) {
+      return getCookies('.getpocket.com', 'sess_user_id').then(function (cookies) {
         if (!cookies.length) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
@@ -2092,7 +2092,7 @@
       return request('http://jlp.yahooapis.jp/MAService/V1/parse', {
         charset     : 'application/xml; charset=utf-8',
         sendContent : ps
-      }).addCallback(function (res) {
+      }).then(function (res) {
         return res.responseXML;
       });
     },
@@ -2101,13 +2101,13 @@
       return this.parse({
         sentence : str,
         response : 'reading'
-      }).addCallback(function (res) {
+      }).then(function (res) {
         return $X('descendant::reading/text()', res);
       });
     },
 
     getRomaReadings : function (str) {
-      return this.getKanaReadings(str).addCallback(function (rs) {
+      return this.getKanaReadings(str).then(function (rs) {
         return rs.join('\u0000').toRoma().split('\u0000');
       });
     },
@@ -2121,7 +2121,7 @@
         delimiter = ' [';
       }
       var self = this;
-      return this.getKanaReadings(str).addCallback(function (rs) {
+      return this.getKanaReadings(str).then(function (rs) {
         var katakana = rs.join('').split(' [').join('\u0000').toKatakana();
         var katakanas = katakana.split('\u0000');
         return zip(self.toSparseRomaReadings(katakana), tags).map(function (pair, index) {
@@ -2247,14 +2247,14 @@
 
     post : function (ps) {
       var self = this;
-      return request('http://bookmarks.yahoo.co.jp/action/post').addCallback(function (res) {
+      return request('http://bookmarks.yahoo.co.jp/action/post').then(function (res) {
         if (res.responseText.indexOf('login_form') !== -1) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
 
         var doc = createHTML(res.responseText);
         return formContents($X('id("addbookmark")/descendant::div[contains(concat(" ",normalize-space(@class)," ")," bd ")]', doc)[0]);
-      }).addCallback(function (fs) {
+      }).then(function (fs) {
         return request('http://bookmarks.yahoo.co.jp/action/post/done', {
           //denyRedirection: true,
           sendContent  : {
@@ -2282,7 +2282,7 @@
         queryString : {
           u : url
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var doc = createHTML(res.responseText);
         if (!$X('id("bmtsave")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
@@ -2321,7 +2321,7 @@
     },
     post : function (ps) {
       var self = this;
-      return request(this.URL, { responseType: 'document' }).addCallback(function (res) {
+      return request(this.URL, { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         var token = doc.querySelector('input[name="authenticity_token"]');
         if (!($X('descendant::div[contains(concat(" ",normalize-space(@class)," ")," header-logged-in ")]', doc)[0] && token)) {
@@ -2365,7 +2365,7 @@
 
     getAuthCookie: function () {
       var that = this;
-      return getCookies('.naver.jp', 'NJID_AUT').addCallback(function (cookies) {
+      return getCookies('.naver.jp', 'NJID_AUT').then(function (cookies) {
         if (cookies.length) {
           return cookies[cookies.length - 1].value;
         }
@@ -2375,7 +2375,7 @@
 
     post : function (ps) {
       var self = this;
-      return this.getAuthCookie().addCallback(function (ok) {
+      return this.getAuthCookie().then(function (ok) {
         var status = joinText([
             ps.description,
             ps.type === 'photo' ? ps.page : '',
@@ -2390,7 +2390,7 @@
       var self = this;
       return maybeDeferred(
         (status.length < 300 && !TBRL.Config['post']['always_shorten_url']) ? status : shortenUrls(status, Models[this.SHORTEN_SERVICE])
-      ).addCallback(function (status) {
+      ).then(function (status) {
         var typeCode = 'T';
         var media = {};
         if (ps.type === 'photo') {
@@ -2457,7 +2457,7 @@
 
     addBookmark: function (url, title, tags, description, priv) {
       var that = this;
-      return request('http://www.diigo.com/item/new/bookmark', { responseType: 'document' }).addCallback(function (res) {
+      return request('http://www.diigo.com/item/new/bookmark', { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         var element = doc.getElementById('newBookmarkForm');
         if (!element) {
@@ -2490,7 +2490,7 @@
           mode : 'japanese',
           q : text
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         /*
         return map(function (s) {
           return '' + s.@title || '' + s;
@@ -2515,7 +2515,7 @@
         queryString : {
           longurl : url
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         return res.responseText;
       });
     },
@@ -2523,7 +2523,7 @@
     expand : function (url) {
       return request(url, {
         //denyRedirection : true
-      }).addCallback(function (res) {
+      }).then(function (res) {
         return res.channel.URI.spec;
       });
     }
@@ -2544,7 +2544,7 @@
 
       return this.callMethod('shorten', {
         longUrl : url
-      }).addCallback(function (res) {
+      }).then(function (res) {
         return res.url;
       });
     },
@@ -2554,7 +2554,7 @@
       return this.callMethod('expand', {
         hash : hash,
         shortUrl : url
-      }).addCallback(function (res) {
+      }).then(function (res) {
         return res['expand'][0].long_url;
       });
     },
@@ -2566,7 +2566,7 @@
           apiKey  : this.API_KEY,
           format  : 'json'
         }, ps)
-      }).addCallback(function (res) {
+      }).then(function (res) {
         res = JSON.parse(res.responseText);
         if (res.status_code !== 200) {
           var error = new Error([res.status_code, res.status_txt].join(': '));
@@ -2601,7 +2601,7 @@
 
     getAuthCookie: function () {
       var self = this;
-      return getCookies('.google.com', 'SSID').addCallback(function (cookies) {
+      return getCookies('.google.com', 'SSID').then(function (cookies) {
         if (cookies.length) {
           return cookies[cookies.length - 1].value;
         }
@@ -2610,7 +2610,7 @@
     },
 
     getGmailAt : function () {
-      return getCookies('mail.google.com', 'GMAIL_AT').addCallback(function (cookies) {
+      return getCookies('mail.google.com', 'GMAIL_AT').then(function (cookies) {
         if (cookies.length) {
           return cookies[cookies.length - 1].value;
         }
@@ -2620,9 +2620,9 @@
 
     getGLOBALS : function () {
       var self = this;
-      return request(self.HOME_URL).addCallback(function (res) {
+      return request(self.HOME_URL).then(function (res) {
         var GLOBALS = res.responseText.match(self.GLOBALS_REGEX)[1];
-        return Sandbox.evalJSON(GLOBALS).addCallback(function (json) {
+        return Sandbox.evalJSON(GLOBALS).then(function (json) {
           return json;
         });
       });
@@ -2631,10 +2631,10 @@
     post : function (ps) {
       var self = this;
       ps = update({}, ps);
-      return self.getAuthCookie().addCallback(function (cookie) {
-        return self.getGLOBALS().addCallback(function (GLOBALS) {
+      return self.getAuthCookie().then(function (cookie) {
+        return self.getGLOBALS().then(function (GLOBALS) {
           if (ps.type === 'photo') {
-            return self.download(ps).addCallback(function (file) {
+            return self.download(ps).then(function (file) {
               ps.file = file;
               return self._post(GLOBALS, ps);
             });
@@ -2684,10 +2684,10 @@
         return succeed(ps.file);
       }
       return download(ps.itemUrl, getFileExtension(ps.itemUrl))
-        .addCallback(function (entry) {
+        .then(function (entry) {
           return getFileFromEntry(entry);
         })
-        .addErrback(function (e) {
+        .catch(function (e) {
           throw new Error('Could not get an image file.');
         });
     },
@@ -2736,7 +2736,7 @@
         adc     : ''
       };
 
-      return self.getGmailAt().addCallback(function (at) {
+      return self.getGmailAt().then(function (at) {
         var qs = {
           ui     : 2,
           ik     : GLOBALS[9],
@@ -2783,9 +2783,9 @@
       var self = this;
       ps = update({}, ps);
       if (ps.type === 'photo') {
-        return self._download(ps).addCallback(function (file) {
+        return self._download(ps).then(function (file) {
           ps.file = file;
-          return fileToBinaryString(file).addCallback(function (binary) {
+          return fileToBinaryString(file).then(function (binary) {
             ps.file = window.btoa(binary);
             return self._post(ps);
           });
@@ -2818,7 +2818,7 @@
       if (ps.file) {
         return succeed(ps.file);
       }
-      return download(ps.itemUrl, getFileExtension(ps.itemUrl)).addCallback(function (entry) {
+      return download(ps.itemUrl, getFileExtension(ps.itemUrl)).then(function (entry) {
         return getFileFromEntry(entry);
       });
     }
@@ -2881,7 +2881,7 @@
 
     _getBoards : function (check_login) {
       var self = this;
-      return request(this.BOOKMARK_URL, { responseType: 'document' }).addCallback(function (res) {
+      return request(this.BOOKMARK_URL, { responseType: 'document' }).then(function (res) {
         var doc = res.response;
         var boards = [];
         // for old UI
@@ -2929,7 +2929,7 @@
 
     getCSRFToken : function () {
       var self = this;
-      return getCookies('.pinterest.com', 'csrftoken').addCallback(function (cookies) {
+      return getCookies('.pinterest.com', 'csrftoken').then(function (cookies) {
         if (cookies.length) {
           return cookies[cookies.length - 1].value;
         } else {
@@ -2940,8 +2940,8 @@
 
     post : function (ps) {
       var self = this;
-      return (ps.pinboard ? succeed([{id : ps.pinboard}]) : self._getBoards(true)).addCallback(function (boards) {
-        return self.getCSRFToken().addCallback(function (csrftoken) {
+      return (ps.pinboard ? succeed([{id : ps.pinboard}]) : self._getBoards(true)).then(function (boards) {
+        return self.getCSRFToken().then(function (csrftoken) {
           return self.is_new_api ?
             self._post_2(ps, boards[0].id, csrftoken) : self._post(ps, boards[0].id, csrftoken);
         });
@@ -2973,7 +2973,7 @@
 
       return request(self.UPLOAD_URL, {
         sendContent : sendContent
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var json = JSON.parse(res.responseText);
         if (json && json.status && (json.status === 'fail')) {
           throw new Error(json.message);
@@ -2998,7 +2998,7 @@
         }
       };
 
-      return (ps.file ? self._upload(ps.file, data, csrftoken) : succeed(data)).addCallback(function (data) {
+      return (ps.file ? self._upload(ps.file, data, csrftoken) : succeed(data)).then(function (data) {
         return request(self.POST_URL_2, {
           sendContent : {
             data : JSON.stringify(data)
@@ -3008,7 +3008,7 @@
             'X-NEW-APP'        : 1,
             'X-Requested-With' : 'XMLHttpRequest'
           }
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var json = JSON.parse(res.responseText);
           if (json && json.error) {
             throw new Error('Could not post an image');
@@ -3028,7 +3028,7 @@
           'X-File-Name'      : file.name,
           'X-Requested-With' : 'XMLHttpRequest'
         }
-      }).addCallback(function (res) {
+      }).then(function (res) {
         var json = JSON.parse(res.responseText);
         if (json && !json.success) {
           throw new Error('Could not upload an image');
@@ -3080,7 +3080,7 @@
 
     post : function (ps) {
       ps = update({}, ps);
-      return this.upload(ps).addCallback(function (url) {
+      return this.upload(ps).then(function (url) {
         if (url) {
           window.open(url, '');
         }
@@ -3089,13 +3089,13 @@
 
     upload : function (ps) {
       var self = this;
-      return this._download(ps).addCallback(function (file) {
+      return this._download(ps).then(function (file) {
         return request(self.POST_URL, {
           sendContent : {
             id        : window.localStorage.gyazo_id || '',
             imagedata : file
           }
-        }).addCallback(function (res) {
+        }).then(function (res) {
           var gyazo_id = res.getResponseHeader('X-Gyazo-Id');
           if (gyazo_id) {
             window.localStorage.gyazo_id = gyazo_id;
@@ -3107,15 +3107,15 @@
 
     _download : function (ps) {
       return (
-        ps.file ? succeed(ps.file) : download(ps.itemUrl).addCallback(function (entry) {
+        ps.file ? succeed(ps.file) : download(ps.itemUrl).then(function (entry) {
           return getFileFromEntry(entry);
         })
       );
     },
 
     base64ToFileEntry : function (base64, type, ext) {
-      return createFileEntryFromBlob(base64ToBlob(base64, type), ext).addCallback(function (entry) {
-        return getFileFromEntry(entry).addCallback(function (file) {
+      return createFileEntryFromBlob(base64ToBlob(base64, type), ext).then(function (entry) {
+        return getFileFromEntry(entry).then(function (file) {
           return file;
         });
       });
@@ -3138,7 +3138,7 @@
       return request(self.URL + 'share.pl?' + queryString({
         k : checkKey,
         u : ps.pageUrl
-      })).addCallback(function (res) {
+      })).then(function (res) {
         if (res.responseText.indexOf('share_form') < 0) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
@@ -3182,7 +3182,7 @@
     var urls = text.match(reUrl);
     return gatherResults(urls.map(function (url) {
       return model.shorten(url);
-    })).addCallback(function (ress) {
+    })).then(function (ress) {
       zip(urls, ress).forEach(function (pair) {
         var url = pair[0], res = pair[1];
         text = text.replace(url, res);
@@ -3240,7 +3240,7 @@
   Models.multipleTumblelogs = [];
   Models.getMultiTumblelogs = function (throwError) {
     Models.removeMultiTumblelogs();
-    return Tumblr.getTumblelogs().addCallback(function (blogs) {
+    return Tumblr.getTumblelogs().then(function (blogs) {
       return blogs.map(function (blog) {
         var model = update({}, Tumblr);
         model.name = 'Tumblr - ' + blog.name;
@@ -3252,7 +3252,7 @@
         Models.multipleTumblelogs.push(model);
         return model;
       });
-    }).addErrback(function (e) {
+    }).catch(function (e) {
       if (throwError && !(Tumblr.form_key && Tumblr.channel_id)) {
         throw new Error(chrome.i18n.getMessage('error_notLoggedin', Tumblr.name));
       }
@@ -3273,7 +3273,7 @@
   Models.hatenaBlogs = [];
   Models.getHatenaBlogs = function () {
     Models.removeHatenaBlogs();
-    return Models.HatenaBlog.getBlogs().addCallback(function (blogs) {
+    return Models.HatenaBlog.getBlogs().then(function (blogs) {
       return blogs.map(function (blog) {
         // blog is {url, title, admin_url, icon_url}
         var model = update({}, Models.HatenaBlog);
@@ -3287,7 +3287,7 @@
         Models.hatenaBlogs.push(model);
         return model;
       });
-    }).addErrback(function (e) {
+    }).catch(function (e) {
       alert('HatenaBlog: ' +
         (e.message.hasOwnProperty('status') ? '\n' + ('HTTP Status Code ' + e.message.status).indent(4) : '\n' + e.message.indent(4)));
     });
