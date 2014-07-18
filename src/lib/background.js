@@ -94,7 +94,8 @@
         'multi_tumblelogs': false,
         'post_with_queue': false,
         'ignore_canonical': 'twitter\\.com',
-        'notification_on_posting': true
+        'notification_on_posting': true,
+        'check_https': true
       },
       'entry': {
         'trim_reblog_info': false,

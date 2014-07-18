@@ -715,13 +715,15 @@
         pageFlag = false,
         itemFlag = false,
         m    = null;
-    if (page && (m = page.match(/^https:\/\/[^/]+/))) {
-      pageFlag = true;
-      ps.pageUrl = m[0];
-    }
-    if (item && (m = item.match(/^https:\/\/[^/]+/))) {
-      itemFlag = true;
-      ps.itemUrl = m[0];
+    if (TBRL.config.post.check_https) {
+      if (page && (m = page.match(/^https:\/\/[^/]+/))) {
+        pageFlag = true;
+        ps.pageUrl = m[0];
+      }
+      if (item && (m = item.match(/^https:\/\/[^/]+/))) {
+        itemFlag = true;
+        ps.itemUrl = m[0];
+      }
     }
     ps.https = {
       pageUrl: [pageFlag, page],

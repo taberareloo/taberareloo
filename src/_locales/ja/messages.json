@@ -45,6 +45,9 @@
   "label_notificationOnPosting": {
     "message": "ポスト時に通知を表示する"
   },
+  "label_checkHttps": {
+    "message": "ポスト対象 URL が HTTPS の時に警告を表示する"
+  },
   "label_postWithQueue": {
     "message": "Tumblr - キューに入れてポストする"
   },

@@ -50,6 +50,8 @@
     this.tag_check = new Check('tag_auto_complete', !!Config.post.tag_auto_complete);
     // notification on posting
     this.notification_check = new Check('notification_on_posting', !!Config.post.notification_on_posting);
+    // check https
+    this.check_https_check = new Check('check_https', !!Config.post.check_https);
     // LDR + Taberareloo
     this.ldr_check = new Check('ldr_plus_taberareloo', !!Config.post.ldr_plus_taberareloo);
     this.ldr_short = new Shortcutkey('shortcutkey_ldr_plus_taberareloo', true, function (key) {
@@ -167,6 +169,7 @@
 
       $('label_tagAutoComplete').appendChild($T(chrome.i18n.getMessage('label_tagAutoComplete')));
       $('label_notificationOnPosting').appendChild($T(chrome.i18n.getMessage('label_notificationOnPosting')));
+      $('label_checkHttps').appendChild($T(chrome.i18n.getMessage('label_checkHttps')));
       $('label_postWithQueue').appendChild($T(chrome.i18n.getMessage('label_postWithQueue')));
       $('label_notQueueReblogPost').appendChild($T(chrome.i18n.getMessage('label_notQueueReblogPost')));
       $('label_alwaysShortenURL').appendChild($T(chrome.i18n.getMessage('label_alwaysShortenURL')));
@@ -216,6 +219,7 @@
             'tag_provider'     : this.provider.body(),
             'tag_auto_complete': this.tag_check.body(),
             'notification_on_posting': this.notification_check.body(),
+            'check_https': this.check_https_check.body(),
             'ldr_plus_taberareloo': this.ldr_check.body(),
             'disable_tumblr_default_keybind': this.disable_keybind_check.body(),
             'dashboard_plus_taberareloo': this.dashboard_check.body(),

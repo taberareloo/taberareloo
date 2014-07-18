@@ -45,6 +45,9 @@
   "label_notificationOnPosting": {
     "message": "Show notification on posting"
   },
+  "label_checkHttps": {
+    "message": "Show the warning when the target URL is HTTPS"
+  },
   "label_postWithQueue": {
     "message": "Tumblr - Post with Queue"
   },
