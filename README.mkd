@@ -74,6 +74,8 @@ Taberareloo Dev Team
 + tanabe
 + papaeye
 
+See [the latest data](https://github.com/Constellation/taberareloo/graphs/contributors).
+
 Tombloo Dev Team
 
 + to
