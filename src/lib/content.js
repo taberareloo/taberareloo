@@ -319,6 +319,9 @@
     },
 
     DOMContentLoaded: (function () {
+      if (document.contentType === 'application/pdf') {
+        return succeed({});
+      }
       var ret = new Deferred();
       connect(document, 'onDOMContentLoaded', null, function () {
         ret.callback({});
