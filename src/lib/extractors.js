@@ -959,25 +959,24 @@
       extract : function (ctx) {
         // not use @rel="author"
         // because official channel use banner image, can't get author text information by textContent.
-        var author_anchor = $X('id("watch-uploader-info")/descendant::a[contains(concat(" ", normalize-space(@rel), " "), " author ")]')[0] || ctx.document.querySelector('#watch7-user-header > .yt-user-name');
+        var author_anchor = ctx.document.querySelector('#watch7-user-header .yt-user-name');
 
-        var author, authorUrl, banner;
-        if (author_anchor) {
-          author = author_anchor.textContent.trim();
-          authorUrl = author_anchor.href.split('?')[0];
-        } else {
-          banner = $X('id("watch-userbanner")')[0];
-          author = banner.title;
-          authorUrl = banner.href;
-        }
         ctx.title = ctx.title.replace(/[\n\r\t]+/gm, ' ').trim();
-        return {
+
+        var ps = {
           type      : 'video',
-          item      : $X('//meta[@property="og:title"]/@content')[0] || ctx.title.extract(/(.*) - /),
-          itemUrl   : ctx.href,
-          author    : author,
-          authorUrl : authorUrl
+          item      : $X('id("watch7-content")/meta[@itemprop="name"]/@content')[0],
+          itemUrl   : $X('id("watch7-content")/link[@itemprop="url"]/@href')[0],
+          author    : author_anchor.textContent.trim(),
+          authorUrl : author_anchor.href.split('?')[0]
         };
+
+        var canonical = $X('//link[@rel="canonical"]')[0];
+        if (canonical) {
+          canonical.parentNode.removeChild(canonical);
+        }
+
+        return ps;
       }
     },
 
