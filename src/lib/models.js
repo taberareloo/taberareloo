@@ -143,10 +143,9 @@
               if (type === 'Photo') {
                 if (form['photo[]']) {
                   return request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
-                    sendContent: form,
-                    responseType: 'json'
+                    sendContent: form
                   }).then(function (res) {
-                    var response = res.response;
+                    var response = JSON.parse(res.responseText);
 
                     if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
                       delete form['photo[]'];
