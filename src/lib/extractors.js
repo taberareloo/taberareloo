@@ -2,7 +2,7 @@
 /*global createFlavoredString:true, $A:true, TBRL:true, request:true*/
 /*global update:true, $N:true, promiseAllHash:true, defer:true*/
 /*global queryHash:true, unescapeHTML:true, getFileExtension:true*/
-/*global getStyle:true, tagName:true, downloadFile:true*/
+/*global getStyle:true, tagName:true, downloadFile:true, $D:true, $T:true*/
 /*global base64ToFileEntry:true, cancel:true, keyString:true*/
 
 /*global getViewportDimensions:true, getElementDimensions:true*/
