@@ -1214,7 +1214,7 @@
         var self = this;
         // ショートカットキーからポストするためcaptureTypeを追加
         // var type = ctx.captureType || input({'Capture Type' : ['Region', 'Element', 'View', 'Page']});
-        var type = 'View'; // ctx.captureType || 'Region';
+        var type = ctx.captureType || 'Region';
         if (!type) {
           return null;
         }
