@@ -1300,7 +1300,7 @@
     };
   }
 
-  exports.getElementDimentions = getElementDimensions;
+  exports.getElementDimensions = getElementDimensions;
 
   function getViewportDimensions() {
     return {
