@@ -1293,5 +1293,32 @@
 
   exports.getStyle = getStyle;
 
+  function getElementDimensions(element) {
+    return {
+      w: element.offsetWidth || 0,
+      h: element.offsetHeight || 0
+    };
+  }
+
+  exports.getElementDimentions = getElementDimensions;
+
+  function getViewportDimensions() {
+    return {
+      w: window.innerWidth || 0,
+      h: window.innerHeight || 0
+    };
+  }
+
+  exports.getViewportDimensions = getViewportDimensions;
+
+  function getPageDimensions() {
+    return {
+      w: document.body.clientWidth || 0,
+      h: document.body.clientHeight || 0
+    };
+  }
+
+  exports.getPageDimensions = getPageDimensions;
+
 }(this));
 /* vim: set sw=2 ts=2 et tw=80 : */

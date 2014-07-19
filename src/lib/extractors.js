@@ -3,11 +3,8 @@
 /*global update:true, $N:true, promiseAllHash:true, defer:true*/
 /*global queryHash:true, unescapeHTML:true, getFileExtension:true*/
 /*global getStyle:true, tagName:true, downloadFile:true, $D:true, $T:true*/
-/*global base64ToFileEntry:true, cancel:true, keyString:true*/
-
-/*global getViewportDimensions:true, getElementDimensions:true*/
-/*global getPageDimensions:true, setElementPosition:true*/
-/*global setStyle:true, setElementDimensions:true*/
+/*global base64ToFileEntry:true, cancel:true, keyString:true, setStyle:true*/
+/*global getElementDimensions:true, getViewportDimensions:true, getPageDimensions:true*/
 (function (exports) {
   'use strict';
 
@@ -1217,7 +1214,7 @@
         var self = this;
         // ショートカットキーからポストするためcaptureTypeを追加
         // var type = ctx.captureType || input({'Capture Type' : ['Region', 'Element', 'View', 'Page']});
-        var type = ctx.captureType || 'Region';
+        var type = 'View'; // ctx.captureType || 'Region';
         if (!type) {
           return null;
         }
@@ -1465,8 +1462,14 @@
               }
             }
 
-            setElementPosition(region, p2);
-            setElementDimensions(region, d2);
+            // position
+            region.style.top = p2.y + 'px';
+            region.style.left = p2.x + 'px';
+
+            // dimention
+            region.style.width = d2.w + 'px';
+            region.style.height = d2.h + 'px';
+
             $D(size);
             size.appendChild($T(d2.w + ' × ' + d2.h));
             // Sketch Switch
