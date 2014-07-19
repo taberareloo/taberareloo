@@ -22,7 +22,6 @@
       "js": [
        "third_party/MochiKit/Base.js",
        "third_party/MochiKit/DOM.js",
-       "third_party/MochiKit/Style.js",
        "third_party/punycode/punycode.js",
        "third_party/node/querystring.js",
        "third_party/node/url.js",
