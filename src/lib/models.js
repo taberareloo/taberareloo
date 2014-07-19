@@ -143,9 +143,10 @@
               if (type === 'Photo') {
                 if (form['photo[]']) {
                   return request(Tumblr.TUMBLR_URL + 'svc/post/upload_photo', {
-                    sendContent: form
+                    sendContent: form,
+                    responseType: 'json'
                   }).then(function (res) {
-                    var response = JSON.parse(res.response);
+                    var response = res.response;
 
                     if (response.meta && response.meta.msg === 'OK' && response.meta.status === 200) {
                       delete form['photo[]'];
@@ -759,8 +760,8 @@
         return Promise.resolve(this.data);
       } else {
         var that = this;
-        return request(this.JSON).then(function (res) {
-          var data = JSON.parse(res.responseText);
+        return request(this.JSON, { responseType: 'json' }).then(function (res) {
+          var data = res.response;
           if (!data['login']) {
             delete that['data'];
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
@@ -923,12 +924,12 @@
       if (tags) {
         return Promise.resolve(tags);
       } else {
-        return request('http://b.hatena.ne.jp/' + user + '/tags.json').then(function (res) {
-          try{
-            tags = JSON.parse(res.responseText)['tags'];
-          } catch(e) {
+        return request('http://b.hatena.ne.jp/' + user + '/tags.json', { responseType: 'json' }).then(function (res) {
+          var json = res.response;
+          if (!json) {
             throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
           }
+          tags = json.tags;
           that.tags = items(tags).map(function (pair) {
             return {
               name      : pair[0],
@@ -945,12 +946,11 @@
       return request('http://b.hatena.ne.jp/my.entry', {
         queryString : {
           url  : url
-        }
+        },
+        responseType: 'json'
       }).then(function (res) {
-        var json = null;
-        try{
-          json = JSON.parse(res.responseText);
-        } catch(e) {
+        var json = res.response;
+        if (!json) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', that.name));
         }
         return json;
@@ -1251,10 +1251,10 @@
     getUserTags : function (user) {
       return this.getCurrentUser(user).then(function (user) {
         // 同期でエラーが起きないようにする
-        return Promise.resolve().then(function () {
-          return request('http://feeds.delicious.com/v2/json/tags/' + user);
+        return defer().then(function () {
+          return request('http://feeds.delicious.com/v2/json/tags/' + user, { responseType: 'json' });
         }).then(function (res) {
-          var tags = JSON.parse(res.responseText);
+          var tags = res.response;
           if (!tags) {
             return tags;
           }
@@ -1294,8 +1294,9 @@
     },
 
     getRecommendedTags: function (url) {
-      return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url)).then(function (res) {
-        var result = JSON.parse(res.responseText);
+      return request('http://feeds.delicious.com/v2/json/urlinfo/' + SparkMD5.hash(url), { responseType: 'json' })
+        .then(function (res) {
+        var result = res.response;
         if (result.length) {
           var top_tags = result[0].top_tags;
           if (top_tags) {
@@ -1330,9 +1331,10 @@
     },
 
     getInfo : function () {
-      return request('http://previous.delicious.com/save/quick', {method : 'POST'}).then(function (res) {
-        return JSON.parse(res.responseText);
-      });
+      return request('http://previous.delicious.com/save/quick', {
+          method : 'POST',
+          responseType: 'json'
+      }).then(function (res) { return res.response; });
     },
 
     check : function (ps) {
@@ -1850,16 +1852,12 @@
 
         // FIXME: 403が発生することがあったため redirectionLimit:0 を外す
         return request(self.URL + '/i/tweet/create', {
-          sendContent : sendContent
+          sendContent : sendContent,
+          responseType: 'json'
         }).catch(function (e) {
           var res = e.message;
-          var json = res.responseText;
-          try {
-            json = JSON.parse(json);
-            throw new Error(json.message);
-          } catch (e2) {
-            throw e2;
-          }
+          var json = res.response;
+          throw new Error(json.message);
         });
       });
     },
@@ -2565,10 +2563,11 @@
           login   : this.USER,
           apiKey  : this.API_KEY,
           format  : 'json'
-        }, ps)
+        }, ps),
+        responseType: 'json'
       }).then(function (res) {
-        res = JSON.parse(res.responseText);
-        if (res.status_code !== 200) {
+        res = res.response;
+        if (!res || res.status_code !== 200) {
           var error = new Error([res.status_code, res.status_txt].join(': '));
           error.detail = res;
           throw error;
@@ -2972,9 +2971,10 @@
       sendContent.csrfmiddlewaretoken = csrftoken;
 
       return request(self.UPLOAD_URL, {
-        sendContent : sendContent
+        sendContent : sendContent,
+        responseType: 'json'
       }).then(function (res) {
-        var json = JSON.parse(res.responseText);
+        var json = res.response;
         if (json && json.status && (json.status === 'fail')) {
           throw new Error(json.message);
         }
@@ -3007,9 +3007,10 @@
             'X-CSRFToken'      : csrftoken,
             'X-NEW-APP'        : 1,
             'X-Requested-With' : 'XMLHttpRequest'
-          }
+          },
+          responseType: 'json'
         }).then(function (res) {
-          var json = JSON.parse(res.responseText);
+          var json = res.response;
           if (json && json.error) {
             throw new Error('Could not post an image');
           }
@@ -3027,10 +3028,11 @@
           'X-CSRFToken'      : csrftoken,
           'X-File-Name'      : file.name,
           'X-Requested-With' : 'XMLHttpRequest'
-        }
+        },
+        responseType: 'json'
       }).then(function (res) {
-        var json = JSON.parse(res.responseText);
-        if (json && !json.success) {
+        var json = res.response;
+        if (!json || (json && !json.success)) {
           throw new Error('Could not upload an image');
         }
         data.options.link      = '';

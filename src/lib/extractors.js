@@ -280,9 +280,10 @@
             api_key        : this.API_KEY,
             nojsoncallback : 1,
             format         : 'json',
+            responseType   : 'json'
           }, ps)
         }).then(function (res) {
-          var json = JSON.parse(res.responseText);
+          var json = res.response;
           if (json.stat !== 'ok') {
             throw json.message;
           }
@@ -371,9 +372,10 @@
             reblog_id: ctx.reblog_id,
             reblog_key: ctx.reblog_key,
             post_type: ctx.post_type
-          })
+          }),
+          responseType: 'json'
         }).then(function (res) {
-          var response = JSON.parse(res.response);
+          var response = res.response;
           var post = response.post;
           var form = {
             form_key: that.form_key,
