@@ -972,7 +972,7 @@
               });
             });
 
-            promiseAllHash(files).tnen(function () {
+            promiseAllHash(files).then(function () {
               alert(chrome.i18n.getMessage('message_restored'));
               chrome.runtime.reload();
             });
