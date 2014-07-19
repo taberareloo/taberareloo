@@ -152,6 +152,12 @@
         'release-major': {
           command: 'node_modules/.bin/xyz -t X.Y.Z -m "version X.Y.Z" -i major'
         }
+      },
+      mocha_phantomjs: {
+        options: {
+          reporter: 'spec'
+        },
+        all: [ 'test/index.html' ]
       }
     });
 
@@ -163,6 +169,7 @@
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-webstore-upload');
     grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
     grunt.registerTask('canary-manifest', 'register canary version and update URL in manifest.json', function () {
       var done = this.async();
@@ -217,10 +224,6 @@
     });
 
     // alias
-    grunt.registerTask('lint', 'jshint');
-    grunt.registerTask('travis', 'jshint');
-    grunt.registerTask('default', 'lint');
-
     grunt.registerTask('canary:build', [
       'clean:canary',
       'copy:canary',
@@ -243,6 +246,10 @@
     grunt.registerTask('release-patch', ['shell:release-patch']);
     grunt.registerTask('release-minor', ['shell:release-minor']);
     grunt.registerTask('release-major', ['shell:release-major']);
+    grunt.registerTask('test', ['mocha_phantomjs']);
+    grunt.registerTask('lint', 'jshint');
+    grunt.registerTask('travis', ['jshint', 'test']);
+    grunt.registerTask('default', 'lint');
   };
 }());
 /* vim: set sw=2 ts=2 et tw=80 : */

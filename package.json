@@ -7,23 +7,24 @@
     "url": "https://github.com/Constellation/taberareloo.git"
   },
   "devDependencies": {
-    "chai": "*",
     "grunt": "^0.4.5",
     "grunt-cli": "~0.1.7",
     "grunt-crx": "git+https://github.com/Constellation/grunt-crx.git#1606e8790f424de79966c90c9c31accbccc44e5c",
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-clean": "~0.5.0",
-    "semver": "~2.2.1",
-    "bluebird": "~0.11.5-1",
-    "xml2js": "~0.4.0",
-    "request": "~2.30.0",
+    "semver": "^2.3.1",
+    "bluebird": "^2.2.2",
+    "xml2js": "^0.4.4",
+    "request": "^2.37.0",
     "grunt-webstore-upload": "git+https://github.com/Constellation/grunt-webstore-upload.git#fix",
     "grunt-contrib-compress": "^0.9.1",
     "grunt-shell": "^0.7.0",
     "xyz": "git+https://github.com/Constellation/xyz.git#taberareloo",
+    "chai": "^1.9.1",
     "phantomjs": "^1.9.7-14",
-    "mocha-phantomjs": "^3.5.0"
+    "mocha-phantomjs": "^3.5.0",
+    "grunt-mocha-phantomjs": "^0.5.0"
   },
   "scripts": {
     "test": "node_modules/.bin/grunt travis"
