@@ -21,7 +21,9 @@
     "grunt-webstore-upload": "git+https://github.com/Constellation/grunt-webstore-upload.git#fix",
     "grunt-contrib-compress": "^0.9.1",
     "grunt-shell": "^0.7.0",
-    "xyz": "git+https://github.com/Constellation/xyz.git#taberareloo"
+    "xyz": "git+https://github.com/Constellation/xyz.git#taberareloo",
+    "phantomjs": "^1.9.7-14",
+    "mocha-phantomjs": "^3.5.0"
   },
   "scripts": {
     "test": "node_modules/.bin/grunt travis"
