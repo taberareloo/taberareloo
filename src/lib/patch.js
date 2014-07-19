@@ -1,11 +1,11 @@
 // -*- coding: utf-8 -*-
-/*global MochiKit:true, Repository:true, chrome:true*/
+/*global update:true, Repository:true, chrome:true*/
 /*global TBRL:true, request:true, semver:true*/
 /*global $A:true, promiseAllHash:true*/
 (function (exports) {
   'use strict';
 
-  var Patches = exports.Patches = MochiKit.Base.update(new Repository(), {
+  var Patches = exports.Patches = update(new Repository(), {
     dirEntry : null,
 
     initailize: function () {

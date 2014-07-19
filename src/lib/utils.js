@@ -52,7 +52,7 @@
 
   exports.createXML = createXML;
 
-  function ObjectToString(obj) {
+  function objectToString(obj) {
     return Object.prototype.toString.call(obj);
   }
 
@@ -569,7 +569,7 @@
       ret.appendChild(document.createTextNode(childs));
       break;
     case 'object':
-      if (Array.isArray(childs) || ObjectToString(childs) === '[object Arguments]') {
+      if (Array.isArray(childs) || objectToString(childs) === '[object Arguments]') {
         for (var i = 0, len = childs.length; i < len; i++) {
           var child = childs[i];
           if (typeof child === 'string') {
@@ -1272,6 +1272,26 @@
   }
 
   exports.errorInformedPromiseAllHash = errorInformedPromiseAllHash;
+
+  // Simplified getStyle
+  function getStyle(node, property) {
+    var value = null, style;
+    if (node.style) {
+      value = node.style[property];
+    }
+    if (value == null) {
+      style = window.getComputedStyle(node);
+      if (style) {
+        value = style[property];
+      }
+    }
+    if (value === 'auto') {
+      return null;
+    }
+    return value;
+  }
+
+  exports.getStyle = getStyle;
 
 }(this));
 /* vim: set sw=2 ts=2 et tw=80 : */

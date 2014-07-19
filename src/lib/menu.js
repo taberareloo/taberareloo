@@ -1,9 +1,9 @@
-/*global MochiKit:true, Repository:true, chrome:true, Patches:true, delay:true*/
+/*global update:true, Repository:true, chrome:true, Patches:true, delay:true*/
 /*global TBRL:true*/
 (function (exports) {
   'use strict';
 
-  var Menus = exports.Menus = MochiKit.Base.update(new Repository(), {
+  var Menus = exports.Menus = update(new Repository(), {
     separators : 0,
 
     _register : function (createProperties, parent, target, after) {

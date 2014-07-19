@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*- */
 /* like tombloo Repository */
-/*global $A:true, itemgetter:true */
+/*global $A:true */
 (function (exports) {
   'use strict';
 
@@ -98,7 +98,7 @@
       return this.list.filter(function (i) { return i.name; });
     },
     get names() {
-      return this.values.map(itemgetter('name'));
+      return this.values.map(function (value) { return value.name; });
     },
     get size() {
       return this.values.length;

@@ -1,13 +1,13 @@
 /*global chrome:true, Repository:true, $X:true, createURI:true*/
 /*global createFlavoredString:true, $A:true, TBRL:true, request:true*/
 /*global update:true, $N:true, promiseAllHash:true, defer:true*/
-/*global queryHash:true, unescapeHTML:true*/
+/*global queryHash:true, unescapeHTML:true, getFileExtension:true*/
 /*global getStyle:true, tagName:true, downloadFile:true*/
-/*global getFileExtension:true, getElementDimensions:true*/
-/*global getViewportDimensions:true*/
-/*global getPageDimensions:true, base64ToFileEntry:true*/
-/*global cancel:true, keyString:true, setElementPosition:true*/
-/*global $D:true, $T:true, setStyle:true, setElementDimensions:true*/
+/*global base64ToFileEntry:true, cancel:true, keyString:true*/
+
+/*global getViewportDimensions:true, getElementDimensions:true*/
+/*global getPageDimensions:true, setElementPosition:true*/
+/*global setStyle:true, setElementDimensions:true*/
 (function (exports) {
   'use strict';
 

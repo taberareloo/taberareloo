@@ -6,7 +6,7 @@
 /*global joinText:true, getCookies:true, $X:true, getFileExtension:true, getFlavor:true*/
 /*global fileToBinaryString:true, Sandbox:true, formContents:true, unescapeHTML:true*/
 /*global items:true, $A:true, map:true, templateExtract:true, convertToHTMLString:true*/
-/*global methodcaller:true, escape:true, SparkMD5:true*/
+/*global escape:true, SparkMD5:true, arrayZip:true*/
 /*global escapeHTML:true, getURLFromFile:true, fileToDataURL:true, isJSON:true*/
 /*global Repository:true, cutBase64Header:true, fileToPNGDataURL:true, getFinalUrl:true*/
 (function (exports) {
@@ -1490,7 +1490,7 @@
         return {
           saved       : (/(edit|編集)/i).test($X('//h1/text()', doc)[0]),
           item        : form.title,
-          tags        : form.labels.split(/,/).map(methodcaller('trim')),
+          tags        : form.labels.split(/,/).map(function (label) { return label.trim(); }),
           description : form.annotation
         };
       });
