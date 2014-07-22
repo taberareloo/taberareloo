@@ -1,6 +1,0 @@
-div#taberareloo_background *:focus {
-  outline: auto 5px -webkit-focus-ring-color !important;
-}
-button.taberareloo_button:hover {
-  background-image: linear-gradient(rgb(187, 204, 221), rgb(51, 102, 153)) !important;
-}

@@ -30,7 +30,6 @@
        "lib/userscripts.js",
        "lib/content.js"
       ],
-      "css": ["styles/general.css"],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_start"
    } ],
