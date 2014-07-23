@@ -216,11 +216,11 @@
 
     TBRL.setRequestHandler('updateContextMenu', function (req, sender, func) {
       chrome.contextMenus.update(Menus[name].id, {
-        title : 'Taberareloo - ' + req.extractors[0]
+        title : 'Quick - ' + req.extractors[0]
       }, function () {});
 
       chrome.contextMenus.update(Menus['Taberareloo'].id, {
-        title : req.extractors[0]
+        title : 'Form - ' + req.extractors[0]
       }, function () {});
     });
   })();
