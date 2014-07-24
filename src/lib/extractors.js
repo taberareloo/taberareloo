@@ -253,8 +253,8 @@
         if (/flickr\.com/.test(ctx.host)) {
           // ログインしているとphoto-drag-proxyが前面に表示される
           // アノテーション上の場合はphoto_notesの孫要素となる
-          if ($X('./ancestor-or-self::div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-view ")]', ctx.target)) {
-            ctx.target = $X('//div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-media-view ")]/img')[0] || ctx.target;
+          if ($X('./ancestor-or-self::div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-view ") or contains(concat(" ",normalize-space(@class)," "), " photo-well-scrappy-view ")]', ctx.target)) {
+            ctx.target = $X('//div[@id="content"]//div[contains(concat(" ",normalize-space(@class)," "), " photo-well-media-view ") or contains(concat(" ",normalize-space(@class)," "), " photo-well-media-scrappy-view ")]/img')[0] || ctx.target;
 
           } else if (
               (ctx.target.src && ctx.target.src.match('spaceball.gif')) ||
