@@ -292,8 +292,9 @@
         document.removeEventListener('keydown', this.wrap, false);
       },
       getStatus: function () {
+        var that = this;
         return new Promise(function (resolve) {
-          var ev_name = 'LDRize.status.Taberareloo' + (++this.count);
+          var ev_name = 'LDRize.status.Taberareloo' + (++that.count);
           document.addEventListener(ev_name, function callee(e) {
             document.removeEventListener(ev_name, callee, false);
             var data = JSON.parse(e.data);
