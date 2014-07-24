@@ -9,6 +9,7 @@
   'use strict';
 
   var TBRL = {
+    target : { x: 0, y: 0 },
     clickTarget: { x: 0, y: 0 },
     config : null,
     id     : chrome.runtime.id,
@@ -17,10 +18,12 @@
       var userscripts;
 
       TBRL.config = config;
+      document.addEventListener('mousemove', TBRL.mousehandler, false);
       document.addEventListener('mousedown', TBRL.clickhandler, false);
       document.addEventListener('unload', TBRL.unload, false);
       window.addEventListener('Taberareloo.link', TBRL.link, false);
       window.addEventListener('Taberareloo.quote', TBRL.quote, false);
+      window.addEventListener('Taberareloo.general', TBRL.general, false);
 
       if (!TBRL.config.post.keyconfig) {
         document.addEventListener('keydown', TBRL.keyhandler, false);
@@ -38,9 +41,11 @@
         document.removeEventListener('keydown', TBRL.keyhandler, false);
       }
 
+      document.removeEventListener('mousemove', TBRL.mousehandler, false);
       document.removeEventListener('mousedown', TBRL.clickhandler, false);
       window.removeEventListener('Taberareloo.link', TBRL.link, false);
       window.removeEventListener('Taberareloo.quote', TBRL.quote, false);
+      window.removeEventListener('Taberareloo.general', TBRL.general, false);
 
       TBRL.userscripts.forEach(function (script) {
         script.unload();
@@ -58,6 +63,11 @@
       var ext = (Extractors.Quote.check(ctx)) ? Extractors.Quote : Extractors.Text;
       return TBRL.share(ctx, ext, true);
     },
+    general: function () {
+      var ctx = TBRL.createContext();
+      var ext = Extractors.check(ctx)[0];
+      return TBRL.share(ctx, ext, true);
+    },
     keyhandler: function (ev) {
       var t = ev.target;
       if (t.nodeType === 1) {
@@ -71,11 +81,14 @@
           var key = keyString(ev);
           var link_quick_post = TBRL.config.post.shortcutkey_linkquickpost;
           var quote_quick_post = TBRL.config.post.shortcutkey_quotequickpost;
+          var quick_post = TBRL.config.post.shortcutkey_quickpost;
 
           if (link_quick_post && key === link_quick_post) {
             TBRL.link();
           } else if (quote_quick_post && key === quote_quick_post) {
             TBRL.quote();
+          } else if (quick_post && key === quick_post) {
+            TBRL.general();
           }
         } catch (e) {
           window.alert(e);
@@ -89,7 +102,7 @@
         window: window,
         title: document.title || location.href.replace(new RegExp('(?:^http://)?(' + location.hostname + ')(?:/$)?'), '$1'),
         selection: (sel.raw) ? sel : null,
-        target: target || document.documentElement
+        target: target || TBRL.getTarget() || document.documentElement
       }, window.location);
       if (ctx.target) {
         ctx.link    = $X('./ancestor-or-self::a[@href]', ctx.target)[0];
@@ -98,9 +111,17 @@
       }
       return ctx;
     },
+    mousehandler: function (ev) {
+      // 監視
+      TBRL.target.x = ev.clientX;
+      TBRL.target.y = ev.clientY;
+    },
     clickhandler: function (ev) {
       TBRL.clickTarget.x = ev.clientX;
       TBRL.clickTarget.y = ev.clientY;
+    },
+    getTarget : function () {
+      return document.elementFromPoint(TBRL.target.x, TBRL.target.y);
     },
     getContextMenuTarget: function () {
       return document.elementFromPoint(TBRL.clickTarget.x, TBRL.clickTarget.y);
