@@ -653,7 +653,7 @@
 
     getDataURL : function (ps) {
       if (!ps.file) {
-        Promise.resolve(ps.itemUrl);
+        return Promise.resolve(ps.itemUrl);
       }
       return fileToDataURL(ps.file).then(function (url) { return url; });
     },
