@@ -1237,11 +1237,10 @@
     return new Promise(function (resolve, reject) {
       var counter = list.length,
           results = [],
-          callback = reject;
+          callback = resolve;
 
       list.forEach(function (promise, index) {
         function resolved(res) {
-          callback = resolve;
           results[index] = [true, res];
           if (!--counter) {
             callback(results);
