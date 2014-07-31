@@ -376,7 +376,7 @@
       var self = this;
       return request(Tumblr.LINK + 'dashboard', { responseType: 'document' }).then(function (res) {
         var doc = res.response;
-        if ($X('id("logged_out_container")', doc)[0]) {
+        if ($X('id("account_actions_login_and_register")', doc)[0]) {
           throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
         }
         Tumblr.form_key = $X('//input[@name="form_key"]/@value', doc)[0];
