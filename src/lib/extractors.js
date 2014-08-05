@@ -353,7 +353,7 @@
 
     {
       name : 'ReBlog',
-      TUMBLR_URL : 'http://www.tumblr.com/',
+      TUMBLR_URL : 'https://www.tumblr.com/',
       extractByLink : function (ctx, link) {
         var that = this;
         return request(link, {responseType: 'document'}).then(function (res) {

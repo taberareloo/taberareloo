@@ -19,7 +19,7 @@
     name : 'Tumblr',
     ICON : 'http://assets.tumblr.com/images/favicon.gif',
     MEDIA_URL : 'http://media.tumblr.com/',
-    TUMBLR_URL : 'http://www.tumblr.com/',
+    TUMBLR_URL : 'https://www.tumblr.com/',
     LINK : 'https://www.tumblr.com/',
     LOGIN_URL : 'https://www.tumblr.com/login',
 
