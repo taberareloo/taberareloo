@@ -1817,7 +1817,7 @@
           shortenUrls(status, Models[self.SHORTEN_SERVICE]) : Promise.resolve(status)).then(function (status) {
         var len = self.getActualLength(status);
         if (len > maxlen) {
-          throw 'too many characters to post (' + (len - maxlen) + ' over)';
+          throw new Error('too many characters to post (' + (len - maxlen) + ' over)');
         }
         return status;
       });
