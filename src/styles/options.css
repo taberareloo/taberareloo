@@ -60,7 +60,6 @@ div#inner {
   transition: margin-left 0.1s ease-out;
 }
 div.slide {
-  font-size: 80%;
   float: left;
   position: relative;
   display: inline;
