@@ -2585,7 +2585,7 @@
 
   Models.register({
     name       : 'Gmail',
-    ICON       : 'https://mail.google.com/mail/images/favicon.ico',
+    ICON       : skin + 'gmail.ico',
     LINK       : 'https://mail.google.com/mail/',
     LOGIN_URL  : 'https://accounts.google.com/ServiceLogin?service=mail',
 
