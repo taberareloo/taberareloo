@@ -2585,7 +2585,7 @@
 
   Models.register({
     name       : 'Gmail',
-    ICON       : 'https://mail.google.com/mail/images/favicon.ico',
+    ICON       : skin + 'gmail.ico',
     LINK       : 'https://mail.google.com/mail/',
     LOGIN_URL  : 'https://accounts.google.com/ServiceLogin?service=mail',
 
@@ -3069,7 +3069,7 @@
 
   Models.register({
     name      : 'Gyazo',
-    ICON      : 'http://gyazo.com/public/img/favicon.ico',
+    ICON      : skin + 'gyazo.ico',
     LINK      : 'http://gyazo.com/',
     LOGIN_URL : null,
 
