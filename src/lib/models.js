@@ -3069,7 +3069,7 @@
 
   Models.register({
     name      : 'Gyazo',
-    ICON      : 'http://gyazo.com/public/img/favicon.ico',
+    ICON      : skin + 'gyazo.ico',
     LINK      : 'http://gyazo.com/',
     LOGIN_URL : null,
 
