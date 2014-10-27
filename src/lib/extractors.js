@@ -611,27 +611,29 @@
       name : 'ReBlog - Dashboard',
       ICON : skin + 'reblog.ico',
       check : function (ctx) {
-        return (/(tumblr-beta\.com|tumblr\.com)\//).test(ctx.href) && this.getLink(ctx);
+        if (!(/(tumblr-beta\.com|tumblr\.com)\//).test(ctx.href)) {
+          return false;
+        }
+        var link = $X('./ancestor-or-self::div[starts-with(@id, "post_")]//a[starts-with(@id, "permalink_")]', ctx.target)[0];
+        return link && link.href;
       },
       extract : function (ctx) {
-        var post = $X('./ancestor-or-self::div[starts-with(@id, "post_")]', ctx.target)[0];
+        var post = $X('./ancestor-or-self::*[starts-with(@id,"post_")]', ctx.target)[0];
 
-        if (post) {
-          var data = post.dataset;
-          ctx.reblog_id = data.postId;
-          ctx.reblog_key = data.reblogKey;
-          if (TBRL.config.entry.not_convert_text && data.type === 'regular') {
-            ctx.post_type = 'text';
-          }
+        ctx.title      = $X('.//a[@class="post_avatar_link"]/@title', post)[0];
+        ctx.href       = $X('.//a[@class="post_permalink"]/@href', post)[0];
+        ctx.form_key   = $X('.//input[@name="form_key"]/@value', post)[0];
+        ctx.reblog_id  = post.getAttribute('data-post-id');
+        ctx.reblog_key = post.getAttribute('data-reblog-key');
+        ctx.post_type  = post.getAttribute('data-type');
+        if (TBRL.config.entry.not_convert_text && ctx.post_type === 'regular') {
+          ctx.post_type = 'text';
         }
 
-        // タイトルなどを取得するためextractByLinkを使う(reblogリンクを取得しextractByEndpointを使った方が速い)
-        return Extractors.ReBlog.extractByLink(ctx, this.getLink(ctx));
-      },
-      getLink : function (ctx) {
-        var link = $X(
-          './ancestor-or-self::div[starts-with(@id, "post_")]//a[starts-with(@id, "permalink_")]', ctx.target)[0];
-        return link && link.href;
+        var ReBlog = Extractors.ReBlog;
+        return ReBlog.getFormKeyAndChannelId().then(function () {
+          return ReBlog.extractByEndpoint(ctx, ReBlog.TUMBLR_URL + 'reblog/' + ctx.reblog_id + '/' + ctx.reblog_key);
+        });
       }
     },
 
