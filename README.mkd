@@ -1,4 +1,4 @@
-# Taberareloo [![Build Status](https://travis-ci.org/Constellation/taberareloo.svg?branch=master)](https://travis-ci.org/Constellation/taberareloo) [![Build Status](https://drone.io/github.com/Constellation/taberareloo/status.png)](https://drone.io/github.com/Constellation/taberareloo/latest) [![Gitter chat](https://badges.gitter.im/Constellation/taberareloo.png)](https://gitter.im/Constellation/taberareloo)
+# Taberareloo [![Build Status](https://travis-ci.org/Constellation/taberareloo.svg?branch=master)](https://travis-ci.org/Constellation/taberareloo) [![Build Status](https://drone.io/github.com/Constellation/taberareloo/status.png)](https://drone.io/github.com/Constellation/taberareloo/latest) [![devDependency Status](https://david-dm.org/Constellation/taberareloo/dev-status.svg)](https://david-dm.org/Constellation/taberareloo#info=devDependencies) [![Gitter chat](https://badges.gitter.im/Constellation/taberareloo.png)](https://gitter.im/Constellation/taberareloo)
 
 [![taberareloo](https://raw.github.com/Constellation/taberareloo/master/src/skin/fork64.png)](https://github.com/Constellation/taberareloo)
 
