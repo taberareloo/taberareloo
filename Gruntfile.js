@@ -25,6 +25,8 @@
 (function () {
   'use strict';
 
+  var fs = require('fs');
+  var path = require('path');
   var semver = require('semver');
   var request = require('request');
   var xml2js = require('xml2js');
@@ -34,6 +36,28 @@
   var updates = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/updates.xml';
   var PRIVATE_KEY = 'private.pem';
   var CREDENTIALS = 'oauth.json';
+
+  function getBrowserPath() {
+    var candidates = [], i, iz, p;
+    if (process.platform === 'darwin') {
+      candidates = [
+        path.join(process.env.HOME, 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      ];
+    } else if (process.platform === 'linux') {
+      candidates = [
+        '/usr/bin/google-chrome'
+      ];
+    } else {
+      throw new Error('Unknown platform ' + process.platform + '.');
+    }
+    for (i = 0, iz = candidates.length; i < iz; ++i) {
+      p = candidates[i];
+      if (fs.existsSync(p)) {
+        return p;
+      }
+    }
+  }
 
   module.exports = function (grunt) {
     var key;
@@ -128,15 +152,16 @@
         }
       },
       webstore_upload: {
-        options: {
-          publish: false,
-          client_id: credentials.client_id,
-          client_secret: credentials.client_secret,
-          browser_path: '/usr/bin/google-chrome'
-        },
-        master: {
-          options: {
+        browser_path: getBrowserPath(),
+        accounts: {
+          default: {
             publish: true,
+            client_id: credentials.client_id,
+            client_secret: credentials.client_secret,
+          }
+        },
+        extensions: {
+          master: {
             appID: 'ldcnohnnlpgglecmkldelbmiokgmikno',
             zip: 'pkg/taberareloo.zip'
           }

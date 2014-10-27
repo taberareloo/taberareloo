@@ -7,24 +7,24 @@
     "url": "https://github.com/Constellation/taberareloo.git"
   },
   "devDependencies": {
+    "bluebird": "^2.3.6",
+    "chai": "^1.9.2",
     "grunt": "^0.4.5",
     "grunt-cli": "^0.1.13",
-    "grunt-crx": "git+https://github.com/Constellation/grunt-crx.git#1606e8790f424de79966c90c9c31accbccc44e5c",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-copy": "^0.7.0",
     "grunt-contrib-clean": "^0.6.0",
-    "semver": "^4.1.0",
-    "bluebird": "^2.3.6",
-    "xml2js": "^0.4.4",
-    "request": "^2.47.0",
-    "grunt-webstore-upload": "git+https://github.com/Constellation/grunt-webstore-upload.git#fix",
     "grunt-contrib-compress": "^0.12.0",
+    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-crx": "git+https://github.com/Constellation/grunt-crx.git#1606e8790f424de79966c90c9c31accbccc44e5c",
+    "grunt-mocha-phantomjs": "^0.6.0",
     "grunt-shell": "^1.1.1",
-    "xyz": "git+https://github.com/Constellation/xyz.git#taberareloo",
-    "chai": "^1.9.2",
-    "phantomjs": "^1.9.11",
+    "grunt-webstore-upload": "^0.7.2",
     "mocha-phantomjs": "^3.5.1",
-    "grunt-mocha-phantomjs": "^0.6.0"
+    "phantomjs": "^1.9.11",
+    "request": "^2.47.0",
+    "semver": "^4.1.0",
+    "xml2js": "^0.4.4",
+    "xyz": "git+https://github.com/Constellation/xyz.git#taberareloo"
   },
   "scripts": {
     "test": "node_modules/.bin/grunt travis"
