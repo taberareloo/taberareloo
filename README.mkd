@@ -1,4 +1,9 @@
-# Taberareloo [![Build Status](https://travis-ci.org/taberareloo/taberareloo.svg?branch=master)](https://travis-ci.org/taberareloo/taberareloo) [![Build Status](https://drone.io/github.com/taberareloo/taberareloo/status.png)](https://drone.io/github.com/taberareloo/taberareloo/latest) [![devDependency Status](https://david-dm.org/taberareloo/taberareloo/dev-status.svg)](https://david-dm.org/taberareloo/taberareloo#info=devDependencies) [![Gitter chat](https://badges.gitter.im/taberareloo/taberareloo.png)](https://gitter.im/taberareloo/taberareloo)
+# Taberareloo
+
+[![Build Status](https://travis-ci.org/taberareloo/taberareloo.svg?branch=master)](https://travis-ci.org/taberareloo/taberareloo)
+[![Build Status](https://drone.io/github.com/taberareloo/taberareloo/status.png)](https://drone.io/github.com/taberareloo/taberareloo/latest)
+[![devDependency Status](https://david-dm.org/taberareloo/taberareloo/dev-status.svg)](https://david-dm.org/taberareloo/taberareloo#info=devDependencies)
+[![Gitter chat](https://badges.gitter.im/taberareloo/taberareloo.png)](https://gitter.im/taberareloo/taberareloo)
 
 [![taberareloo](https://raw.github.com/taberareloo/taberareloo/master/src/skin/fork64.png)](https://github.com/taberareloo/taberareloo)
 
