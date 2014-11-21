@@ -32,8 +32,8 @@
   var xml2js = require('xml2js');
   var Promise = require('bluebird');
 
-  var base    = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/taberareloo.crx';
-  var updates = 'https://drone.io/github.com/Constellation/taberareloo/files/pkg/updates.xml';
+  var base    = 'https://drone.io/github.com/taberareloo/taberareloo/files/pkg/taberareloo.crx';
+  var updates = 'https://drone.io/github.com/taberareloo/taberareloo/files/pkg/updates.xml';
   var PRIVATE_KEY = 'private.pem';
   var CREDENTIALS = 'oauth.json';
 
