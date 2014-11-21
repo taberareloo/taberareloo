@@ -4,7 +4,7 @@
   "version": "4.0.5-dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Constellation/taberareloo.git"
+    "url": "https://github.com/taberareloo/taberareloo.git"
   },
   "devDependencies": {
     "bluebird": "^2.3.6",
