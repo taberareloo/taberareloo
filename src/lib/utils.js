@@ -808,6 +808,8 @@
       var mime = res.getResponseHeader('Content-Type').replace(/;.*/, '');
       ext = getFileExtensionFromMime(mime) || ext;
       return createFileEntryFromBlob(res.response, ext);
+    }).catch(function (res) {
+      return res;
     });
   }
 
