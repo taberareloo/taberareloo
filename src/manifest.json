@@ -120,7 +120,8 @@
     "notifications",
     "webRequest",
     "webRequestBlocking",
-    "downloads"
+    "downloads",
+    "identity"
   ],
   "version": "4.0.1",
   "incognito": "split"
