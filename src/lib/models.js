@@ -3197,11 +3197,11 @@
         }
         chrome.identity.launchWebAuthFlow(
           {
-            'url': self.AUTH_URL
-              + '?client_id=' + encodeURIComponent(self.client_id)
-              + '&redirect_uri=' + encodeURIComponent(self.redirect_url)
-              + '&response_type=code'
-              + '&scope=read+write',
+            'url': self.AUTH_URL + '?client_id=' +
+              encodeURIComponent(self.client_id) +
+              '&redirect_uri=' + encodeURIComponent(self.redirect_url) +
+              '&response_type=code' +
+              '&scope=read+write',
             'interactive': true
           },
           function(authorizeResponse) {
@@ -3217,7 +3217,7 @@
               },
               responseType: 'json'
             }).then(function(data) {
-              var token = localStorage['suzuri_token'] = data.response.access_token;
+              var token = localStorage.suzuri_token = data.response.access_token;
               resolve(token);
             }).catch(function(data) {
               reject(false);
@@ -3229,7 +3229,7 @@
 
     getToken : function (self) {
       return new Promise(function(resolve, reject) {
-        var token = localStorage['suzuri_token']
+        var token = localStorage.suzuri_token;
         if (token) {
           request(self.URL + 'api/v1/user', {
             headers : {
@@ -3241,7 +3241,7 @@
           }).then(function(res) {
             resolve(token);
           }).catch(function(res) {
-            localStorage['suzuri_token'] == undefined
+            localStorage.suzuri_token = undefined;
             resolve(self.authorize(self));
           });
         } else {
@@ -3269,10 +3269,12 @@
       return Promise.resolve().then(function() {
         return self.getToken(self).then(function (token) {
           return self.getImage(ps).then(function (data) {
+            var url;
+            var content;
             if (ps.type === 'photo') {
-              var url = self.URL + 'api/v1/materials';
+              url = self.URL + 'api/v1/materials';
               var texture = data.binary || data;
-              var content = {
+              content = {
                 texture: texture,
                 title: ps.item,
                 description: ps.pageUrl,
@@ -3286,8 +3288,8 @@
                 ]
               };
             } else if (ps.type === 'quote') {
-              var url = self.URL + 'api/v1/materials/text';
-              var content = {
+              url = self.URL + 'api/v1/materials/text';
+              content = {
                 text: '"'+ ps.body + '"',
                 description: ps.pageUrl
               };
@@ -3300,10 +3302,10 @@
               },
               sendContent: JSON.stringify(content)
             }).catch(function(res) {
-              localStorage['suzuri_token'] = undefined;
+              localStorage.suzuri_token = undefined;
             });
-          })
-        })
+          });
+        });
       });
     },
   });
