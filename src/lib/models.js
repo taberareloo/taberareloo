@@ -3174,6 +3174,142 @@
     }
   });
 
+  Models.register({
+    name : 'Suzuri',
+    ICON : 'https://dijsur42hqnz1.cloudfront.net/assets/favicon-34fbe263576b796588df56fe96fcf63c.ico',
+    LINK : 'https://suzuri.jp/',
+    URL : 'https://suzuri.jp/',
+
+    AUTH_URL : 'https://suzuri.jp/oauth/authorize',
+    TOKEN_URL : 'https://suzuri.jp/oauth/token',
+
+    // アプリケーションとして登録してあります。
+    // 開発時には、extension idが変わってしまうので、適宜書き換えてください。
+    client_id : '45486b20f10137be91d4dd67a989d3eb28c5effdb9dba513a166a82418ff4cb6',
+    client_secret : '25b8f7b7f371a0db6ad39e1c3eff7320e1dd8a790bd567c4c44693039e3327db',
+    redirect_url : 'https://' + chrome.runtime.id + '.chromiumapp.org/provider_cb',
+
+    authorize : function (self) {
+      return new Promise(function(resolve, reject) {
+        if (!(chrome && chrome.identity)) {
+          reject(new Error('chrome.identity API is unsupported'));
+          return;
+        }
+        chrome.identity.launchWebAuthFlow(
+          {
+            'url': self.AUTH_URL + '?client_id=' +
+              encodeURIComponent(self.client_id) +
+              '&redirect_uri=' + encodeURIComponent(self.redirect_url) +
+              '&response_type=code' +
+              '&scope=read+write',
+            'interactive': true
+          },
+          function(authorizeResponse) {
+            var code = authorizeResponse.match('code=(.+)')[1];
+            return request(self.TOKEN_URL, {
+              method: 'POST',
+              sendContent: {
+                'client_id'    : self.client_id,
+                'redirect_uri' : self.redirect_url,
+                'client_secret': self.client_secret,
+                'grant_type'   : 'authorization_code',
+                'code'         : code
+              },
+              responseType: 'json'
+            }).then(function(data) {
+              var token = localStorage.suzuri_token = data.response.access_token;
+              resolve(token);
+            }).catch(function(data) {
+              reject(false);
+            });
+          }
+        );
+      });
+    },
+
+    getToken : function (self) {
+      return new Promise(function(resolve, reject) {
+        var token = localStorage.suzuri_token;
+        if (token) {
+          request(self.URL + 'api/v1/user', {
+            headers : {
+              'Content-Type' : 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            method: 'GET',
+            responseType: 'json'
+          }).then(function(res) {
+            resolve(token);
+          }).catch(function(res) {
+            localStorage.suzuri_token = undefined;
+            resolve(self.authorize(self));
+          });
+        } else {
+          resolve(self.authorize(self));
+        }
+      });
+    },
+
+    check : function (ps) {
+      return /photo|quote/.test(ps.type) && ps.suffix !== '.gif';
+    },
+
+    getImage : function (ps) {
+      return new Promise(function(resolve, reject) {
+        if (ps.file) {
+          return resolve(fileToPNGDataURL(ps.file));
+        } else {
+          return resolve(ps.itemUrl);
+        }
+      });
+    },
+
+    post : function (ps) {
+      var self = this;
+      return Promise.resolve().then(function() {
+        return self.getToken(self).then(function (token) {
+          return self.getImage(ps).then(function (data) {
+            var url;
+            var content;
+            if (ps.type === 'photo') {
+              url = self.URL + 'api/v1/materials';
+              var texture = data.binary || data;
+              content = {
+                texture: texture,
+                title: ps.item,
+                description: ps.pageUrl,
+                products: [
+                  {
+                    itemId: 1,
+                    exemplaryVarriantId: 1,
+                    resizeMode: 'contain',
+                    published: true
+                  }
+                ]
+              };
+            } else if (ps.type === 'quote') {
+              url = self.URL + 'api/v1/materials/text';
+              content = {
+                text: '"'+ ps.body + '"',
+                description: ps.pageUrl
+              };
+            }
+            return request(url, {
+              method: 'POST',
+              headers : {
+                'Content-Type' : 'application/json',
+                'Authorization' : 'Bearer ' + token
+              },
+              sendContent: JSON.stringify(content)
+            }).catch(function(res) {
+              localStorage.suzuri_token = undefined;
+            });
+          });
+        });
+      });
+    },
+  });
+
   function shortenUrls(text, model) {
     var reUrl = /https?[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#\^]+/g;
     if (!reUrl.test(text)) {
