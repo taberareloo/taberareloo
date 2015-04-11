@@ -529,6 +529,11 @@
             content: e
           });
         });
+      }).catch(function (e) {
+        func({
+          success: false,
+          content: e
+        });
       });
     },
     notifications: function (req, sender, func) {
