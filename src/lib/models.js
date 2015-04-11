@@ -1741,43 +1741,6 @@
   });
 
   Models.register({
-    name : 'FriendFeed',
-    ICON : 'https://friendfeed.com/favicon.ico',
-    LINK : 'https://friendfeed.com/',
-    LOGIN_URL : 'https://friendfeed.com/account/login',
-    check : function (ps) {
-      return (/photo|quote|link|conversation|video/).test(ps.type) && !ps.file;
-    },
-
-    getToken : function () {
-      var self = this;
-      return request('http://friendfeed.com/share/bookmarklet/frame', { responseType: 'document' })
-      .then(function (res) {
-        var doc = res.response;
-        if ($X('descendant::span[child::a[@href="http://friendfeed.com/account/login"]]', doc)[0]) {
-          throw new Error(chrome.i18n.getMessage('error_notLoggedin', self.name));
-        }
-        return $X('descendant::input[contains(concat(" ",normalize-space(@name)," ")," at ")]/@value', doc)[0];
-      });
-    },
-
-    post : function (ps) {
-      return this.getToken().then(function (token) {
-        return request('https://friendfeed.com/a/bookmarklet', {
-          //denyRedirection: true,
-          sendContent : {
-            at      : token,
-            link    : ps.pageUrl,
-            title   : ps.page,
-            image0  : ps.type === 'photo'? ps.itemUrl : '',
-            comment : joinText([ps.body, ps.description], ' ', true)
-          }
-        });
-      });
-    }
-  });
-
-  Models.register({
     name : 'Twitter',
     ICON : 'https://twitter.com/favicon.ico',
     URL  : 'https://twitter.com',

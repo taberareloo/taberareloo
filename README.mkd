@@ -19,7 +19,6 @@ Services example:
 +  Delicious
 +  Pinboard
 +  GoogleBookmarks
-+  FriendFeed
 +  Twitter
 +  Pocket
 +  Instapaper
