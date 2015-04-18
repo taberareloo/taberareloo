@@ -96,6 +96,11 @@
         ctx.onLink  = !!ctx.link;
         ctx.onImage = ctx.target instanceof HTMLImageElement;
       }
+
+      if (!ctx.host) {
+        ctx = update(ctx, url.parse(location.href));
+      }
+
       return ctx;
     },
     clickhandler: function (ev) {
