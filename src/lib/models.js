@@ -17,7 +17,7 @@
 
   var Tumblr = {
     name : 'Tumblr',
-    ICON : 'http://assets.tumblr.com/images/favicon.gif',
+    ICON : 'https://secure.assets.tumblr.com/images/favicons/favicon.ico?_v=2f32b762e629b447737e25d2f97b808a',
     MEDIA_URL : 'http://media.tumblr.com/',
     TUMBLR_URL : 'https://www.tumblr.com/',
     LINK : 'https://www.tumblr.com/',
