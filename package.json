@@ -1,7 +1,7 @@
 {
   "name": "Taberareloo",
   "description": "Yet another Tombloo on Chromium",
-  "version": "4.0.5-dev",
+  "version": "4.0.6-dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/taberareloo/taberareloo.git"
