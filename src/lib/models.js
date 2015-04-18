@@ -383,7 +383,7 @@
         Tumblr.channel_id = $X('//input[@name="t"]/@value', doc)[0];
         Tumblr.blogs = [Tumblr.channel_id];
         return Array.prototype.slice.call(doc.querySelectorAll(
-          '#popover_blogs .popover_menu_item ' +
+          '#tab_switching .tab_blog.item ' +
             'a[href^="/blog/"]:not([href="/blog/' + Tumblr.channel_id + '"])'
         )).reverse().map(function (a) {
           var id = a.getAttribute('href').replace(/^\/blog\//g, '');
