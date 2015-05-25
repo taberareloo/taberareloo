@@ -1902,7 +1902,7 @@
             }
           }).then(function (res) {
             var html = res.responseText;
-            var json = html.extract(/parent\.postMessage\(JSON\.stringify\((\{.+\})\), ".+"\);/);
+            var json = html.extract(/id="responseJson" value="(\{.+\})"/).replace(/&quot;/g, '"');
             json = JSON.parse(json);
             return self.update(status, json.media_id_string);
          });
