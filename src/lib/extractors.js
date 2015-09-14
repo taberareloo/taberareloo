@@ -367,12 +367,12 @@
         var that = this;
         return request(this.TUMBLR_URL + 'svc/post/fetch', {
           headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
-          sendContent: JSON.stringify({
+          sendContent: {
             form_key: this.form_key,
             reblog_id: ctx.reblog_id,
             reblog_key: ctx.reblog_key,
             post_type: ctx.post_type
-          }),
+          },
           responseType: 'json'
         }).then(function (res) {
           var response = res.response;
