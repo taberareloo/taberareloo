@@ -71,7 +71,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenus',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -81,7 +81,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusQuote',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -91,7 +91,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusLink',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -101,7 +101,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImage',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -111,7 +111,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImageCache',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -121,7 +121,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusVideo',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -131,7 +131,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusAudio',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -142,7 +142,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusImage',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -152,7 +152,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusCapture',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -162,7 +162,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusBGImage',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     Menus._register({
@@ -172,7 +172,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusText',
           content: info
-        });
+        }, {frameId: 0});
       }
     });
     var patchFileURLs = [
@@ -206,7 +206,7 @@
         chrome.tabs.sendMessage(tab.id, {
           request: 'contextMenusNoPopup',
           content: info
-        });
+        }, {frameId: 0});
       }
     }, null, 'Taberareloo');
     Menus._register({
