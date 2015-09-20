@@ -34,7 +34,9 @@
         this.top_menu = topMenuProperties;
       }
       if (this.creating || !this.top_menu) {
-        delay(0.5).then(Menus.create);
+        delay(0.5).then(function () {
+          Menus.create
+        });
         return;
       }
       this.creating = true;
