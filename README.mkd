@@ -33,7 +33,6 @@ and
 
 and
 
-+  PickNaver
 +  HatenaFotolife
 +  Gyazo
 +  4u (these are Japanese Service)
