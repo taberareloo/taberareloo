@@ -46,7 +46,7 @@
                   title: tab.title,
                   url  : tab.url
                 }
-              }, function (ps) {
+              }, {frameId: 0}, function (ps) {
                 resolve(ps);
               });
             }
