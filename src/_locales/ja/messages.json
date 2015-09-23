@@ -19,13 +19,16 @@
     "description": "Taberarelooについてのタブ"
   },
   "label_tagprovider": {
-    "message": "クイックポストで使うタグの取得元"
+    "message": "タグの取得元"
   },
   "label_keyconfig": {
     "message": "Keyconfig を使う ( チェックされているとTaberarelooによるキー監視は行われません )"
   },
   "label_shortcutkey": {
-    "message": "ショートカット - $1クイックポスト"
+    "message": "ショートカット - $1・ポスト"
+  },
+  "label_shortcutkey_general": {
+    "message": "ショートカット - コンテキスト・ポスト"
   },
   "label_clear": {
     "message": "クリア"

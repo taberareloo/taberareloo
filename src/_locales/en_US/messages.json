@@ -25,7 +25,10 @@
     "message": "use Keyconfig instead ( if this is checked, Taberareloo doesn't observe key input. )"
   },
   "label_shortcutkey": {
-    "message": "Shortcutkey - $1 Quick Post"
+    "message": "Shortcutkey - $1 Post"
+  },
+  "label_shortcutkey_general": {
+    "message": "Shortcutkey - Contextual Post"
   },
   "label_clear": {
     "message": "clear"

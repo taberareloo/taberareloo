@@ -17,7 +17,8 @@
       group: 'Taberareloo',
       actions: [
         {name: 'Taberareloo.link'},
-        {name: 'Taberareloo.quote'}
+        {name: 'Taberareloo.quote'},
+        {name: 'Taberareloo.general'}
       ]
     };
     chrome.runtime.sendMessage(CHROME_GESTURES, action, function () {
@@ -85,6 +86,7 @@
         'keyconfig': true,
         'shortcutkey_linkquickpost': '',
         'shortcutkey_quotequickpost': '',
+        'shortcutkey_quickpost': '',
         'evernote_clip_fullpage': true,
         'remove_hatena_keyword': false,
         'tumblr_default_quote': false,
